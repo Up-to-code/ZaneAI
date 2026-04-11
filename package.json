@@ -1,22 +1,23 @@
 {
   "name": "zayon",
-  "version": "1.0.0",
-  "main": "index.ts",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
-  },
-  "dependencies": {
-    "expo": "~54.0.33",
-    "expo-status-bar": "~3.0.9",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
+    "start": "npm --workspace apps/mobile run start",
+    "android": "npm --workspace apps/mobile run android",
+    "ios": "npm --workspace apps/mobile run ios",
+    "typecheck": "npm --workspace apps/mobile run typecheck",
+    "test": "npm --workspace apps/mobile run test",
+    "lint": "npm --workspace apps/mobile run lint",
+    "convex:dev": "convex dev",
+    "convex:codegen": "convex codegen"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
-    "typescript": "~5.9.2"
-  },
-  "private": true
+    "convex": "^1.35.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
 }
