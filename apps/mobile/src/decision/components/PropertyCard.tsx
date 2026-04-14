@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import type { StyleProp, ViewStyle } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { Bookmark, Scale, MapPin, BedDouble, Bath } from "lucide-react-native";
@@ -15,23 +16,14 @@ import type { PropertyCardVM } from "@/types/domain";
 type PropertyCardProps = {
   property: PropertyCardVM;
   compact?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
-export const PropertyCard = memo(function PropertyCard({ property, compact = false }: PropertyCardProps) {
+export const PropertyCard = memo(function PropertyCard({ property, compact = false, style }: PropertyCardProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
-  const savedIds = useAppStore((state) => state.savedPropertyIds);
-  const compareIds = useAppStore((state) => state.comparePropertyIds);
-  const toggleSavedProperty = useAppStore((state) => state.toggleSavedProperty);
-  const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
   const setSelectedPropertyId = useAppStore((state) => state.setSelectedPropertyId);
-  const isSaved = savedIds.includes(property.id);
-  const isCompared = compareIds.includes(property.id);
-
-  useEffect(() => {
-    track("property_impression", { propertyId: property.id, source: compact ? "assistant" : "screen" });
-  }, [compact, property.id]);
 
   const openProperty = () => {
     setSelectedPropertyId(property.id);
@@ -39,64 +31,31 @@ export const PropertyCard = memo(function PropertyCard({ property, compact = fal
     router.push(`/(app)/property/${property.id}`);
   };
 
-  return (
-    <Pressable onPress={openProperty}>
-      <View style={[styles.card, compact && styles.compactCard]}>
-        <Image source={property.heroUrl} style={[styles.image, compact && styles.compactImage]} contentFit="cover" />
+  const metadataString = `${property.beds} BD · ${property.baths} BA · ${property.area} SQFT`;
 
-        <View style={[styles.matchBadge, { backgroundColor: colors.accent }]}>
-          <Text variant="label" style={styles.matchText}>{property.matchScore}</Text>
+  return (
+    <Pressable
+      testID={`property.card.${property.id}`}
+      onPress={openProperty}
+      style={[styles.card, compact && styles.compactCard, style]}
+    >
+      <Image source={property.heroUrl} style={[styles.image, compact && styles.compactImage]} contentFit="cover" />
+      
+      <View style={styles.content}>
+        <View style={styles.heading}>
+          <View style={styles.priceRow}>
+            <Text variant="title" style={styles.price}>{property.priceLabel}</Text>
+            <View style={styles.matchSystemPill}>
+              <Text style={styles.matchSystemText}>{property.matchScore}% Match</Text>
+            </View>
+          </View>
+          <Text variant="body" style={styles.titleText}>{property.title}</Text>
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.heading}>
-            <Text variant="title" style={{ color: colors.textPrimary }}>{property.priceLabel}</Text>
-            <Text tone="secondary" variant="body">{property.title}</Text>
-            <View style={styles.locationRow}>
-              <MapPin size={12} color={colors.accent} />
-              <Text tone="muted" variant="caption">{property.locationLabel}</Text>
-            </View>
-          </View>
-
-          <View style={styles.metaWrap}>
-            <View style={styles.metaItem}>
-              <BedDouble size={14} color={colors.textMuted} />
-              <Text tone="secondary" variant="caption">{property.beds} bd</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Bath size={14} color={colors.textMuted} />
-              <Text tone="secondary" variant="caption">{property.baths} ba</Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Text tone="secondary" variant="caption">{property.area} sqft</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.actions}>
-            <Pressable
-              style={[styles.actionBtn, isSaved && styles.actionBtnActive]}
-              onPress={() => {
-                toggleSavedProperty(property.id);
-                track("property_save", { propertyId: property.id, saved: !isSaved });
-              }}
-            >
-              <Bookmark size={15} color={isSaved ? colors.accent : colors.textSecondary} fill={isSaved ? colors.accent : "transparent"} />
-              <Text variant="caption" tone="secondary">{isSaved ? "Saved" : "Save"}</Text>
-            </Pressable>
-
-            <Pressable
-              style={[styles.actionBtn, isCompared && styles.actionBtnActive]}
-              onPress={() => {
-                toggleCompareProperty(property.id);
-                track("property_compare", { propertyId: property.id, compared: !isCompared });
-              }}
-            >
-              <Scale size={15} color={isCompared ? colors.accent : colors.textSecondary} />
-              <Text variant="caption" tone="secondary">{isCompared ? "In Compare" : "Compare"}</Text>
-            </Pressable>
-          </View>
+        <View style={styles.metaRow}>
+          <Text variant="caption" style={styles.metaText}>{metadataString}</Text>
+          <View style={styles.dot} />
+          <Text variant="caption" style={styles.locationText}>{property.locationLabel}</Text>
         </View>
       </View>
     </Pressable>
@@ -105,18 +64,13 @@ export const PropertyCard = memo(function PropertyCard({ property, compact = fal
 
 const createStyles = (colors: any) => StyleSheet.create({
   card: {
-    borderRadius: theme.radii.lg,
     backgroundColor: colors.surface,
+    borderRadius: 12,
     overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
     marginHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-    // Premium shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    position: "relative",
+    marginBottom: 24,
   },
   compactCard: {
     marginHorizontal: 0,
@@ -124,69 +78,72 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 180,
+    height: 220,
+    backgroundColor: colors.surfaceRaised,
   },
   compactImage: {
     height: 140,
   },
-  matchBadge: {
-    position: "absolute",
-    top: 136, // Adjust based on image height
-    right: theme.spacing.lg,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
+  priceRow: {
+    flexDirection: "row",
     alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    justifyContent: "space-between",
   },
-  matchText: {
-    color: "#fff",
-    fontFamily: theme.typography.label.fontFamily,
+  matchSystemPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
+    backgroundColor: colors.surfaceRaised,
+  },
+  matchSystemText: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.2,
   },
   content: {
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
+    padding: 20, // Airy professional spacing
+    gap: 10,
   },
   heading: {
-    gap: 4,
+    gap: 2,
   },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
+  price: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: colors.textPrimary,
+    letterSpacing: -0.7, // Balanced system tracking
   },
-  metaWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.lg,
+  titleText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.textSecondary,
+    letterSpacing: -0.3,
+    marginTop: 2, // Minute gap correction
   },
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
-  },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.md,
-  },
-  actionBtn: {
+  metaRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingVertical: theme.spacing.xs,
+    marginTop: 4, // Increased air
   },
-  actionBtnActive: {
-    // maybe a slight tint or just icon change
+  metaText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: "600",
+    letterSpacing: -0.1,
+  },
+  locationText: {
+    fontSize: 12,
+    color: colors.textMuted,
+    letterSpacing: -0.1,
+  },
+  dot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: colors.divider,
   },
 });

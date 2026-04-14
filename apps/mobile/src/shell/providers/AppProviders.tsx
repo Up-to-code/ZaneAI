@@ -5,9 +5,9 @@ import { StatusBar } from "expo-status-bar";
 import { useFonts, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold } from "@expo-google-fonts/manrope";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
-import { ThemeProvider } from "@/foundation/theme/ThemeProvider";
+import { AuthProvider } from "@/auth/AuthProvider";
+import { ThemeProvider, useTheme } from "@/foundation/theme/ThemeProvider";
 import { SessionTracker } from "@/persistence/analytics/SessionTracker";
-import { ConvexBootstrapProvider } from "@/persistence/convex/ConvexBootstrapProvider";
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [fontsLoaded] = useFonts({
@@ -22,18 +22,26 @@ export function AppProviders({ children }: PropsWithChildren) {
 
   return (
     <ThemeProvider>
-      <SafeAreaProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <KeyboardProvider>
-            <ConvexBootstrapProvider>
-              <SessionTracker>
-                <StatusBar style="light" />
-                {children}
-              </SessionTracker>
-            </ConvexBootstrapProvider>
-          </KeyboardProvider>
-        </GestureHandlerRootView>
-      </SafeAreaProvider>
+      <ThemedAppChrome>{children}</ThemedAppChrome>
     </ThemeProvider>
+  );
+}
+
+function ThemedAppChrome({ children }: PropsWithChildren) {
+  const { resolvedColorScheme, colors } = useTheme();
+
+  return (
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+        <KeyboardProvider>
+          <AuthProvider>
+            <SessionTracker>
+              <StatusBar style={resolvedColorScheme === "dark" ? "light" : "dark"} />
+              {children}
+            </SessionTracker>
+          </AuthProvider>
+        </KeyboardProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

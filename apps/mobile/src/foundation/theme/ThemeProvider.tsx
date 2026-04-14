@@ -3,12 +3,34 @@ import { useColorScheme } from "react-native";
 import * as SystemUI from "expo-system-ui";
 
 import { theme, lightColors, darkColors, type AppTheme } from "@/foundation/theme/tokens";
+import { useAppStore } from "@/store";
+import { resolveAppearanceMode } from "@/foundation/theme/appearance";
+import type { AppearanceMode } from "@/store/slices/preferenceSlice";
 
-const ThemeContext = createContext<AppTheme>(theme);
+type ThemeContextValue = {
+  theme: AppTheme;
+  colors: AppTheme["colors"];
+  appearanceMode: AppearanceMode;
+  resolvedColorScheme: "light" | "dark";
+  setAppearanceMode: (value: AppearanceMode) => void;
+};
+
+const defaultColorScheme = "dark";
+
+const ThemeContext = createContext<ThemeContextValue>({
+  theme,
+  colors: theme.colors,
+  appearanceMode: "system",
+  resolvedColorScheme: defaultColorScheme,
+  setAppearanceMode: () => undefined,
+});
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const systemColorScheme = useColorScheme();
+  const appearanceMode = useAppStore((state) => state.appearanceMode);
+  const setAppearanceMode = useAppStore((state) => state.setAppearanceMode);
+  const resolvedColorScheme = resolveAppearanceMode(appearanceMode, systemColorScheme);
+  const isDark = resolvedColorScheme === "dark";
 
   const dynamicTheme = useMemo<AppTheme>(() => {
     return {
@@ -21,7 +43,18 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     void SystemUI.setBackgroundColorAsync(dynamicTheme.colors.background);
   }, [dynamicTheme.colors.background]);
 
-  return <ThemeContext.Provider value={dynamicTheme}>{children}</ThemeContext.Provider>;
+  const contextValue = useMemo<ThemeContextValue>(
+    () => ({
+      theme: dynamicTheme,
+      colors: dynamicTheme.colors,
+      appearanceMode,
+      resolvedColorScheme,
+      setAppearanceMode,
+    }),
+    [appearanceMode, dynamicTheme, resolvedColorScheme, setAppearanceMode],
+  );
+
+  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

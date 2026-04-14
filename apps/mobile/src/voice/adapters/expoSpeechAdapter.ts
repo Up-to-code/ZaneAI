@@ -1,6 +1,6 @@
 import { isExpoGo } from "@/runtime/expoRuntime";
 
-type SpeechRecognitionEventName = "start" | "result" | "end" | "error";
+type SpeechRecognitionEventName = "start" | "result" | "end" | "error" | "volumechange";
 
 type SpeechRecognitionResult = {
   results?: { transcript?: string }[];
@@ -15,6 +15,10 @@ type SpeechRecognitionPermission = {
   granted: boolean;
 };
 
+type SpeechRecognitionVolumeChange = {
+  value: number;
+};
+
 type ExpoSpeechRecognitionPackage = typeof import("expo-speech-recognition");
 
 const speechRecognitionPackage = loadSpeechRecognitionPackage();
@@ -25,6 +29,7 @@ type SpeechRecognitionEventMap = {
   result: SpeechRecognitionResult;
   end: void;
   error: SpeechRecognitionError;
+  volumechange: SpeechRecognitionVolumeChange;
 };
 
 export function useSpeechRecognitionEvent<EventName extends SpeechRecognitionEventName>(
@@ -67,6 +72,10 @@ export function startSpeechRecognition() {
     continuous: false,
     addsPunctuation: true,
     requiresOnDeviceRecognition: false,
+    volumeChangeEventOptions: {
+      enabled: true,
+      intervalMillis: 80,
+    },
   });
 }
 
@@ -86,4 +95,4 @@ export function isSpeechRecognitionRuntimeAvailable() {
   return Boolean(speechRecognitionModule);
 }
 
-export type { SpeechRecognitionError, SpeechRecognitionResult };
+export type { SpeechRecognitionError, SpeechRecognitionResult, SpeechRecognitionVolumeChange };

@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMemo } from "react";
 
 import { ConversationFeed } from "@/conversation/components/ConversationFeed";
-import { ZayonComposerDock } from "@/conversation/components/ZayonComposerDock";
+import { ZaneAiComposerDock } from "@/conversation/components/ZaneAiComposerDock";
 import { useConversationController } from "@/conversation/hooks/useConversationController";
 import { useKeyboardDock } from "@/conversation/hooks/useKeyboardDock";
 import { theme } from "@/foundation/theme/tokens";
@@ -13,11 +13,9 @@ import { useAppStore } from "@/store";
 export function ConversationViewport() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const messages = useAppStore((state) => state.messages);
   const composerDockHeight = useAppStore((state) => state.composerDockHeight);
   const keyboardHeight = useAppStore((state) => state.keyboardHeight);
-  const isStreaming = useAppStore((state) => state.isStreaming);
-  const { sendPrompt, stop } = useConversationController();
+  const { messages, isStreaming, sendPrompt, stop } = useConversationController();
   const insets = useSafeAreaInsets();
   const { dockBottomOffset, listBottomPadding, keyboardVisible } = useKeyboardDock({
     bottomInset: insets.bottom,
@@ -31,11 +29,12 @@ export function ConversationViewport() {
         <ConversationFeed messages={messages} />
       </View>
       <View pointerEvents="box-none" style={[styles.dockWrap, { bottom: dockBottomOffset }]}>
-        <ZayonComposerDock
+        <ZaneAiComposerDock
           onSend={sendPrompt}
           onStop={stop}
           isStreaming={isStreaming}
           keyboardVisible={keyboardVisible}
+          messageCount={messages.length}
         />
       </View>
     </View>

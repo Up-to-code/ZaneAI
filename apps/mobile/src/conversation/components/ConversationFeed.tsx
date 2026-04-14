@@ -15,12 +15,14 @@ import { ArrowDown } from "lucide-react-native";
 import { GenerativeUIAdapter } from "@/conversation/adapters/GenerativeUIAdapter";
 import { MessageBubble } from "@/conversation/components/MessageBubble";
 import { EmptyThreadWelcome } from "@/conversation/components/EmptyThreadWelcome";
+import { PropertyBundleUI } from "@/conversation/components/PropertyBundleUI";
+import { AgentWebSearchUI } from "@/conversation/components/AgentWebSearchUI";
+import { AgentAnalyticsUI } from "@/conversation/components/AgentAnalyticsUI";
 import { IconButton } from "@/foundation/primitives/IconButton";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { useAppStore } from "@/store";
+import { usePropertiesByIds } from "@/persistence/convex/usePropertyData";
 import type { ConversationMessage } from "@/types/domain";
-import { PropertyCard } from "@/decision/components/PropertyCard";
 
 type ConversationFeedProps = {
   messages: ConversationMessage[];
@@ -56,7 +58,11 @@ export function ConversationFeed({ messages }: ConversationFeedProps) {
   const listRef = useRef<StreamingMessageListRef | null>(null);
   const shouldAutoScrollRef = useRef(true);
   const prevMessageCountRef = useRef(messages.length);
-  const properties = useAppStore((state) => state.properties);
+  const allRelatedIds = useMemo(
+    () => [...new Set(messages.flatMap((message) => message.relatedPropertyIds))],
+    [messages],
+  );
+  const properties = usePropertiesByIds(allRelatedIds);
 
   const lastUserIndex = useMemo(
     () => messages.findLastIndex((message) => message.role === "user"),
@@ -139,24 +145,26 @@ export function ConversationFeed({ messages }: ConversationFeedProps) {
             });
           }}
           renderItem={({ item, index }: { item: ConversationMessage; index: number }) => {
-            const propertyCards = properties.filter((property) =>
-              item.relatedPropertyIds.includes(property.id),
-            );
+            const propertyCards = properties.filter((property: { id: string }) => item.relatedPropertyIds.includes(property.id));
             const isTextComplete = item.streamState === "complete" || item.streamState === "stopped";
 
             let content = (
               <View>
+                {item.kind === "web_search" ? (
+                  <AgentWebSearchUI message={item} />
+                ) : null}
+
                 <MessageBubble message={item} />
-                {item.role === "assistant" && isTextComplete && item.relatedPropertyIds.length > 0
-                  ? propertyCards.map((property, cardIndex) => (
-                      <Animated.View
-                        key={property.id}
-                        entering={FadeInDown.delay(cardIndex * 120).duration(350).springify()}
-                      >
-                        <PropertyCard property={property} compact />
-                      </Animated.View>
-                    ))
-                  : null}
+                
+                {/* Always show PropertyBundle if there are properties, or if it's the primary kind waiting to load */}
+                {item.kind === "property_bundle" || item.kind === "web_search" || propertyCards.length > 0 ? (
+                  <PropertyBundleUI message={item} properties={propertyCards} />
+                ) : null}
+
+                {item.kind === "comparison_analytics" && isTextComplete ? (
+                  <AgentAnalyticsUI message={item} properties={propertyCards} />
+                ) : null}
+
                 {item.kind === "summary_card" && isTextComplete ? (
                   <Animated.View entering={FadeInDown.duration(300)}>
                     <GenerativeUIAdapter />
@@ -197,7 +205,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     flexGrow: 1,
     justifyContent: "flex-end",
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.md,
+    paddingBottom: theme.spacing.xs, // Tight list alignment
   },
   scrollButtonWrap: {
     position: "absolute",

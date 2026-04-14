@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
-import { Settings, LogOut, Shield, ChevronRight, Bell, Heart, CreditCard, ArrowLeft, Share } from "lucide-react-native";
+import { Settings, LogOut, Shield, ChevronRight, Bell, Heart, CreditCard, ArrowRight, SunMoon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, Layout } from "react-native-reanimated";
 
@@ -9,66 +9,125 @@ import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-
+import { authClient } from "@/auth/authClient";
+import { useAuthSession } from "@/auth/useAuthSession";
+import { resetE2EAuthState } from "@/e2e/store";
 import { useAppStore } from "@/store";
-
-// Specific 'Brainstorm' palette
-const COLORS = {
-  black: "#000000",
-  white: "#FFFFFF",
-};
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, appearanceMode } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => createStyles(colors, insets), [colors, insets]);
-  const setAuthenticated = useAppStore((state) => state.setAuthenticated);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { user, isAuthenticated, isGuest } = useAuthSession();
+  const setGuestMode = useAppStore((state) => state.setGuestMode);
+  const e2eQaMode = useAppStore((state) => state.e2eQaMode);
 
   const handleLogout = () => {
-    setAuthenticated(false);
+    if (e2eQaMode) {
+      resetE2EAuthState();
+      router.replace("/(auth)");
+      return;
+    }
+    if (isAuthenticated) {
+      void authClient.signOut();
+    }
+    if (isGuest) {
+      setGuestMode(false);
+    }
   };
 
+  const displayName = user?.name ?? user?.email ?? "Zane-ai Member";
+  const initials = displayName
+    .split(" ")
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("")
+    .slice(0, 2);
+
+  const appearanceLabel =
+    appearanceMode === "system"
+      ? "Follow your phone setting"
+      : `${appearanceMode[0].toUpperCase()}${appearanceMode.slice(1)} mode enabled`;
+
   const profileItems = [
-    { id: "pref", title: "AI Personalization", icon: <Settings size={22} color={colors.accent} />, desc: "Adjust confidence thresholds & search style" },
-    { id: "security", title: "Account Security", icon: <Shield size={20} color={colors.textPrimary} />, desc: "2-Factor Authentication & session logs" },
-    { id: "notif", title: "Market Reports", icon: <Bell size={20} color={colors.textPrimary} />, desc: "Weekly analytics and portfolio alerts" },
-    { id: "billing", title: "Subscription Plan", icon: <CreditCard size={22} color={colors.accent} />, desc: "Manage your Premium Analytics access" },
-    { id: "privacy", title: "Data & Privacy", icon: <Heart size={20} color={colors.textPrimary} />, desc: "Configure memory and identity protection" },
+    {
+      id: "appearance",
+      title: "Appearance",
+      icon: <SunMoon size={20} color={colors.textPrimary} />,
+      desc: appearanceLabel,
+      testID: "profile.appearance",
+      onPress: () => router.push("/(app)/appearance"),
+    },
+    {
+      id: "pref",
+      title: "AI Personalization",
+      icon: <Settings size={22} color={colors.accent} />,
+      desc: "Adjust confidence thresholds & search style",
+    },
+    {
+      id: "security",
+      title: "Account Security",
+      icon: <Shield size={20} color={colors.textPrimary} />,
+      desc: "2-Factor Authentication & session logs",
+    },
+    {
+      id: "notif",
+      title: "Market Reports",
+      icon: <Bell size={20} color={colors.textPrimary} />,
+      desc: "Weekly analytics and portfolio alerts",
+    },
+    {
+      id: "billing",
+      title: "Subscription Plan",
+      icon: <CreditCard size={22} color={colors.accent} />,
+      desc: "Manage your Premium Analytics access",
+    },
+    {
+      id: "privacy",
+      title: "Data & Privacy",
+      icon: <Heart size={20} color={colors.textPrimary} />,
+      desc: "Configure memory and identity protection",
+    },
   ];
 
   return (
     <Screen style={styles.screen}>
-      {/* Refined Trinity Header */}
-      <View style={[styles.identityHeader, { paddingTop: insets.top }]}>
+      <View style={[styles.identityHeader, { paddingTop: insets.top + 8 }]}>
         <View style={styles.headerContent}>
-          <Pressable style={styles.headerBtn} onPress={() => router.dismissAll()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
-          </Pressable>
-          <View style={styles.headerTitleWrap}>
-            <Text variant="title" style={styles.headerTitle}>Account</Text>
-          </View>
-          <View style={styles.headerActions}>
-            <View style={styles.miniAvatar}>
-              <Text style={styles.miniAvatarText}>AM</Text>
+          <View style={styles.identityBlock}>
+            <View style={styles.avatarMini}>
+              <Text style={styles.avatarLetter}>{initials.slice(0, 1) || "Z"}</Text>
             </View>
+            <Text variant="body" style={styles.identityName}>{displayName}</Text>
           </View>
+
+          <View style={styles.headerTitleWrap} />
+
+          <Pressable accessibilityLabel="Go back" style={styles.headerBtn} onPress={() => router.back()}>
+            <ArrowRight size={20} color={colors.textPrimary} />
+          </Pressable>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 88, paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 88, paddingBottom: insets.bottom + 40 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Full Identity Hero (In Body) */}
         <Animated.View entering={FadeInDown.springify()} style={styles.heroBlock}>
           <View style={styles.bigAvatar}>
-            <Text variant="title" style={styles.bigAvatarText}>AM</Text>
-            <View style={styles.badge}><Shield size={12} color="#fff" /></View>
+            <Text variant="title" style={styles.bigAvatarText}>{initials || "ZM"}</Text>
+            <View style={styles.badge}>
+              <Shield size={12} color={colors.background} />
+            </View>
           </View>
           <View style={styles.heroText}>
-            <Text variant="title" style={styles.userName} numberOfLines={2}>Ahmed Mansour</Text>
-            <Text variant="label" tone="muted" style={styles.userStatus}>PREMIUM MEMBER • SINCE 2024</Text>
+            <Text variant="title" style={styles.userName} numberOfLines={2}>{displayName}</Text>
+            <Text variant="label" tone="muted" style={styles.userStatus}>
+              {user?.email ?? "Authenticated account"}
+            </Text>
           </View>
         </Animated.View>
 
@@ -78,11 +137,10 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* Bottom Actions */}
         <Animated.View entering={FadeInDown.delay(700).springify()} style={styles.logoutBlock}>
           <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-            <LogOut size={20} color={COLORS.white} />
-            <Text style={{ color: COLORS.white, fontWeight: "700", fontSize: 16 }}>Sign Out</Text>
+            <LogOut size={20} color={colors.background} />
+            <Text style={styles.logoutText}>Sign Out</Text>
           </Pressable>
         </Animated.View>
       </ScrollView>
@@ -97,8 +155,13 @@ function ProfileListItem({ item, index, styles, colors }: any) {
       layout={Layout.springify()}
       style={styles.itemWrapper}
     >
-      <Pressable style={styles.profileItem}>
-        <View style={[styles.iconWrap, item.id === "pref" || item.id === "billing" ? { backgroundColor: `${colors.accent}10` } : null]}>
+      <Pressable testID={item.testID} style={styles.profileItem} onPress={item.onPress}>
+        <View
+          style={[
+            styles.iconWrap,
+            item.id === "pref" || item.id === "billing" ? { backgroundColor: `${colors.accent}10` } : null,
+          ]}
+        >
           {item.icon}
         </View>
         <View style={styles.itemText}>
@@ -111,163 +174,188 @@ function ProfileListItem({ item, index, styles, colors }: any) {
   );
 }
 
-const createStyles = (colors: any, insets: any) => StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  identityHeader: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    backgroundColor: `${colors.background}FA`,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.lg,
-    height: 72,
-  },
-  headerTitleWrap: {
-    flex: 1,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.textPrimary,
-  },
-  headerBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surface,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  headerActions: {
-    width: 44,
-    alignItems: "flex-end",
-  },
-  miniAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.accent,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  miniAvatarText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "800",
-  },
-  scrollContent: {
-    paddingTop: insets.top + 88,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  heroBlock: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 32,
-    gap: 20,
-  },
-  bigAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.accent,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 4,
-    borderColor: colors.surface,
-    position: "relative",
-  },
-  bigAvatarText: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "900",
-  },
-  badge: {
-    position: "absolute",
-    bottom: -2,
-    right: -2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.textPrimary,
-    borderWidth: 3,
-    borderColor: colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  heroText: {
-    flex: 1,
-    gap: 4,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: colors.textPrimary,
-  },
-  userStatus: {
-    fontSize: 9,
-    letterSpacing: 1.5,
-  },
-  listContainer: {
-    gap: 12,
-  },
-  itemWrapper: {
-    width: "100%",
-  },
-  profileItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 15,
-    backgroundColor: colors.backgroundSoft,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  itemText: {
-    flex: 1,
-    gap: 2,
-  },
-  itemTitle: {
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  itemDesc: {
-    fontSize: 12,
-  },
-  logoutBlock: {
-    marginTop: 24,
-    paddingBottom: 20,
-  },
-  logoutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    backgroundColor: COLORS.black,
-    paddingVertical: 22,
-    borderRadius: 24,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    identityHeader: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 100,
+      backgroundColor: `${colors.background}FA`,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
+    },
+    headerContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: theme.spacing.lg,
+      height: 72,
+    },
+    headerTitleWrap: {
+      flex: 1,
+      alignItems: "center",
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: colors.textPrimary,
+    },
+    identityBlock: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flex: 1,
+    },
+    avatarMini: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.accent,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarLetter: {
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: "800",
+    },
+    identityName: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: colors.textPrimary,
+    },
+    headerBtn: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.surface,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.divider,
+    },
+    miniAvatar: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: colors.accent,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarText: {
+      color: colors.background,
+      fontSize: 10,
+      fontWeight: "800",
+    },
+    scrollContent: {
+      paddingHorizontal: theme.spacing.lg,
+    },
+    heroBlock: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 32,
+      gap: 20,
+    },
+    bigAvatar: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.accent,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 4,
+      borderColor: colors.surface,
+      position: "relative",
+    },
+    bigAvatarText: {
+      color: colors.background,
+      fontSize: 24,
+      fontWeight: "900",
+    },
+    badge: {
+      position: "absolute",
+      bottom: -2,
+      right: -2,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.textPrimary,
+      borderWidth: 3,
+      borderColor: colors.background,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    heroText: {
+      flex: 1,
+      gap: 4,
+    },
+    userName: {
+      fontSize: 24,
+      fontWeight: "900",
+      color: colors.textPrimary,
+    },
+    userStatus: {
+      fontSize: 9,
+      letterSpacing: 1.5,
+    },
+    listContainer: {
+      gap: 12,
+    },
+    itemWrapper: {
+      width: "100%",
+    },
+    profileItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      paddingVertical: 18,
+      paddingHorizontal: 20,
+      gap: 16,
+      borderWidth: 1,
+      borderColor: colors.divider,
+    },
+    iconWrap: {
+      width: 48,
+      height: 48,
+      borderRadius: 15,
+      backgroundColor: colors.backgroundSoft,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    itemText: {
+      flex: 1,
+      gap: 2,
+    },
+    itemTitle: {
+      fontWeight: "700",
+      fontSize: 15,
+    },
+    itemDesc: {
+      fontSize: 12,
+    },
+    logoutBlock: {
+      marginTop: 24,
+      paddingBottom: 20,
+    },
+    logoutBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
+      backgroundColor: colors.textPrimary,
+      paddingVertical: 22,
+      borderRadius: 24,
+    },
+    logoutText: {
+      color: colors.background,
+      fontWeight: "700",
+      fontSize: 16,
+    },
+  });

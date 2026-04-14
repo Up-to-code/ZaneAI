@@ -1,63 +1,83 @@
 import { ScrollView, StyleSheet, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
-import { Image } from "expo-image";
-import { Bookmark, Scale, MapPin, Share, Trash2, ListFilter, ArrowLeft } from "lucide-react-native";
+import { useMemo, useState } from "react";
+import { PropertyCard } from "@/decision/components/PropertyCard";
+import { Bookmark, Search, ListFilter, ArrowRight } from "lucide-react-native";
+import { TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown, Layout } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { useAppStore } from "@/store";
+import { useSavedProperties } from "@/persistence/convex/usePropertyData";
+import type { PropertyCardVM } from "@/types/domain";
 
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const properties = useAppStore((state) => state.properties);
-  const savedPropertyIds = useAppStore((state) => state.savedPropertyIds);
-  const comparePropertyIds = useAppStore((state) => state.comparePropertyIds);
-
-  const savedProperties = properties.filter((p) => savedPropertyIds.includes(p.id));
-
-  // Split into 2 columns for masonry-like effect
-  const leftCol = savedProperties.filter((_, i) => i % 2 === 0);
-  const rightCol = savedProperties.filter((_, i) => i % 2 !== 0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const savedProperties = useSavedProperties()
+    .map((item: { property: PropertyCardVM | null }) => item.property)
+    .filter((property): property is PropertyCardVM => property !== null);
+  const filteredProperties = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return savedProperties;
+    }
+    return savedProperties.filter((property: PropertyCardVM) =>
+      `${property.title} ${property.locationLabel}`.toLowerCase().includes(query),
+    );
+  }, [savedProperties, searchQuery]);
 
   return (
     <Screen style={styles.screen}>
-      {/* Crystal Header (Glassmorphic Floating) */}
-      <View style={[styles.crystalHeader, { paddingTop: insets.top }]}>
-        <View style={styles.headerContent}>
-          <Pressable style={styles.circleBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
-          </Pressable>
-          <View style={styles.headerTitleWrap}>
-            <Text variant="label" style={styles.headerEyebrow}>SHORTLIST</Text>
-            <Text variant="title" style={styles.headerTitle}>Favorites</Text>
+      {/* Unified Sticky Header (Identity + Search) */}
+      <View style={[styles.crystalHeader, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.headerContentOuter}>
+          <View style={styles.identityRow}>
+            <View style={styles.identityBlock}>
+              <View style={styles.avatarMini}>
+                <Text style={styles.avatarLetter}>A</Text>
+              </View>
+              <Text variant="body" style={styles.identityName}>Ahmed Mansour</Text>
+            </View>
+            <Pressable accessibilityLabel="Go back" style={styles.headerBtn} onPress={() => router.back()}>
+              <ArrowRight size={20} color={colors.textPrimary} style={{ transform: [{ rotate: "180deg" }] }} />
+            </Pressable>
           </View>
-          <View style={styles.headerActions}>
-            <Pressable style={styles.circleBtn}><Share size={20} color={colors.textPrimary} /></Pressable>
+
+          {/* Integrated Search Hub - Now part of Sticky Portal */}
+          <View style={styles.archiveHeader}>
+            <View style={styles.searchSurface}>
+              <Search size={18} color={colors.textMuted} />
+              <TextInput 
+                placeholder="Search saved properties..."
+                placeholderTextColor={colors.textMuted}
+                style={styles.searchInput}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+            <Pressable style={styles.filterBtn}>
+              <ListFilter size={20} color={colors.textPrimary} />
+            </Pressable>
           </View>
         </View>
-      </View>
-
-      {/* Side Action Bar - Modernized */}
-      <View style={[styles.sideFloat, { top: insets.top + 120 }]}>
-        <SideAction icon={<ListFilter size={18} color={colors.textPrimary} />} />
-        <SideAction icon={<Trash2 size={18} color={colors.accent} />} last />
       </View>
 
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[]}
       >
-        {savedProperties.length === 0 ? (
+        <View style={styles.sectionHead}>
+          <Text variant="caption" style={styles.sectionEyebrow}>CRAB EMOTIONS</Text>
+        </View>
+
+        {filteredProperties.length === 0 ? (
           <View style={[styles.emptyState, { marginTop: insets.top + 100 }]}>
             <Animated.View entering={FadeInDown.springify()} style={styles.emptyIcon}>
               <Bookmark size={48} color={colors.accent} strokeWidth={1.5} />
@@ -68,67 +88,19 @@ export default function SavedScreen() {
             </Text>
           </View>
         ) : (
-          <View style={styles.boardContainer}>
-            <View style={styles.column}>
-              {leftCol.map((p, i) => (
-                <GridCard key={p.id} property={p} index={i} colors={colors} styles={styles} router={router} />
-              ))}
-            </View>
-            <View style={styles.column}>
-              {rightCol.map((p, i) => (
-                <GridCard key={p.id} property={p} index={i} colors={colors} styles={styles} router={router} isRight />
-              ))}
-            </View>
+          <View testID="saved.list" style={styles.heroList}>
+            {filteredProperties.map((p: PropertyCardVM, i: number) => (
+              <Animated.View 
+                key={p.id}
+                entering={FadeInDown.delay(i * 100).springify()}
+              >
+                <PropertyCard property={p} style={{ marginHorizontal: 0 }} />
+              </Animated.View>
+            ))}
           </View>
         )}
       </ScrollView>
     </Screen>
-  );
-
-  function SideAction({ icon, last }: { icon: any; last?: boolean }) {
-    return (
-      <Pressable style={[styles.sideItem, last && { borderBottomWidth: 0 }]}>
-        {icon}
-      </Pressable>
-    );
-  }
-}
-
-function GridCard({ property, index, colors, styles, router, isRight }: any) {
-  const comparePropertyIds = useAppStore((state) => state.comparePropertyIds);
-  const isCompared = comparePropertyIds.includes(property.id);
-
-  return (
-    <Animated.View 
-      entering={FadeInDown.delay(index * 120).springify().damping(12)}
-      layout={Layout.springify()}
-      style={styles.cardWrapper}
-    >
-      <Pressable 
-        style={[styles.smallCard, isRight && styles.rightCard]} 
-        onPress={() => router.push(`/(app)/property/${property.id}`)}
-      >
-        <Image source={property.heroUrl} style={styles.cardImage} contentFit="cover" />
-        
-        <View style={[styles.matchIndicator, { backgroundColor: colors.accent }]}>
-          <Text style={styles.matchText}>{property.matchScore}%</Text>
-        </View>
-
-        <View style={styles.cardOverlay}>
-          <Text variant="label" style={styles.priceText}>{property.priceLabel}</Text>
-          <View style={styles.locationRow}>
-            <MapPin size={10} color={colors.accent} />
-            <Text variant="caption" numberOfLines={1} style={styles.locationText}>{property.locationLabel}</Text>
-          </View>
-        </View>
-        
-        {isCompared && (
-          <View style={styles.compareTag}>
-            <Scale size={10} color="#fff" />
-          </View>
-        )}
-      </Pressable>
-    </Animated.View>
   );
 }
 
@@ -143,137 +115,110 @@ const createStyles = (colors: any) => StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-    backgroundColor: `${colors.background}E6`, // 90% opacity for glass effect
-    borderBottomWidth: 1,
+    backgroundColor: `${colors.background}FA`, // 98% opacity for a crystal clear vision
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.divider,
   },
-  headerContent: {
+  headerContentOuter: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: 16,
+    gap: 16,
+  },
+  identityRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.lg,
-    height: 70,
+    height: 56,
   },
-  headerTitleWrap: {
-    alignItems: "center",
-  },
-  headerEyebrow: {
-    letterSpacing: 2,
-    color: colors.textMuted,
-    fontSize: 9,
-  },
-  headerTitle: {
-    fontSize: 18,
-    color: colors.textPrimary,
-  },
-  headerActions: {
-    width: 40,
-    alignItems: "flex-end",
-  },
-  circleBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  sideFloat: {
-    position: "absolute",
-    right: theme.spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    zIndex: 110,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  sideItem: {
-    width: 44,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-  },
-  scrollContent: {
-    paddingTop: 100, // tighter
-    paddingHorizontal: theme.spacing.md,
-  },
-  boardContainer: {
+  identityBlock: {
     flexDirection: "row",
-    gap: theme.spacing.md,
-  },
-  column: {
+    alignItems: "center",
+    gap: 10,
     flex: 1,
-    gap: theme.spacing.md,
   },
-  cardWrapper: {
-    width: "100%",
-  },
-  smallCard: {
-    backgroundColor: colors.surface,
+  avatarMini: {
+    width: 36, // Slight expansion for status
+    height: 36,
     borderRadius: 18,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: colors.divider,
-    elevation: 2,
-  },
-  rightCard: {
-    marginTop: 20, // Staggered look
-  },
-  cardImage: {
-    width: "100%",
-    height: 200, // Taller image for masonry
-  },
-  matchIndicator: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  matchText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "800",
-  },
-  cardOverlay: {
-    padding: 12,
-    gap: 4,
-  },
-  priceText: {
-    color: colors.textPrimary,
-    fontWeight: "700",
-  },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  locationText: {
-    color: colors.textMuted,
-    fontSize: 10,
-  },
-  compareTag: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
     backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.05)", // Ghostly ring
+  },
+  avatarLetter: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  identityName: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: colors.textPrimary,
+    letterSpacing: -0.6,
+  },
+  headerBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  scrollContent: {
+    paddingTop: 160, // Accommodate larger sticky header
+    paddingHorizontal: theme.spacing.lg,
+  },
+  archiveHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    height: 48,
+  },
+  searchSurface: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    height: "100%", // Match parent
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.textPrimary,
+    fontFamily: "Manrope_600SemiBold",
+    letterSpacing: -0.2,
+  },
+  filterBtn: {
+    width: 48,
+    height: "100%", // Perfect symmetry
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  sectionHead: {
+    marginBottom: 16, // Refined gap
+  },
+  sectionEyebrow: {
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 3.2, // Elite spectral tracking
+    fontSize: 9, // Slightly smaller, more sophisticated
+    paddingHorizontal: 6,
+    opacity: 0.6,
+  },
+  heroList: {
+    paddingVertical: theme.spacing.md,
   },
   emptyState: {
     alignItems: "center",

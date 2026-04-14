@@ -9,7 +9,9 @@
     "ios": "expo run:ios",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "tsx --test src/tests/**/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "maestro:test": "maestro test .maestro/flows",
+    "maestro:smoke": "maestro test .maestro/flows"
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.1",

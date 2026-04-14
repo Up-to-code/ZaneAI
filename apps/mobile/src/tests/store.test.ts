@@ -10,16 +10,6 @@ function createPropertyTestStore() {
   );
 }
 
-test("property slice toggles saved properties optimistically", () => {
-  const store = createPropertyTestStore();
-
-  store.getState().toggleSavedProperty("prop-business-bay-02");
-  assert.ok(store.getState().savedPropertyIds.includes("prop-business-bay-02"));
-
-  store.getState().toggleSavedProperty("prop-business-bay-02");
-  assert.ok(!store.getState().savedPropertyIds.includes("prop-business-bay-02"));
-});
-
 test("property slice limits compare tray to two properties", () => {
   const store = createPropertyTestStore();
 
@@ -31,4 +21,13 @@ test("property slice limits compare tray to two properties", () => {
     "prop-business-bay-02",
     "prop-palm-03",
   ]);
+});
+
+test("property slice dismisses properties locally", () => {
+  const store = createPropertyTestStore();
+
+  store.getState().dismissProperty("prop-business-bay-02");
+  store.getState().dismissProperty("prop-business-bay-02");
+
+  assert.deepEqual(store.getState().dismissedPropertyIds, ["prop-business-bay-02"]);
 });

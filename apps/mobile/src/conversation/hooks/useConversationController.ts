@@ -1,104 +1,201 @@
-import { startTransition, useMemo, useRef } from "react";
+import { startTransition, useEffect, useMemo, useRef } from "react";
+import { useMutation } from "convex/react";
 
-import { buildSummary } from "@/conversation/utils/buildSummary";
+import { api } from "@convex/_generated/api";
+import { useAuthSession } from "@/auth/useAuthSession";
+import {
+  appendE2EUserPrompt,
+  completeE2EPrompt,
+  createE2EThread,
+} from "@/e2e/store";
 import { track } from "@/persistence/analytics/track";
+import { useThreads, useThreadMessages, useRecommendationBatches } from "@/persistence/convex/useConversationData";
 import { useAppStore } from "@/store";
 import type { ConversationMessage } from "@/types/domain";
 
 export function useConversationController() {
-  const timeoutRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { isAuthenticated } = useAuthSession();
   const sessionId = useAppStore((state) => state.sessionId);
-  const properties = useAppStore((state) => state.properties);
   const draftText = useAppStore((state) => state.draftText);
-  const activeTurnId = useAppStore((state) => state.activeTurnId);
-  const addMessage = useAppStore((state) => state.addMessage);
+  const currentRoute = useAppStore((state) => state.currentRoute);
+  const activeThreadId = useAppStore((state) => state.activeThreadId);
+  const activeRunId = useAppStore((state) => state.activeRunId);
+  const pendingPrompt = useAppStore((state) => state.pendingPrompt);
+  const pendingStartedAt = useAppStore((state) => state.pendingStartedAt);
+  const e2eQaMode = useAppStore((state) => state.e2eQaMode);
+  const setActiveThreadId = useAppStore((state) => state.setActiveThreadId);
+  const setActiveRunId = useAppStore((state) => state.setActiveRunId);
+  const setPendingPrompt = useAppStore((state) => state.setPendingPrompt);
   const clearDraft = useAppStore((state) => state.clearDraft);
-  const setStreamingState = useAppStore((state) => state.setStreamingState);
-  const updateAssistantMessage = useAppStore((state) => state.updateAssistantMessage);
-  const stopStream = useAppStore((state) => state.stopStream);
+  const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const rankedProperties = useMemo(
-    () => [...properties].sort((left, right) => right.matchScore - left.matchScore),
-    [properties],
-  );
+  const threads = useThreads();
+  const startThreadMutation = useMutation(api.agent.public.startThread.startThread);
+  const sendUserMessageMutation = useMutation(api.agent.public.sendUserMessage.sendUserMessage);
+  const stopRunMutation = useMutation(api.agent.public.stopRun.stopRun);
+  const recommendationBatches = useRecommendationBatches(activeThreadId);
+  const rawMessages = useThreadMessages(activeThreadId, pendingPrompt);
 
-  const stop = () => {
-    if (timeoutRef.current) {
-      clearInterval(timeoutRef.current);
-      timeoutRef.current = null;
+  useEffect(() => {
+    if (!activeThreadId && threads[0]?._id) {
+      setActiveThreadId(threads[0]._id);
     }
-    stopStream();
-    track("ai_response_stream_end", { sessionId, stopped: true });
+  }, [activeThreadId, setActiveThreadId, threads]);
+
+  useEffect(() => () => {
+    if (completionTimeoutRef.current) {
+      clearTimeout(completionTimeoutRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    const hasCompletedAssistant = rawMessages.some(
+      (message) =>
+        message.role === "assistant"
+        && message.id !== "pending-assistant"
+        && (!pendingStartedAt || message.createdAt >= pendingStartedAt),
+    );
+    if (pendingPrompt && hasCompletedAssistant) {
+      track("ai_response_stream_end", {
+        sessionId,
+        threadId: activeThreadId ?? undefined,
+        route: currentRoute,
+        stopped: false,
+        source: "assistant",
+      });
+      setPendingPrompt(null);
+      setActiveRunId(null);
+    }
+  }, [activeThreadId, currentRoute, pendingPrompt, pendingStartedAt, rawMessages, sessionId, setActiveRunId, setPendingPrompt]);
+
+  const messages = useMemo<ConversationMessage[]>(() => {
+    const latestBatch = recommendationBatches[recommendationBatches.length - 1];
+    const assistantIndex = rawMessages.findLastIndex((message) => message.role === "assistant");
+    if (assistantIndex < 0) {
+      return rawMessages;
+    }
+    const batchKind = latestBatch && "kind" in latestBatch ? latestBatch.kind : undefined;
+    return rawMessages.map((message, index) =>
+      index === assistantIndex && latestBatch
+        ? {
+            ...message,
+            kind:
+              message.kind !== "text"
+                ? message.kind
+                : batchKind ?? (latestBatch.properties.length > 0 ? "property_bundle" : "text"),
+            relatedPropertyIds: latestBatch.properties.map((property) => property.id),
+            sourceMetadata: latestBatch.sources ?? [],
+            runId: latestBatch.runId,
+          }
+        : message,
+    );
+  }, [rawMessages, recommendationBatches]);
+
+  const isStreaming = Boolean(pendingPrompt);
+
+  const ensureActiveThread = async () => {
+    if (!isAuthenticated) return null;
+    if (activeThreadId) return activeThreadId;
+
+    if (e2eQaMode) {
+      const threadId = createE2EThread();
+      setActiveThreadId(threadId);
+      return threadId;
+    }
+
+    const threadId = await startThreadMutation({});
+    setActiveThreadId(threadId);
+    return threadId;
   };
 
-  const sendPrompt = (overrideText?: string) => {
+  const sendPrompt = async (overrideText?: string) => {
     const prompt = (overrideText ?? draftText).trim();
     if (!prompt) {
       return;
     }
 
-    const userMessage: ConversationMessage = {
-      id: `msg-user-${Date.now()}`,
-      sessionId,
-      role: "user",
-      kind: "text",
-      text: prompt,
-      streamState: "complete",
-      relatedPropertyIds: [],
-      createdAt: Date.now(),
-    };
-
-    const assistantMessageId = `msg-assistant-${Date.now() + 1}`;
-    const assistantMessage: ConversationMessage = {
-      id: assistantMessageId,
-      sessionId,
-      role: "assistant",
-      kind: "property_bundle",
-      text: "",
-      streamState: "streaming",
-      relatedPropertyIds: rankedProperties.slice(0, 2).map((property) => property.id),
-      createdAt: Date.now() + 1,
-    };
-
-    startTransition(() => {
-      addMessage(userMessage);
-      addMessage(assistantMessage);
-      clearDraft();
-    });
-
-    track("ai_prompt_sent", { sessionId, prompt });
-    track("ai_response_stream_start", { sessionId, assistantMessageId });
-
-    const summary = buildSummary(prompt, rankedProperties);
-    const words = summary.split(" ");
-    let index = 0;
-
-    if (timeoutRef.current) {
-      clearInterval(timeoutRef.current);
+    if (!isAuthenticated) {
+      return;
     }
 
-    timeoutRef.current = setInterval(() => {
-      index += 1;
-      const nextText = words.slice(0, index).join(" ");
-      updateAssistantMessage(assistantMessageId, (message) => ({
-        ...message,
-        text: nextText,
-      }));
+    const threadId = await ensureActiveThread();
+    if (!threadId) {
+      return;
+    }
+    const startedAt = Date.now();
+    startTransition(() => {
+      clearDraft();
+      setPendingPrompt(prompt, startedAt);
+    });
 
-      if (index >= words.length) {
-        if (timeoutRef.current) {
-          clearInterval(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-        setStreamingState(assistantMessageId, "complete", summary);
-        track("ai_response_stream_end", { sessionId, assistantMessageId, stopped: false });
-      }
-    }, 60);
+    track("ai_prompt_sent", { sessionId, threadId, route: currentRoute, prompt, source: "assistant" });
+    track("ai_response_stream_start", { sessionId, threadId, route: currentRoute, source: "assistant" });
+
+    if (e2eQaMode) {
+      const runId = appendE2EUserPrompt(threadId, prompt, startedAt);
+      setActiveRunId(runId);
+
+      completionTimeoutRef.current = setTimeout(() => {
+        completeE2EPrompt(threadId, prompt, startedAt, runId);
+        completionTimeoutRef.current = null;
+      }, 300);
+
+      return;
+    }
+
+    try {
+      const result = await sendUserMessageMutation({ threadId, prompt });
+      setActiveRunId(String(result.runId));
+    } catch (error) {
+      setPendingPrompt(null);
+      throw error;
+    }
+  };
+
+  const stop = async () => {
+    if (!isAuthenticated) {
+      setPendingPrompt(null);
+      return;
+    }
+    if (completionTimeoutRef.current) {
+      clearTimeout(completionTimeoutRef.current);
+      completionTimeoutRef.current = null;
+    }
+    if (e2eQaMode) {
+      setPendingPrompt(null);
+      setActiveRunId(null);
+      track("ai_response_stream_end", {
+        sessionId,
+        threadId: activeThreadId ?? undefined,
+        route: currentRoute,
+        stopped: true,
+        source: "assistant",
+      });
+      return;
+    }
+    if (!activeThreadId || !activeRunId) {
+      setPendingPrompt(null);
+      return;
+    }
+    await stopRunMutation({ runId: activeRunId as never, threadId: activeThreadId });
+    setPendingPrompt(null);
+    setActiveRunId(null);
+    track("ai_response_stream_end", {
+      sessionId,
+      threadId: activeThreadId,
+      route: currentRoute,
+      stopped: true,
+      source: "assistant",
+    });
   };
 
   return {
-    activeTurnId,
+    activeThreadId,
+    messages,
+    isStreaming,
     sendPrompt,
     stop,
+    threads,
+    recommendationBatches,
   };
 }

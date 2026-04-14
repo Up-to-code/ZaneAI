@@ -29,7 +29,8 @@ export function ScreenHeader({ eyebrow, title, subtitle, showCopy = true }: Scre
     <View style={styles.container}>
       <View style={styles.topBar}>
         <View style={styles.sideSlot}>
-          <IconButton 
+          <IconButton
+            testID="app.open_menu"
             active={pathname === "/menu"}
             accessibilityLabel="Open menu"
             onPress={() => router.navigate("/(app)/menu")}
@@ -59,13 +60,7 @@ export function ScreenHeader({ eyebrow, title, subtitle, showCopy = true }: Scre
           >
             <Bookmark size={18} color={colors.textPrimary} />
           </IconButton>
-          <IconButton 
-            active={pathname === "/profile"}
-            accessibilityLabel="Open profile"
-            onPress={() => router.navigate("/(app)/profile")}
-          >
-            <CircleUserRound size={18} color={colors.textSecondary} />
-          </IconButton>
+          {/* Profile icon removed per request */}
         </View>
       </View>
 
@@ -122,10 +117,10 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     borderColor: colors.divider,
   },
   brandText: {
-    letterSpacing: 2,
+    letterSpacing: 2.8, // Elite wide tracking for logo
     color: colors.textPrimary,
     fontFamily: theme.typography.label.fontFamily,
-    fontSize: 11,
+    fontSize: 10,
   },
   copyBlock: {
     gap: theme.spacing.xs,
@@ -136,6 +131,7 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   },
   title: {
     maxWidth: 280,
+    letterSpacing: -0.6, // Deep heading compression
   },
   subtitle: {
     maxWidth: 320,

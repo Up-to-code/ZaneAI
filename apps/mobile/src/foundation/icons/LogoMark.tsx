@@ -28,7 +28,7 @@ export function LogoMark({ size = 28 }: LogoMarkProps) {
       <Svg width={size * 0.7} height={size * 0.7} viewBox="0 0 48 48" fill="none">
         <Path
           d="M9 10H39L16 38H39"
-          stroke={colors.textPrimary === "#FFFFFF" ? "#FFFFFF" : "#18181B"} // Stronger Zinc contrast
+          stroke={colors.textPrimary}
           strokeWidth={5}
           strokeLinecap="round"
           strokeLinejoin="round"

@@ -12,6 +12,9 @@
     "typecheck": "npm --workspace apps/mobile run typecheck",
     "test": "npm --workspace apps/mobile run test",
     "lint": "npm --workspace apps/mobile run lint",
+    "maestro:test": "npm --workspace apps/mobile run maestro:test",
+    "maestro:smoke": "npm --workspace apps/mobile run maestro:smoke",
+    "agent:smoke": "tsx scripts/agent-smoke.ts",
     "convex:dev": "convex dev",
     "convex:codegen": "convex codegen"
   },
@@ -19,5 +22,16 @@
     "convex": "^1.35.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "3.0.52",
+    "@convex-dev/agent": "0.6.1",
+    "@convex-dev/better-auth": "0.11.4",
+    "@convex-dev/rag": "0.7.2",
+    "@convex-dev/rate-limiter": "0.3.2",
+    "@convex-dev/workpool": "^0.4.6",
+    "@jackchen_me/open-multi-agent": "1.1.0",
+    "ai": "6.0.158",
+    "better-auth": "1.5.6"
   }
 }

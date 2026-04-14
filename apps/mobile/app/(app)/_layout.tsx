@@ -1,17 +1,19 @@
 import { Redirect, Stack } from "expo-router";
 
-import { theme } from "@/foundation/theme/tokens";
+import { useAuthSession } from "@/auth/useAuthSession";
+import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useAppStore } from "@/store";
 
 export default function AppLayout() {
   const hydrationComplete = useAppStore((state) => state.hydrationComplete);
-  const isAuthenticated = useAppStore((state) => state.isAuthenticated);
+  const { canAccessApp, isReady } = useAuthSession();
+  const { colors } = useTheme();
 
-  if (!hydrationComplete) {
+  if (!hydrationComplete || !isReady) {
     return null;
   }
 
-  if (!isAuthenticated) {
+  if (!canAccessApp) {
     return <Redirect href="/(auth)" />;
   }
 
@@ -20,7 +22,7 @@ export default function AppLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: theme.colors.background,
+          backgroundColor: colors.background,
         },
         animation: "none",
       }}
@@ -29,8 +31,11 @@ export default function AppLayout() {
       <Stack.Screen name="menu" />
       <Stack.Screen name="saved" />
       <Stack.Screen name="profile" />
+      <Stack.Screen name="appearance" />
       <Stack.Screen name="compare" />
+      <Stack.Screen name="listing" />
       <Stack.Screen name="property/[id]" />
+      <Stack.Screen name="broker/[id]" />
     </Stack>
   );
 }

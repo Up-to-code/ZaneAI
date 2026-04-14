@@ -1,16 +1,19 @@
 import { Redirect, Stack } from "expo-router";
-import { theme } from "@/foundation/theme/tokens";
+
+import { useAuthSession } from "@/auth/useAuthSession";
+import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useAppStore } from "@/store";
 
 export default function AuthLayout() {
   const hydrationComplete = useAppStore((state) => state.hydrationComplete);
-  const isAuthenticated = useAppStore((state) => state.isAuthenticated);
+  const { canAccessApp, isReady } = useAuthSession();
+  const { colors } = useTheme();
 
-  if (!hydrationComplete) {
+  if (!hydrationComplete || !isReady) {
     return null;
   }
 
-  if (isAuthenticated) {
+  if (canAccessApp) {
     return <Redirect href="/(app)" />;
   }
 
@@ -19,7 +22,7 @@ export default function AuthLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: theme.colors.background,
+          backgroundColor: colors.background,
         },
         animation: "none",
       }}

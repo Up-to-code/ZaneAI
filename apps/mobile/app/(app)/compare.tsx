@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View, Pressable } from "react-native";
+import { ScrollView, StyleSheet, View, Pressable, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Image } from "expo-image";
@@ -10,22 +10,32 @@ import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { ScreenHeader } from "@/shell/components/ScreenHeader";
+import { toggleE2ESavedProperty } from "@/e2e/store";
 import { track } from "@/persistence/analytics/track";
 import { useAppStore } from "@/store";
+import { usePropertiesByIds, useSavedProperties } from "@/persistence/convex/usePropertyData";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { PropertyCardVM } from "@/types/domain";
+import { useAuthSession } from "@/auth/useAuthSession";
 
 export default function CompareScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { isAuthenticated } = useAuthSession();
+  const e2eQaMode = useAppStore((state) => state.e2eQaMode);
 
-  const properties = useAppStore((state) => state.properties);
   const comparePropertyIds = useAppStore((state) => state.comparePropertyIds);
-  const savedPropertyIds = useAppStore((state) => state.savedPropertyIds);
   const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
-  const toggleSavedProperty = useAppStore((state) => state.toggleSavedProperty);
-
-  const compareProperties = properties.filter((p) => comparePropertyIds.includes(p.id));
+  const savedProperties = useSavedProperties();
+  const toggleSavedProperty = useMutation(api.property.public.toggleSavedProperty.toggleSavedProperty);
+  const compareProperties = usePropertiesByIds(comparePropertyIds);
+  const savedPropertyIds = useMemo(
+    () => savedProperties.map((item: { propertyExternalId: string }) => item.propertyExternalId),
+    [savedProperties],
+  );
 
   return (
     <Screen style={styles.screen}>
@@ -56,17 +66,17 @@ export default function CompareScreen() {
                 <View style={[styles.section, { paddingBottom: 8 }]}>
                   <Text variant="caption" tone="muted" style={styles.sectionEyebrow}>CORE COMPARISON</Text>
                 </View>
-                <View style={styles.compareTable}>
+                <View testID="compare.table" style={styles.compareTable}>
                   {[
-                    { label: "Price", values: compareProperties.map((p) => p.priceLabel) },
-                    { label: "Beds", values: compareProperties.map((p) => `${p.beds}`) },
-                    { label: "Baths", values: compareProperties.map((p) => `${p.baths}`) },
-                    { label: "Area", values: compareProperties.map((p) => `${p.area.toLocaleString()} sqft`) },
-                    { label: "Match", values: compareProperties.map((p) => `${p.matchScore}%`) },
+                    { label: "Price", values: compareProperties.map((p: PropertyCardVM) => p.priceLabel) },
+                    { label: "Location", values: compareProperties.map((p: PropertyCardVM) => p.locationLabel) },
+                    { label: "Beds", values: compareProperties.map((p: PropertyCardVM) => `${p.beds}`) },
+                    { label: "Area", values: compareProperties.map((p: PropertyCardVM) => `${p.area.toLocaleString()} sqft`) },
+                    { label: "Yield", values: compareProperties.map((p: PropertyCardVM) => getYieldLabel(p.id)) },
                   ].map(({ label, values }, index) => (
                     <View key={label} style={[styles.tableRow, index === 0 && { borderTopWidth: 0 }]}>
                       <Text variant="caption" tone="muted" style={styles.tableLabel}>{label}</Text>
-                      {values.map((val, i) => (
+                      {values.map((val: string, i: number) => (
                         <Text key={i} variant="label" style={styles.tableValue}>{val}</Text>
                       ))}
                     </View>
@@ -77,7 +87,7 @@ export default function CompareScreen() {
 
             {/* Individual Property Cards */}
             <View style={styles.propertyList}>
-              {compareProperties.map((property) => {
+              {compareProperties.map((property: PropertyCardVM) => {
                 const isSaved = savedPropertyIds.includes(property.id);
                 return (
                   <Pressable
@@ -133,7 +143,15 @@ export default function CompareScreen() {
                         <Pressable
                           style={[styles.actionBtn, isSaved && styles.actionBtnActive]}
                           onPress={() => {
-                            toggleSavedProperty(property.id);
+                            if (!isAuthenticated && !e2eQaMode) {
+                              Alert.alert("Sign in required", "Create an account or sign in to save properties across devices.");
+                              return;
+                            }
+                            if (e2eQaMode) {
+                              toggleE2ESavedProperty(property.id);
+                            } else {
+                              void toggleSavedProperty({ propertyExternalId: property.id });
+                            }
                             track("property_save", { propertyId: property.id, saved: !isSaved });
                           }}
                         >
@@ -157,6 +175,22 @@ export default function CompareScreen() {
       </ScrollView>
     </Screen>
   );
+}
+
+function getYieldLabel(propertyId: string) {
+  if (propertyId === "prop-dubai-marina-01") {
+    return "6.2%";
+  }
+
+  if (propertyId === "prop-business-bay-02") {
+    return "5.7%";
+  }
+
+  if (propertyId === "prop-palm-03") {
+    return "4.9%";
+  }
+
+  return "5.0%";
 }
 
 const createStyles = (colors: any) => StyleSheet.create({
@@ -244,7 +278,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  matchText: { color: "#fff", fontFamily: theme.typography.label.fontFamily },
+  matchText: { color: colors.background, fontFamily: theme.typography.label.fontFamily },
   cardBody: {
     padding: theme.spacing.lg,
     gap: theme.spacing.md,

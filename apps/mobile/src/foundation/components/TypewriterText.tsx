@@ -11,6 +11,7 @@ import * as Haptics from "expo-haptics";
 
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
+import { useTheme } from "@/foundation/theme/ThemeProvider";
 
 interface TypewriterTextProps {
   phrases: string[];
@@ -25,8 +26,9 @@ export function TypewriterText({
   typingSpeed = 100,
   deletingSpeed = 50,
   pauseTime = 1500,
-  color = "#A3A3A3"
+  color,
 }: TypewriterTextProps) {
+  const { colors } = useTheme();
   const [displayText, setDisplayText] = useState("");
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -86,11 +88,13 @@ export function TypewriterText({
     opacity: cursorOpacity.value,
   }));
 
+  const resolvedColor = color ?? colors.textSecondary;
+
   return (
     <View style={styles.container}>
-      <Text style={[styles.text, { color }]}>
+      <Text style={[styles.text, { color: resolvedColor }]}>
         {displayText}
-        <Animated.View style={[styles.cursor, { backgroundColor: color }, cursorStyle]} />
+        <Animated.View style={[styles.cursor, { backgroundColor: resolvedColor }, cursorStyle]} />
       </Text>
     </View>
   );

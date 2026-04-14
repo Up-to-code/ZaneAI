@@ -15,7 +15,7 @@ export type AnalyticsEventName =
   | "schedule_visit";
 
 export type ConversationRole = "user" | "assistant";
-export type ConversationKind = "text" | "property_bundle" | "summary_card";
+export type ConversationKind = "text" | "property_bundle" | "summary_card" | "comparison_analytics" | "web_search";
 export type StreamState = "idle" | "streaming" | "complete" | "stopped";
 export type VoiceMode = "idle" | "requesting_permission" | "listening" | "transcribing" | "failed";
 
@@ -28,12 +28,39 @@ export type ConversationMessage = {
   streamState: StreamState;
   relatedPropertyIds: string[];
   createdAt: number;
+  runId?: string;
+  sourceMetadata?: { title: string; url: string; snippet: string }[];
+};
+
+export type AmenityVM = {
+  id: string;
+  label: string;
+  iconName: string; // corresponds to lucide-react-native icon
+  category?: string; // e.g. "Wellness", "Accessibility"
+};
+
+export type BrokerVM = {
+  id: string;
+  name: string;
+  agency: string;
+  avatarUrl: string;
+  rating: number;
+  activeListingsCount: number;
+  phone: string;
+  description: string;
+};
+
+export type PriceAnalysisVM = {
+  propertyAskPrice: number;
+  areaAveragePrice: number;
+  historicalData: { month: string; value: number }[]; // for rendering chart
 };
 
 export type PropertyCardVM = {
   id: string;
   heroUrl: string;
   title: string;
+  description?: string; // added description
   priceLabel: string;
   locationLabel: string;
   beds: number;
@@ -43,6 +70,9 @@ export type PropertyCardVM = {
   matchReasons: string[];
   aiSummary: string;
   tags: string[];
+  amenities: AmenityVM[];
+  broker: BrokerVM;
+  priceAnalysis: PriceAnalysisVM;
 };
 
 export type RecommendationBatch = {

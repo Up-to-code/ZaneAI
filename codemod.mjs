@@ -14,7 +14,7 @@ const files = [
   "apps/mobile/src/conversation/components/ConversationViewport.tsx",
   "apps/mobile/src/conversation/components/ConversationFeed.tsx",
   "apps/mobile/src/conversation/components/MessageBubble.tsx",
-  "apps/mobile/src/conversation/components/ZayonComposerDock.tsx"
+  "apps/mobile/src/conversation/components/ZaneAiComposerDock.tsx"
 ];
 
 for (const file of files) {

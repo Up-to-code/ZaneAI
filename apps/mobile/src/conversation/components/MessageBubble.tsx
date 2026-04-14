@@ -131,7 +131,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   return (
     <Animated.View entering={FadeIn.duration(250)} style={[styles.row, styles.assistantRow]}>
-      <Text variant="label" style={styles.assistantLabel}>Zayon</Text>
+      <Text variant="label" style={styles.assistantLabel}>Zane-ai</Text>
       <StreamingText
         text={message.text}
         isStreaming={isStreaming}
@@ -144,7 +144,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 const createStyles = (colors: any) => StyleSheet.create({
   row: {
     paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
   },
   userRow: {
     alignItems: "flex-end",
@@ -169,4 +169,3 @@ const createStyles = (colors: any) => StyleSheet.create({
     lineHeight: 24,
   },
 });
-
