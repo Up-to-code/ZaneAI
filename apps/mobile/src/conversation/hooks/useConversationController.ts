@@ -1,7 +1,8 @@
 import { startTransition, useEffect, useMemo, useRef } from "react";
 import { useMutation } from "convex/react";
+import { useRouter } from "expo-router";
 
-import { api } from "@convex/_generated/api";
+import type { BuyerAction } from "@/conversation/buyerProtocol";
 import { useAuthSession } from "@/auth/useAuthSession";
 import {
   appendE2EUserPrompt,
@@ -9,12 +10,21 @@ import {
   createE2EThread,
 } from "@/e2e/store";
 import { track } from "@/persistence/analytics/track";
-import { useThreads, useThreadMessages, useRecommendationBatches } from "@/persistence/convex/useConversationData";
+import { api } from "@/persistence/convex/api";
+import {
+  useAgentRuntimeHealth,
+  useRecommendationBatches,
+  useRunStageFeed,
+  useRunStatus,
+  useThreadMessages,
+  useThreads,
+} from "@/persistence/convex/useConversationData";
 import { useAppStore } from "@/store";
-import type { ConversationMessage } from "@/types/domain";
+import type { ConversationMessage, PropertyCardVM } from "@/types/domain";
 
 export function useConversationController() {
-  const { isAuthenticated } = useAuthSession();
+  const { canUpgrade, isAnonymous, isAuthenticated } = useAuthSession();
+  const router = useRouter();
   const sessionId = useAppStore((state) => state.sessionId);
   const draftText = useAppStore((state) => state.draftText);
   const currentRoute = useAppStore((state) => state.currentRoute);
@@ -22,19 +32,36 @@ export function useConversationController() {
   const activeRunId = useAppStore((state) => state.activeRunId);
   const pendingPrompt = useAppStore((state) => state.pendingPrompt);
   const pendingStartedAt = useAppStore((state) => state.pendingStartedAt);
+  const runFailureMessage = useAppStore((state) => state.runFailureMessage);
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const setActiveThreadId = useAppStore((state) => state.setActiveThreadId);
   const setActiveRunId = useAppStore((state) => state.setActiveRunId);
   const setPendingPrompt = useAppStore((state) => state.setPendingPrompt);
+  const setRunFailureMessage = useAppStore((state) => state.setRunFailureMessage);
   const clearDraft = useAppStore((state) => state.clearDraft);
+  const setDraftText = useAppStore((state) => state.setDraftText);
+  const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
+  const setSelectedPropertyId = useAppStore((state) => state.setSelectedPropertyId);
   const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const threads = useThreads();
   const startThreadMutation = useMutation(api.agent.public.startThread.startThread);
   const sendUserMessageMutation = useMutation(api.agent.public.sendUserMessage.sendUserMessage);
   const stopRunMutation = useMutation(api.agent.public.stopRun.stopRun);
+  const toggleSavedPropertyMutation = useMutation(api.property.public.toggleSavedProperty.toggleSavedProperty);
+  const runtimeHealth = useAgentRuntimeHealth();
   const recommendationBatches = useRecommendationBatches(activeThreadId);
   const rawMessages = useThreadMessages(activeThreadId, pendingPrompt);
+  const runStageFeed = useRunStageFeed(
+    activeThreadId,
+    activeRunId,
+    runtimeHealth.status === "ready" && Boolean(runtimeHealth.capabilities?.stageFeed),
+  );
+  const runStatus = useRunStatus(
+    activeThreadId,
+    activeRunId,
+    runtimeHealth.status === "ready" && Boolean(runtimeHealth.capabilities?.runStatus),
+  );
 
   useEffect(() => {
     if (!activeThreadId && threads[0]?._id) {
@@ -65,8 +92,45 @@ export function useConversationController() {
       });
       setPendingPrompt(null);
       setActiveRunId(null);
+      setRunFailureMessage(null);
     }
-  }, [activeThreadId, currentRoute, pendingPrompt, pendingStartedAt, rawMessages, sessionId, setActiveRunId, setPendingPrompt]);
+  }, [activeThreadId, currentRoute, pendingPrompt, pendingStartedAt, rawMessages, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
+
+  useEffect(() => {
+    if (!pendingPrompt || !runStatus) {
+      return;
+    }
+
+    if (runStatus.status === "failed" || runStatus.status === "cancelled") {
+      track("ai_response_stream_end", {
+        sessionId,
+        threadId: activeThreadId ?? undefined,
+        route: currentRoute,
+        stopped: runStatus.status === "cancelled",
+        source: "assistant",
+      });
+      setPendingPrompt(null);
+      setActiveRunId(null);
+      setRunFailureMessage(
+        runStatus.diagnostics[0]
+          ?? (runStatus.status === "cancelled" ? "Run stopped." : "Assistant run failed."),
+      );
+      return;
+    }
+
+    if (runStatus.status === "completed") {
+      setRunFailureMessage(null);
+    }
+  }, [
+    activeThreadId,
+    currentRoute,
+    pendingPrompt,
+    runStatus,
+    sessionId,
+    setActiveRunId,
+    setPendingPrompt,
+    setRunFailureMessage,
+  ]);
 
   const messages = useMemo<ConversationMessage[]>(() => {
     const latestBatch = recommendationBatches[recommendationBatches.length - 1];
@@ -76,14 +140,25 @@ export function useConversationController() {
     }
     const batchKind = latestBatch && "kind" in latestBatch ? latestBatch.kind : undefined;
     return rawMessages.map((message, index) =>
-      index === assistantIndex && latestBatch
+      message.uiTurn
+        ? {
+            ...message,
+            kind: "buyer_turn",
+            relatedPropertyIds: message.uiTurn.propertyIds,
+            sourceMetadata:
+              message.uiTurn.cards.find((card) => card.type === "market_sources")?.type === "market_sources"
+                ? message.uiTurn.cards.find((card) => card.type === "market_sources")!.sources
+                : message.sourceMetadata,
+            runId: message.turnMeta?.runId ?? message.runId,
+          }
+        : index === assistantIndex && latestBatch
         ? {
             ...message,
             kind:
               message.kind !== "text"
                 ? message.kind
                 : batchKind ?? (latestBatch.properties.length > 0 ? "property_bundle" : "text"),
-            relatedPropertyIds: latestBatch.properties.map((property) => property.id),
+            relatedPropertyIds: latestBatch.properties.map((property: PropertyCardVM) => property.id),
             sourceMetadata: latestBatch.sources ?? [],
             runId: latestBatch.runId,
           }
@@ -115,6 +190,12 @@ export function useConversationController() {
     }
 
     if (!isAuthenticated) {
+      setRunFailureMessage("Sign in required before sending a prompt.");
+      return;
+    }
+
+    if (runtimeHealth.status !== "ready") {
+      setRunFailureMessage(runtimeHealth.message ?? "AI runtime unavailable.");
       return;
     }
 
@@ -124,6 +205,7 @@ export function useConversationController() {
     }
     const startedAt = Date.now();
     startTransition(() => {
+      setRunFailureMessage(null);
       clearDraft();
       setPendingPrompt(prompt, startedAt);
     });
@@ -148,7 +230,7 @@ export function useConversationController() {
       setActiveRunId(String(result.runId));
     } catch (error) {
       setPendingPrompt(null);
-      throw error;
+      setRunFailureMessage(error instanceof Error ? error.message : "Unable to send prompt.");
     }
   };
 
@@ -164,6 +246,7 @@ export function useConversationController() {
     if (e2eQaMode) {
       setPendingPrompt(null);
       setActiveRunId(null);
+      setRunFailureMessage(null);
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -180,6 +263,7 @@ export function useConversationController() {
     await stopRunMutation({ runId: activeRunId as never, threadId: activeThreadId });
     setPendingPrompt(null);
     setActiveRunId(null);
+    setRunFailureMessage(null);
     track("ai_response_stream_end", {
       sessionId,
       threadId: activeThreadId,
@@ -189,13 +273,90 @@ export function useConversationController() {
     });
   };
 
+  const handleTurnAction = async (action: BuyerAction, message: ConversationMessage) => {
+    const basePayload = {
+      sessionId,
+      threadId: activeThreadId ?? undefined,
+      route: currentRoute,
+      source: "assistant",
+      actionName: action.name,
+      runId: message.turnMeta?.runId,
+      messageId: message.id,
+      recommendationBatchId: message.turnMeta?.recommendationBatchId,
+      propertyId: "propertyId" in action.payload ? action.payload.propertyId : undefined,
+    };
+
+    if (action.name === "save_property") {
+      await toggleSavedPropertyMutation({ propertyExternalId: action.payload.propertyId });
+      track("property_save", basePayload);
+      return;
+    }
+
+    if (action.name === "compare_property") {
+      toggleCompareProperty(action.payload.propertyId);
+      track("property_compare", basePayload);
+      return;
+    }
+
+    if (action.name === "open_property") {
+      setSelectedPropertyId(action.payload.propertyId);
+      track("property_click", basePayload);
+      router.push(`/(app)/property/${action.payload.propertyId}`);
+      return;
+    }
+
+    if (action.name === "contact_agent") {
+      track("contact_agent", basePayload);
+      if (action.payload.prompt) {
+        await sendPrompt(action.payload.prompt);
+        return;
+      }
+      if (action.payload.brokerId) {
+        router.push(`/(app)/broker/${action.payload.brokerId}`);
+        return;
+      }
+      if (action.payload.propertyId) {
+        setSelectedPropertyId(action.payload.propertyId);
+        router.push(`/(app)/property/${action.payload.propertyId}`);
+      }
+      return;
+    }
+
+    if (action.name === "schedule_visit") {
+      track("schedule_visit", basePayload);
+      if (action.payload.prompt) {
+        await sendPrompt(action.payload.prompt);
+        return;
+      }
+      setDraftText(`I want to schedule a visit for ${action.payload.propertyId}.`);
+      return;
+    }
+
+    if (
+      action.name === "refine_search"
+      || action.name === "ask_followup"
+      || action.name === "continue_thread"
+    ) {
+      track("ai_suggestion_clicked", basePayload);
+      await sendPrompt(action.payload.prompt);
+    }
+  };
+
   return {
     activeThreadId,
+    canUpgrade,
+    isAnonymous,
+    runtimeHealth,
     messages,
     isStreaming,
+    runFailureMessage,
     sendPrompt,
     stop,
     threads,
     recommendationBatches,
+    runStageFeed,
+    handleTurnAction,
+    openUpgrade: () => router.push("/(auth)"),
+    clearRunFailureMessage: () => setRunFailureMessage(null),
   };
 }

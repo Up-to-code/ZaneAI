@@ -1,3 +1,5 @@
+import type { BuyerAction, BuyerAssistantTurn, BuyerSource, BuyerStageEvent } from "@/conversation/buyerProtocol";
+
 export type AnalyticsEventName =
   | "app_open"
   | "screen_view"
@@ -15,9 +17,22 @@ export type AnalyticsEventName =
   | "schedule_visit";
 
 export type ConversationRole = "user" | "assistant";
-export type ConversationKind = "text" | "property_bundle" | "summary_card" | "comparison_analytics" | "web_search";
+export type ConversationKind =
+  | "text"
+  | "property_bundle"
+  | "summary_card"
+  | "comparison_analytics"
+  | "web_search"
+  | "buyer_turn";
 export type StreamState = "idle" | "streaming" | "complete" | "stopped";
 export type VoiceMode = "idle" | "requesting_permission" | "listening" | "transcribing" | "failed";
+
+export type ConversationTurnMeta = {
+  runId?: string;
+  recommendationBatchId?: string;
+  sources?: BuyerSource[];
+  diagnostics?: string[];
+};
 
 export type ConversationMessage = {
   id: string;
@@ -30,6 +45,46 @@ export type ConversationMessage = {
   createdAt: number;
   runId?: string;
   sourceMetadata?: { title: string; url: string; snippet: string }[];
+  uiTurn?: BuyerAssistantTurn;
+  turnMeta?: ConversationTurnMeta;
+};
+
+export type ConversationTurnAction = BuyerAction;
+export type ConversationRunStage = BuyerStageEvent;
+
+export type ConversationRunStatus = {
+  runId: string;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  summary?: string;
+  diagnostics: string[];
+  startedAt?: number;
+  completedAt?: number;
+  updatedAt: number;
+  stopRequestedAt?: number;
+};
+
+export type AgentRuntimeHealth = {
+  status: "loading" | "ready" | "unavailable";
+  auth?: {
+    anonymousEnabled: boolean;
+    emailPasswordEnabled: boolean;
+  };
+  llm?: {
+    configured: boolean;
+    provider: "openrouter" | "openai" | null;
+  };
+  webSearch?: {
+    configured: boolean;
+  };
+  featureVersion?: string;
+  capabilities?: {
+    sendMessage: boolean;
+    threadMessages: boolean;
+    recommendationBatches: boolean;
+    stageFeed: boolean;
+    runStatus: boolean;
+  };
+  message?: string;
 };
 
 export type AmenityVM = {

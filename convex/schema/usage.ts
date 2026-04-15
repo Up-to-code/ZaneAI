@@ -38,6 +38,7 @@ export const usageTables = {
     createdAt: v.number(),
   })
     .index("by_eventName", ["eventName"])
+    .index("by_authUserId", ["authUserId"])
     .index("by_sessionId", ["sessionId"])
     .index("by_threadId", ["threadId"]),
 };

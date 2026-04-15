@@ -5,7 +5,7 @@ import { createAuthOptions } from "./createAuthOptions";
 
 export function createAuth(ctx: any) {
   return betterAuth({
-    ...createAuthOptions(),
+    ...createAuthOptions(ctx),
     database: authComponent.adapter(ctx),
   });
 }

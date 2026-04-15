@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMemo } from "react";
 
 import { ConversationFeed } from "@/conversation/components/ConversationFeed";
+import { ConversationStatusBanner } from "@/conversation/components/ConversationStatusBanner";
 import { ZaneAiComposerDock } from "@/conversation/components/ZaneAiComposerDock";
 import { useConversationController } from "@/conversation/hooks/useConversationController";
 import { useKeyboardDock } from "@/conversation/hooks/useKeyboardDock";
@@ -15,7 +16,20 @@ export function ConversationViewport() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const composerDockHeight = useAppStore((state) => state.composerDockHeight);
   const keyboardHeight = useAppStore((state) => state.keyboardHeight);
-  const { messages, isStreaming, sendPrompt, stop } = useConversationController();
+  const {
+    canUpgrade,
+    clearRunFailureMessage,
+    handleTurnAction,
+    isAnonymous,
+    isStreaming,
+    messages,
+    openUpgrade,
+    runFailureMessage,
+    runStageFeed,
+    runtimeHealth,
+    sendPrompt,
+    stop,
+  } = useConversationController();
   const insets = useSafeAreaInsets();
   const { dockBottomOffset, listBottomPadding, keyboardVisible } = useKeyboardDock({
     bottomInset: insets.bottom,
@@ -26,13 +40,47 @@ export function ConversationViewport() {
   return (
     <View style={styles.container}>
       <View style={[styles.feedWrap, { paddingBottom: listBottomPadding }]}>
-        <ConversationFeed messages={messages} />
+        {runtimeHealth.status === "unavailable" ? (
+          <ConversationStatusBanner
+            title="AI unavailable"
+            body={runtimeHealth.message ?? "Convex runtime missing deploy or model config."}
+            tone="error"
+          />
+        ) : null}
+
+        {runFailureMessage ? (
+          <ConversationStatusBanner
+            title="Run failed"
+            body={runFailureMessage}
+            tone="warning"
+            onDismiss={clearRunFailureMessage}
+          />
+        ) : null}
+
+        {isAnonymous ? (
+          <ConversationStatusBanner
+            title="Anonymous session active"
+            body="Chat, saved properties, and thread history stay available now. Upgrade later to merge everything into account."
+            actionLabel={canUpgrade ? "Upgrade" : undefined}
+            onAction={canUpgrade ? openUpgrade : undefined}
+          />
+        ) : null}
+
+        <ConversationFeed
+          messages={messages}
+          runStageFeed={runStageFeed}
+          onTurnAction={handleTurnAction}
+        />
       </View>
       <View pointerEvents="box-none" style={[styles.dockWrap, { bottom: dockBottomOffset }]}>
         <ZaneAiComposerDock
           onSend={sendPrompt}
           onStop={stop}
           isStreaming={isStreaming}
+          disabled={runtimeHealth.status === "unavailable"}
+          disabledReason={runtimeHealth.message}
+          canUpgrade={canUpgrade}
+          onUpgrade={openUpgrade}
           keyboardVisible={keyboardVisible}
           messageCount={messages.length}
         />

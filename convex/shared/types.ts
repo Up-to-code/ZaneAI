@@ -1,6 +1,6 @@
 export const THREAD_SCOPES = ["personal", "organization", "public"] as const;
 export const KNOWLEDGE_SCOPES = THREAD_SCOPES;
-export const AGENT_ROLES = ["search", "decision", "memory"] as const;
+export const AGENT_ROLES = ["search", "analysis", "ranking", "preference", "summary"] as const;
 export const RUN_STATUSES = [
   "queued",
   "running",

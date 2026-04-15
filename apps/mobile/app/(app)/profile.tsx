@@ -19,8 +19,7 @@ export default function ProfileScreen() {
   const { colors, appearanceMode } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { user, isAuthenticated, isGuest } = useAuthSession();
-  const setGuestMode = useAppStore((state) => state.setGuestMode);
+  const { canUpgrade, user, isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
 
   const handleLogout = () => {
@@ -32,15 +31,12 @@ export default function ProfileScreen() {
     if (isAuthenticated) {
       void authClient.signOut();
     }
-    if (isGuest) {
-      setGuestMode(false);
-    }
   };
 
-  const displayName = user?.name ?? user?.email ?? "Zane-ai Member";
+  const displayName = isGuest ? "Anonymous session" : user?.name ?? user?.email ?? "Zane-ai Member";
   const initials = displayName
     .split(" ")
-    .map((part) => part[0]?.toUpperCase() ?? "")
+    .map((part: string) => part[0]?.toUpperCase() ?? "")
     .join("")
     .slice(0, 2);
 
@@ -126,10 +122,24 @@ export default function ProfileScreen() {
           <View style={styles.heroText}>
             <Text variant="title" style={styles.userName} numberOfLines={2}>{displayName}</Text>
             <Text variant="label" tone="muted" style={styles.userStatus}>
-              {user?.email ?? "Authenticated account"}
+              {isGuest
+                ? "Upgrade any time. Anonymous chats and saved items merge into account."
+                : user?.email ?? "Authenticated account"}
             </Text>
           </View>
         </Animated.View>
+
+        {isGuest && canUpgrade ? (
+          <Animated.View entering={FadeInDown.delay(120).springify()} style={styles.upgradeCard}>
+            <Text variant="label" style={styles.upgradeTitle}>Upgrade and keep everything</Text>
+            <Text variant="caption" tone="secondary" style={styles.upgradeBody}>
+              Sign in or create account. Threads, saved properties, and compare state follow you.
+            </Text>
+            <Pressable style={styles.upgradeAction} onPress={() => router.push("/(auth)")}>
+              <Text variant="caption" style={styles.upgradeActionText}>Upgrade account</Text>
+            </Pressable>
+          </Animated.View>
+        ) : null}
 
         <View style={styles.listContainer}>
           {profileItems.map((item, index) => (
@@ -261,6 +271,33 @@ const createStyles = (colors: any) =>
       alignItems: "center",
       paddingVertical: 32,
       gap: 20,
+    },
+    upgradeCard: {
+      marginTop: theme.spacing.lg,
+      gap: theme.spacing.sm,
+      padding: theme.spacing.lg,
+      borderRadius: theme.radii.lg,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.divider,
+    },
+    upgradeTitle: {
+      color: colors.textPrimary,
+    },
+    upgradeBody: {
+      lineHeight: 18,
+    },
+    upgradeAction: {
+      alignSelf: "flex-start",
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.radii.pill,
+      backgroundColor: colors.surfaceRaised,
+      borderWidth: 1,
+      borderColor: colors.divider,
+    },
+    upgradeActionText: {
+      color: colors.textPrimary,
     },
     bigAvatar: {
       width: 80,

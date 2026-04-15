@@ -10,10 +10,10 @@ import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { createE2EThread } from "@/e2e/store";
+import { api } from "@/persistence/convex/api";
 import { useThreads } from "@/persistence/convex/useConversationData";
 import { useAppStore } from "@/store";
 import { useMutation } from "convex/react";
-import { api } from "@convex/_generated/api";
 import { useAuthSession } from "@/auth/useAuthSession";
 
 export default function MenuScreen() {
@@ -26,7 +26,7 @@ export default function MenuScreen() {
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const threads = useThreads();
   const startThread = useMutation(api.agent.public.startThread.startThread);
-  const { isAuthenticated, isGuest, user } = useAuthSession();
+  const { canUpgrade, isAuthenticated, isGuest, user } = useAuthSession();
 
   const handleNewThread = async () => {
     if (!isAuthenticated) {
@@ -46,7 +46,7 @@ export default function MenuScreen() {
     router.navigate("/(app)");
   };
 
-  const displayName = user?.name ?? user?.email ?? "Ahmed Mansour";
+  const displayName = isGuest ? "Anonymous session" : user?.name ?? user?.email ?? "Ahmed Mansour";
   const avatarLetter = displayName[0]?.toUpperCase() ?? "A";
 
   return (
@@ -76,6 +76,20 @@ export default function MenuScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 88, paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
       >
+        {isGuest ? (
+          <View style={styles.guestBanner}>
+            <Text variant="label" style={styles.guestBannerTitle}>Anonymous research active</Text>
+            <Text variant="caption" tone="secondary" style={styles.guestBannerBody}>
+              Threads, saved properties, and compare tray stay live now. Upgrade any time to merge everything into account.
+            </Text>
+            {canUpgrade ? (
+              <Pressable style={styles.guestBannerAction} onPress={() => router.push("/(auth)")}>
+                <Text variant="caption" style={styles.guestBannerActionText}>Upgrade account</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+
         <View style={styles.block}>
             <Text variant="caption" tone="muted" style={styles.sectionEyebrow}>THEORIES</Text>
           <View style={styles.theoryGroup}>
@@ -110,15 +124,6 @@ export default function MenuScreen() {
                 <View style={styles.divider} />
               </View>
             ))}
-
-            {isGuest ? (
-              <View style={styles.theoryItem}>
-                <Text variant="body" style={styles.theoryTitle}>Guest mode</Text>
-                <Text variant="caption" style={styles.theoryPreview}>
-                  Sign in to save and reopen your research archive.
-                </Text>
-              </View>
-            ) : null}
 
             <Pressable 
               style={styles.seeAllItem} 
@@ -243,6 +248,32 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   block: {
     gap: theme.spacing.sm,
+  },
+  guestBanner: {
+    gap: theme.spacing.sm,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radii.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  guestBannerTitle: {
+    color: colors.textPrimary,
+  },
+  guestBannerBody: {
+    lineHeight: 18,
+  },
+  guestBannerAction: {
+    alignSelf: "flex-start",
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radii.pill,
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  guestBannerActionText: {
+    color: colors.textPrimary,
   },
   searchBlock: {
     marginBottom: theme.spacing.md,

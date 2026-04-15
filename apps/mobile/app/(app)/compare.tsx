@@ -12,10 +12,10 @@ import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { ScreenHeader } from "@/shell/components/ScreenHeader";
 import { toggleE2ESavedProperty } from "@/e2e/store";
 import { track } from "@/persistence/analytics/track";
+import { api } from "@/persistence/convex/api";
 import { useAppStore } from "@/store";
 import { usePropertiesByIds, useSavedProperties } from "@/persistence/convex/usePropertyData";
 import { useMutation } from "convex/react";
-import { api } from "@convex/_generated/api";
 import type { PropertyCardVM } from "@/types/domain";
 import { useAuthSession } from "@/auth/useAuthSession";
 
@@ -131,6 +131,7 @@ export default function CompareScreen() {
 
                       <View style={styles.cardActions}>
                         <Pressable
+                          testID={`compare.remove.${property.id}`}
                           style={[styles.actionBtn, styles.actionBtnAccent]}
                           onPress={() => {
                             toggleCompareProperty(property.id);
@@ -141,6 +142,7 @@ export default function CompareScreen() {
                           <Text variant="caption" style={{ color: colors.accent }}>Remove</Text>
                         </Pressable>
                         <Pressable
+                          testID={`compare.save.${property.id}.${isSaved ? "saved" : "idle"}`}
                           style={[styles.actionBtn, isSaved && styles.actionBtnActive]}
                           onPress={() => {
                             if (!isAuthenticated && !e2eQaMode) {

@@ -25,10 +25,10 @@ import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { toggleE2ESavedProperty } from "@/e2e/store";
 import { track } from "@/persistence/analytics/track";
+import { api } from "@/persistence/convex/api";
 import { usePropertyById, useSavedProperties } from "@/persistence/convex/usePropertyData";
 import { useAppStore } from "@/store";
 import { useMutation } from "convex/react";
-import { api } from "@convex/_generated/api";
 import { useAuthSession } from "@/auth/useAuthSession";
 
 export default function PropertyDetailScreen() {

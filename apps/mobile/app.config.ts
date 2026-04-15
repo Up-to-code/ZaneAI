@@ -1,11 +1,33 @@
-import path from "path";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import type { ExpoConfig } from "expo/config";
-import dotenv from "dotenv";
 
 const workspaceRoot = path.resolve(__dirname, "../..");
 
-dotenv.config({ path: path.join(workspaceRoot, ".env.local"), override: false });
-dotenv.config({ path: path.join(workspaceRoot, ".env"), override: false });
+function loadEnvFile(filePath: string) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex < 0) continue;
+
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile(path.join(workspaceRoot, ".env.local"));
+loadEnvFile(path.join(workspaceRoot, ".env"));
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "";
 const authUrl = process.env.EXPO_PUBLIC_AUTH_URL ?? convexUrl;

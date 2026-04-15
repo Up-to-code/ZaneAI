@@ -5,6 +5,7 @@ export type SessionSlice = {
   currentRoute: string;
   hydrationComplete: boolean;
   guestMode: boolean;
+  onboardingComplete: boolean;
   e2eForceAuthScreen: boolean;
   authEmailDraft: string;
   authPasswordDraft: string;
@@ -12,6 +13,7 @@ export type SessionSlice = {
   setCurrentRoute: (route: string) => void;
   setHydrationComplete: (value: boolean) => void;
   setGuestMode: (value: boolean) => void;
+  setOnboardingComplete: (value: boolean) => void;
   setE2EForceAuthScreen: (value: boolean) => void;
   setAuthEmailDraft: (value: string) => void;
   setAuthPasswordDraft: (value: string) => void;
@@ -24,6 +26,7 @@ export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice
   currentRoute: "/",
   hydrationComplete: false,
   guestMode: false,
+  onboardingComplete: false,
   e2eForceAuthScreen: false,
   authEmailDraft: "",
   authPasswordDraft: "",
@@ -31,6 +34,7 @@ export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice
   setCurrentRoute: (route) => set({ currentRoute: route }),
   setHydrationComplete: (value) => set({ hydrationComplete: value }),
   setGuestMode: (value) => set({ guestMode: value }),
+  setOnboardingComplete: (value) => set({ onboardingComplete: value }),
   setE2EForceAuthScreen: (value) => set({ e2eForceAuthScreen: value }),
   setAuthEmailDraft: (value) => set({ authEmailDraft: value }),
   setAuthPasswordDraft: (value) => set({ authPasswordDraft: value }),

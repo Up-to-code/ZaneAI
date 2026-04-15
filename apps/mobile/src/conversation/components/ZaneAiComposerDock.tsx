@@ -30,6 +30,10 @@ type ZaneAiComposerDockProps = {
   onSend: (text: string) => void;
   onStop: () => void;
   isStreaming: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
+  canUpgrade?: boolean;
+  onUpgrade?: () => void;
   keyboardVisible?: boolean;
   messageCount?: number;
 };
@@ -91,6 +95,10 @@ export function ZaneAiComposerDock({
   onSend,
   onStop,
   isStreaming,
+  disabled = false,
+  disabledReason,
+  canUpgrade = false,
+  onUpgrade,
   keyboardVisible = false,
   messageCount = 0,
 }: ZaneAiComposerDockProps) {
@@ -173,7 +181,7 @@ export function ZaneAiComposerDock({
 
   const handleSend = () => {
     const value = draftText.trim();
-    if (!value) return;
+    if (!value || disabled) return;
     Keyboard.dismiss();
     setComposerFocused(false);
     onSend(value);
@@ -181,6 +189,10 @@ export function ZaneAiComposerDock({
   };
 
   const handleVoicePress = () => {
+    if (disabled) {
+      return;
+    }
+
     if (isRecording) {
       stop();
       return;
@@ -198,6 +210,17 @@ export function ZaneAiComposerDock({
       ]}
     >
       <View style={styles.backdrop} />
+
+      {disabledReason ? (
+        <View style={styles.disabledBanner}>
+          <Text style={styles.disabledBannerText}>{disabledReason}</Text>
+          {canUpgrade && onUpgrade ? (
+            <Pressable style={styles.disabledBannerAction} onPress={onUpgrade}>
+              <Text variant="caption" style={styles.disabledBannerActionText}>Upgrade</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
 
       {isNewThread && (
         <Animated.View
@@ -251,6 +274,7 @@ export function ZaneAiComposerDock({
             <TextInput
               testID="chat.composer"
               value={draftText}
+              editable={!disabled}
               onChangeText={setDraftText}
               onContentSizeChange={handleContentSizeChange}
               multiline
@@ -258,7 +282,7 @@ export function ZaneAiComposerDock({
               autoCorrect
               autoCapitalize="sentences"
               enablesReturnKeyAutomatically
-              placeholder="Type your follow-up here..."
+              placeholder={disabled ? "AI unavailable right now" : "Type your follow-up here..."}
               placeholderTextColor={colors.textMuted}
               cursorColor={colors.accent}
               selectionColor={colors.accent}
@@ -287,24 +311,26 @@ export function ZaneAiComposerDock({
           ) : hasText && !isRecording ? (
             <Pressable
               testID="chat.send"
+              disabled={disabled}
               onPress={handleSend}
               style={({ pressed }) => [
                 styles.actionButton,
                 styles.actionActive,
                 pressed ? styles.actionPressed : null,
+                disabled ? styles.actionDisabled : null,
               ]}
             >
               <ArrowUp size={18} color="#FFFFFF" strokeWidth={2.5} />
             </Pressable>
           ) : (
             <Pressable
-              disabled={isVoicePending}
+              disabled={isVoicePending || disabled}
               onPress={handleVoicePress}
               style={({ pressed }) => [
                 styles.actionButton,
                 isRecording ? styles.actionActive : styles.actionIdle,
                 pressed ? styles.actionPressed : null,
-                isVoicePending ? styles.actionDisabled : null,
+                isVoicePending || disabled ? styles.actionDisabled : null,
               ]}
             >
               {isRecording ? (
@@ -338,6 +364,37 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   promptsContainer: {
     marginTop: 4,
     marginBottom: 8,
+  },
+  disabledBanner: {
+    marginBottom: 8,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radii.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: theme.spacing.sm,
+  },
+  disabledBannerText: {
+    flex: 1,
+    fontFamily: "Manrope_500Medium",
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  disabledBannerAction: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 6,
+    borderRadius: theme.radii.pill,
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  disabledBannerActionText: {
+    color: colors.textPrimary,
   },
   promptsScroll: {
     paddingHorizontal: theme.spacing.xs,
@@ -384,7 +441,7 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     color: colors.textPrimary,
   },
   placeTag: {
-    fontFamily: "Manrope_400Regular",
+    fontFamily: "Manrope_500Medium",
     fontSize: 9,
     color: colors.textMuted,
     marginTop: -1,

@@ -7,12 +7,17 @@ import { mutation } from "../../_generated/server";
 import { requireAuthUser } from "../../auth/requireAuth";
 import { ensureProfile } from "../../auth/profile";
 import { rateLimiter } from "../../llm/rateLimiter";
+import { hasLlmApiKey } from "../../shared/env";
 import { agentComponent } from "../lib/component";
 import { requireThreadAccess } from "../lib/threadAccess";
 
 export const sendUserMessage = mutation({
   args: { threadId: v.string(), prompt: v.string() },
   handler: async (ctx, args): Promise<{ runId: Id<"agentRuns">; messageId: string }> => {
+    if (!hasLlmApiKey()) {
+      throw new Error("AI unavailable. Set OPENROUTER_API_KEY or OPENAI_API_KEY on Convex runtime.");
+    }
+
     const authUser = await requireAuthUser(ctx);
     await ensureProfile(ctx, authUser);
     await requireThreadAccess(ctx, args.threadId, authUser._id);

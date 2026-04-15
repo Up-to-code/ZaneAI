@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useQuery } from "convex/react";
 
-import { api } from "@convex/_generated/api";
 import { useAuthSession } from "@/auth/useAuthSession";
+import { api } from "@/persistence/convex/api";
 import { toPropertyCardVM } from "@/persistence/convex/propertyAdapter";
 import { mockProperties } from "@/persistence/mocks/mock-data";
 import { useAppStore } from "@/store";

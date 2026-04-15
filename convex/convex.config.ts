@@ -1,7 +1,7 @@
 import { defineApp } from "convex/server";
-import agent from "@convex-dev/agent/convex.config.js";
-import rag from "@convex-dev/rag/convex.config.js";
-import rateLimiter from "@convex-dev/rate-limiter/convex.config.js";
+import agent from "@convex-dev/agent/convex.config";
+import rag from "@convex-dev/rag/convex.config";
+import rateLimiter from "@convex-dev/rate-limiter/convex.config";
 
 import betterAuth from "./betterAuth/convex.config.js";
 

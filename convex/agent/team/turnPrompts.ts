@@ -8,7 +8,7 @@ export function buildSearchTask(prompt: string) {
   ].join("\n");
 }
 
-export function buildMemoryTask(prompt: string) {
+export function buildPreferenceTask(prompt: string) {
   return [
     "Review this active-turn request for durable personal memory updates:",
     prompt,
@@ -17,7 +17,7 @@ export function buildMemoryTask(prompt: string) {
   ].join("\n");
 }
 
-export function buildDecisionTask(prompt: string, searchOutput: string) {
+export function buildAnalysisTask(prompt: string, searchOutput: string) {
   return [
     "User goal:",
     prompt,
@@ -25,7 +25,57 @@ export function buildDecisionTask(prompt: string, searchOutput: string) {
     "Search findings:",
     searchOutput,
     "",
-    "Use the active thread, saved properties, and profile memory tools if needed.",
-    "Return the final recommendation, rationale, top property ids, and citations.",
+    "Evaluate the shortlist for buyer fit, pricing posture, and risk notes.",
+    "Return structured analysis only.",
+  ].join("\n");
+}
+
+export function buildRankingTask(
+  prompt: string,
+  searchOutput: string,
+  analysisOutput: string,
+  preferenceOutput: string,
+) {
+  return [
+    "User goal:",
+    prompt,
+    "",
+    "Search findings:",
+    searchOutput,
+    "",
+    "Analysis findings:",
+    analysisOutput,
+    "",
+    "Preference findings:",
+    preferenceOutput,
+    "",
+    "Return the final ranked shortlist, comparison points, and ranking rationale.",
+  ].join("\n");
+}
+
+export function buildSummaryTask(
+  prompt: string,
+  searchOutput: string,
+  analysisOutput: string,
+  rankingOutput: string,
+  preferenceOutput: string,
+) {
+  return [
+    "User goal:",
+    prompt,
+    "",
+    "Search findings:",
+    searchOutput,
+    "",
+    "Analysis findings:",
+    analysisOutput,
+    "",
+    "Ranking findings:",
+    rankingOutput,
+    "",
+    "Preference findings:",
+    preferenceOutput,
+    "",
+    "Return a complete buyer assistant turn JSON for mobile with cards, actions, and assistant text.",
   ].join("\n");
 }

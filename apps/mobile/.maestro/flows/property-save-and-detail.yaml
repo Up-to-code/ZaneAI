@@ -12,6 +12,22 @@ tags:
     visible: "Contact agent"
     timeout: 20000
 - tapOn: "Save property"
+- tapOn: "Go back"
+- tapOn:
+    id: app.open_menu
+- tapOn:
+    id: menu.saved
+- extendedWaitUntil:
+    visible:
+      id: saved.list
+    timeout: 20000
+- assertVisible:
+    id: property.card.prop-dubai-marina-01
+- tapOn:
+    id: property.card.prop-dubai-marina-01
+- extendedWaitUntil:
+    visible: "Contact agent"
+    timeout: 20000
 - scroll
 - extendedWaitUntil:
     visible: "About this property"
@@ -24,14 +40,3 @@ tags:
 - extendedWaitUntil:
     visible: "Listing Agent"
     timeout: 20000
-- tapOn: "Go back"
-- tapOn:
-    id: app.open_menu
-- tapOn:
-    id: menu.saved
-- extendedWaitUntil:
-    visible:
-      id: saved.list
-    timeout: 20000
-- assertVisible:
-    id: property.card.prop-dubai-marina-01

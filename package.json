@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "start": "npm --workspace apps/mobile run start",
@@ -19,6 +20,7 @@
     "convex:codegen": "convex codegen"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "convex": "^1.35.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
@@ -32,6 +34,12 @@
     "@convex-dev/workpool": "^0.4.6",
     "@jackchen_me/open-multi-agent": "1.1.0",
     "ai": "6.0.158",
-    "better-auth": "1.5.6"
+    "better-auth": "1.5.6",
+    "zod": "^4.3.6"
+  },
+  "overrides": {
+    "convex": "^1.35.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   }
 }

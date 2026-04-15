@@ -9,12 +9,18 @@ export default function AppLayout() {
   const { canAccessApp, isReady } = useAuthSession();
   const { colors } = useTheme();
 
+  const onboardingComplete = useAppStore((state) => state.onboardingComplete);
+
   if (!hydrationComplete || !isReady) {
     return null;
   }
 
   if (!canAccessApp) {
     return <Redirect href="/(auth)" />;
+  }
+
+  if (!onboardingComplete) {
+    return <Redirect href="/(onboarding)" />;
   }
 
   return (

@@ -2,7 +2,7 @@
 
 import { defineTool } from "@jackchen_me/open-multi-agent";
 import { listMessages } from "@convex-dev/agent";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { agentComponent } from "../component";
 import { addToolEvent } from "./audit";

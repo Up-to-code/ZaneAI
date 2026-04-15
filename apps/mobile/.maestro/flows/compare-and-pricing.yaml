@@ -9,14 +9,14 @@ tags:
 - tapOn:
     id: property.card.prop-dubai-marina-01
 - extendedWaitUntil:
-    visible: "Contact agent"
+    visible: "Save property"
     timeout: 20000
 - tapOn: "Compare property"
 - tapOn: "Go back"
 - tapOn:
     id: property.card.prop-business-bay-02
 - extendedWaitUntil:
-    visible: "Contact agent"
+    visible: "Save property"
     timeout: 20000
 - tapOn: "Compare property"
 - tapOn: "Go back"
@@ -33,7 +33,11 @@ tags:
 - assertVisible: "Area"
 - assertVisible: "Beds"
 - assertVisible: "Yield"
-- tapOn: "Save"
-- assertVisible: "Saved"
-- tapOn: "Remove"
+- scroll
+- tapOn:
+    id: compare.save.prop-dubai-marina-01.idle
+- assertVisible:
+    id: compare.save.prop-dubai-marina-01.saved
+- tapOn:
+    id: compare.remove.prop-dubai-marina-01
 - assertNotVisible: "Marina glass residence with sunset terrace"

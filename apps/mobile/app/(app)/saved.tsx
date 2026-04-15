@@ -22,7 +22,7 @@ export default function SavedScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const savedProperties = useSavedProperties()
     .map((item: { property: PropertyCardVM | null }) => item.property)
-    .filter((property): property is PropertyCardVM => property !== null);
+    .filter((property: PropertyCardVM | null): property is PropertyCardVM => property !== null);
   const filteredProperties = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) {

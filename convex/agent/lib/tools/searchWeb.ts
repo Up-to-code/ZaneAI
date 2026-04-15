@@ -1,7 +1,7 @@
 "use node";
 
 import { defineTool } from "@jackchen_me/open-multi-agent";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { getTavilyApiKey } from "../../../shared/env";
 import { addToolEvent } from "./audit";

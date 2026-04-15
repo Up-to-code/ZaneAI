@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const decisionSchema = z.object({
   summary: z.string(),

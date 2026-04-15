@@ -1,6 +1,6 @@
-import type { z } from "zod";
+import type { z } from "zod/v3";
 
-import { getAgentModel, getLlmApiKey, getOpenRouterBaseUrl } from "../../shared/env";
+import { getAgentModel, getLlmApiKey, getOpenAiCompatibleBaseUrl } from "../../shared/env";
 import type { AgentRuntimeConfig } from "./runtimeTypes";
 
 export function buildAgentConfig(args: {
@@ -15,7 +15,7 @@ export function buildAgentConfig(args: {
     name: args.name,
     provider: "openai",
     apiKey: getLlmApiKey() ?? undefined,
-    baseURL: getOpenRouterBaseUrl(),
+    baseURL: getOpenAiCompatibleBaseUrl(),
     model: getAgentModel(args.role),
     systemPrompt: args.systemPrompt,
     tools: args.tools,

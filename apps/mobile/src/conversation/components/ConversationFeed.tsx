@@ -13,6 +13,7 @@ import {
 import { ArrowDown } from "lucide-react-native";
 
 import { GenerativeUIAdapter } from "@/conversation/adapters/GenerativeUIAdapter";
+import { BuyerStageProgress } from "@/conversation/components/BuyerStageProgress";
 import { MessageBubble } from "@/conversation/components/MessageBubble";
 import { EmptyThreadWelcome } from "@/conversation/components/EmptyThreadWelcome";
 import { PropertyBundleUI } from "@/conversation/components/PropertyBundleUI";
@@ -22,10 +23,12 @@ import { IconButton } from "@/foundation/primitives/IconButton";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { usePropertiesByIds } from "@/persistence/convex/usePropertyData";
-import type { ConversationMessage } from "@/types/domain";
+import type { ConversationMessage, ConversationRunStage, ConversationTurnAction } from "@/types/domain";
 
 type ConversationFeedProps = {
   messages: ConversationMessage[];
+  runStageFeed: ConversationRunStage[];
+  onTurnAction: (action: ConversationTurnAction, message: ConversationMessage) => void | Promise<void>;
 };
 
 const AUTO_SCROLL_THRESHOLD = 120;
@@ -52,14 +55,14 @@ function ScrollToLatestButton({
   );
 }
 
-export function ConversationFeed({ messages }: ConversationFeedProps) {
+export function ConversationFeed({ messages, runStageFeed, onTurnAction }: ConversationFeedProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const listRef = useRef<StreamingMessageListRef | null>(null);
   const shouldAutoScrollRef = useRef(true);
   const prevMessageCountRef = useRef(messages.length);
   const allRelatedIds = useMemo(
-    () => [...new Set(messages.flatMap((message) => message.relatedPropertyIds))],
+    () => [...new Set(messages.flatMap((message) => [...message.relatedPropertyIds, ...(message.uiTurn?.propertyIds ?? [])]))],
     [messages],
   );
   const properties = usePropertiesByIds(allRelatedIds);
@@ -150,14 +153,24 @@ export function ConversationFeed({ messages }: ConversationFeedProps) {
 
             let content = (
               <View>
+                {item.id === "pending-assistant" && runStageFeed.length > 0 ? (
+                  <BuyerStageProgress events={runStageFeed} />
+                ) : null}
+
                 {item.kind === "web_search" ? (
                   <AgentWebSearchUI message={item} />
                 ) : null}
 
                 <MessageBubble message={item} />
-                
+
+                {item.uiTurn ? (
+                  <Animated.View entering={FadeInDown.duration(300)}>
+                    <GenerativeUIAdapter message={item} onAction={onTurnAction} />
+                  </Animated.View>
+                ) : null}
+
                 {/* Always show PropertyBundle if there are properties, or if it's the primary kind waiting to load */}
-                {item.kind === "property_bundle" || item.kind === "web_search" || propertyCards.length > 0 ? (
+                {!item.uiTurn && (item.kind === "property_bundle" || item.kind === "web_search" || propertyCards.length > 0) ? (
                   <PropertyBundleUI message={item} properties={propertyCards} />
                 ) : null}
 
@@ -165,11 +178,6 @@ export function ConversationFeed({ messages }: ConversationFeedProps) {
                   <AgentAnalyticsUI message={item} properties={propertyCards} />
                 ) : null}
 
-                {item.kind === "summary_card" && isTextComplete ? (
-                  <Animated.View entering={FadeInDown.duration(300)}>
-                    <GenerativeUIAdapter />
-                  </Animated.View>
-                ) : null}
               </View>
             );
 

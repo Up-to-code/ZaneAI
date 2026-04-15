@@ -6,14 +6,14 @@ import { useAppStore } from "@/store";
 
 export default function AuthLayout() {
   const hydrationComplete = useAppStore((state) => state.hydrationComplete);
-  const { canAccessApp, isReady } = useAuthSession();
+  const { canAccessApp, canUpgrade, isReady } = useAuthSession();
   const { colors } = useTheme();
 
   if (!hydrationComplete || !isReady) {
     return null;
   }
 
-  if (canAccessApp) {
+  if (canAccessApp && !canUpgrade) {
     return <Redirect href="/(app)" />;
   }
 
@@ -28,11 +28,10 @@ export default function AuthLayout() {
       }}
     >
       <Stack.Screen name="index" />
+      <Stack.Screen name="email-options" />
+      <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="otp" />
-      <Stack.Screen name="password" />
-      <Stack.Screen name="identity" />
     </Stack>
   );
 }

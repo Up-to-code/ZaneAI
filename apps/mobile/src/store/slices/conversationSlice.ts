@@ -5,9 +5,11 @@ export type ConversationSlice = {
   activeRunId: string | null;
   pendingPrompt: string | null;
   pendingStartedAt: number | null;
+  runFailureMessage: string | null;
   setActiveThreadId: (threadId: string | null) => void;
   setActiveRunId: (runId: string | null) => void;
   setPendingPrompt: (prompt: string | null, startedAt?: number | null) => void;
+  setRunFailureMessage: (message: string | null) => void;
   resetConversationState: () => void;
 };
 
@@ -21,15 +23,18 @@ export const createConversationSlice: StateCreator<
   activeRunId: null,
   pendingPrompt: null,
   pendingStartedAt: null,
+  runFailureMessage: null,
   setActiveThreadId: (threadId) => set({ activeThreadId: threadId }),
   setActiveRunId: (runId) => set({ activeRunId: runId }),
   setPendingPrompt: (prompt, startedAt = prompt ? Date.now() : null) =>
     set({ pendingPrompt: prompt, pendingStartedAt: startedAt }),
+  setRunFailureMessage: (message) => set({ runFailureMessage: message }),
   resetConversationState: () =>
     set({
       activeThreadId: null,
       activeRunId: null,
       pendingPrompt: null,
       pendingStartedAt: null,
+      runFailureMessage: null,
     }),
 });

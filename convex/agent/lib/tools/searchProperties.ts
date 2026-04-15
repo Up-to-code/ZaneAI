@@ -1,7 +1,7 @@
 "use node";
 
 import { defineTool } from "@jackchen_me/open-multi-agent";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { internal } from "../../../_generated/api";
 import { makeCacheScopeKey } from "../../../llm/cache/client";

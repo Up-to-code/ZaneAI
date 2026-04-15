@@ -4,6 +4,9 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  withRepeat,
+  withSequence,
+  withDelay,
   FadeIn,
   Easing,
 } from "react-native-reanimated";
@@ -48,6 +51,42 @@ function FadeWord({ word, delay }: { word: string; delay: number }) {
     <Animated.Text style={animatedStyle}>
       {word}
     </Animated.Text>
+  );
+}
+
+const PENDING_PLACEHOLDER = "Searching your catalog and checking live market context\u2026";
+
+/**
+ * Animated three-dot indicator shown while the assistant is thinking.
+ */
+function ThinkingDots() {
+  const { colors } = useTheme();
+  const dot1 = useSharedValue(0.3);
+  const dot2 = useSharedValue(0.3);
+  const dot3 = useSharedValue(0.3);
+
+  useEffect(() => {
+    const cfg = { duration: 400, easing: Easing.inOut(Easing.quad) };
+    dot1.value = withRepeat(withSequence(withTiming(1, cfg), withTiming(0.3, cfg)), -1);
+    dot2.value = withDelay(150, withRepeat(withSequence(withTiming(1, cfg), withTiming(0.3, cfg)), -1));
+    dot3.value = withDelay(300, withRepeat(withSequence(withTiming(1, cfg), withTiming(0.3, cfg)), -1));
+  }, [dot1, dot2, dot3]);
+
+  const s1 = useAnimatedStyle(() => ({ opacity: dot1.value }));
+  const s2 = useAnimatedStyle(() => ({ opacity: dot2.value }));
+  const s3 = useAnimatedStyle(() => ({ opacity: dot3.value }));
+
+  const dotStyle = {
+    width: 7, height: 7, borderRadius: 3.5,
+    backgroundColor: colors.textMuted, marginHorizontal: 2,
+  };
+
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 6 }}>
+      <Animated.View style={[dotStyle, s1]} />
+      <Animated.View style={[dotStyle, s2]} />
+      <Animated.View style={[dotStyle, s3]} />
+    </View>
   );
 }
 
@@ -118,6 +157,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const isUser = message.role === "user";
   const isStreaming = message.streamState === "streaming";
+  const isPending = isStreaming && (message.id === "pending-assistant" || message.text === PENDING_PLACEHOLDER);
 
   if (isUser) {
     return (
@@ -132,11 +172,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   return (
     <Animated.View entering={FadeIn.duration(250)} style={[styles.row, styles.assistantRow]}>
       <Text variant="label" style={styles.assistantLabel}>Zane-ai</Text>
-      <StreamingText
-        text={message.text}
-        isStreaming={isStreaming}
-        style={styles.assistantText}
-      />
+      {isPending ? (
+        <ThinkingDots />
+      ) : (
+        <StreamingText
+          text={message.text}
+          isStreaming={isStreaming}
+          style={styles.assistantText}
+        />
+      )}
     </Animated.View>
   );
 }

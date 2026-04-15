@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAuthClient } from "better-auth/react";
+import { anonymousClient } from "better-auth/client/plugins";
 import { convexClient, crossDomainClient } from "@convex-dev/better-auth/client/plugins";
 
 import { getAuthUrl, getConvexUrl } from "@/runtime/expoRuntime";
@@ -40,12 +41,29 @@ export function isAuthConfigured() {
   return Boolean(getConvexUrl() && getAuthBaseUrl());
 }
 
-export const authClient = createAuthClient({
+export const authClient: any = createAuthClient({
   baseURL: getAuthBaseUrl(),
   plugins: [
+    anonymousClient(),
     crossDomainClient({
       storage: betterAuthStorage,
     }),
     convexClient(),
   ],
-});
+} as any);
+
+export async function signInAnonymously() {
+  const result = await authClient.$fetch("/sign-in/anonymous", {
+    method: "POST",
+  });
+  await authClient.getSession();
+  return result;
+}
+
+export async function deleteAnonymousAccount() {
+  const result = await authClient.$fetch("/delete-anonymous-user", {
+    method: "POST",
+  });
+  await authClient.getSession();
+  return result;
+}

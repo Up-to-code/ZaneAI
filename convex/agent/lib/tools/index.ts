@@ -13,10 +13,18 @@ export function buildSearchTools(runtime: ToolRuntime) {
   return [searchPropertiesTool(runtime), searchProfileMemoryTool(runtime), searchWebTool(runtime), getThreadContextTool(runtime)];
 }
 
-export function buildDecisionTools(runtime: ToolRuntime) {
+export function buildAnalysisTools(runtime: ToolRuntime) {
+  return [getThreadContextTool(runtime)];
+}
+
+export function buildRankingTools(runtime: ToolRuntime) {
   return [listSavedPropertiesTool(runtime), searchProfileMemoryTool(runtime), getThreadContextTool(runtime)];
 }
 
-export function buildMemoryTools(runtime: ToolRuntime) {
+export function buildPreferenceTools(runtime: ToolRuntime) {
   return [searchProfileMemoryTool(runtime), promoteProfileFactTool(runtime), updateProfileFactTool(runtime), getThreadContextTool(runtime)];
+}
+
+export function buildSummaryTools(runtime: ToolRuntime) {
+  return [getThreadContextTool(runtime)];
 }

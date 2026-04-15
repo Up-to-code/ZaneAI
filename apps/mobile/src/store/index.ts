@@ -38,6 +38,7 @@ export const useAppStore = create<AppStore>()(
       partialize: (state) => ({
         sessionId: state.sessionId,
         guestMode: state.guestMode,
+        onboardingComplete: state.onboardingComplete,
         comparePropertyIds: state.comparePropertyIds,
         preferenceProfile: state.preferenceProfile,
         appearanceMode: state.appearanceMode,
