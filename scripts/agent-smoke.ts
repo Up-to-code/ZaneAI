@@ -208,7 +208,7 @@ async function main() {
   const prompt = process.env.AGENT_SMOKE_PROMPT ?? DEFAULT_PROMPT;
   const deploymentSlug = convexUrl.split("//")[1]?.split(".")[0] ?? "unknown";
   const email = process.env.AGENT_SMOKE_EMAIL ?? `agent-smoke+${deploymentSlug}@zayon.dev`;
-  const password = process.env.AGENT_SMOKE_PASSWORD ?? `ZayonSmoke!${deploymentSlug}`;
+  const password = process.env.AGENT_SMOKE_PASSWORD ?? `Zane-aiSmoke!${deploymentSlug}`;
   const name = process.env.AGENT_SMOKE_NAME ?? "Agent Smoke";
 
   console.log(`[setup] deployment=${deploymentSlug}`);

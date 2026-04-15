@@ -27,11 +27,11 @@ export default function LandingPage() {
             <div className="lg:col-span-7 space-y-10 rtl:text-right text-left">
               <div className="inline-flex items-center gap-3">
                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
-                 <span className="text-xs font-black uppercase tracking-widest text-primary">الجيل الجديد من منصات العمل</span>
+                 <span className="text-xs font-black tracking-[0.1em] text-primary">الجيل الجديد من منصات العمل</span>
               </div>
               
               <div className="space-y-4">
-                <h1 className="text-[clamp(3.5rem,8vw,6rem)] font-black uppercase leading-[1.05] tracking-tighter text-foreground dark:text-white">
+                <h1 className="text-[clamp(3.5rem,8vw,6rem)] font-black leading-[1.05] text-foreground dark:text-white">
                   مساحة عمل مشتركة <br />
                   <span className="text-primary">بلا تشتيت.</span>
                 </h1>

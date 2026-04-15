@@ -10,7 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@anan/ag-ui": "workspace:*",
+    "@anan/ag-ui": "file:../../packages/ag-ui",
     "@base-ui/react": "^1.2.0",
     "@convex-dev/better-auth": "^0.11.4",
     "@uploadthing/react": "^7.3.3",

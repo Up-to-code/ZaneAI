@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Zayon</string>
+    <string>Zane-ai</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -46,9 +46,9 @@
       <true/>
     </dict>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Allow Zayon to use the microphone for voice search and guided prompts.</string>
+    <string>Allow Zane-ai to use the microphone for voice search and guided prompts.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>Allow Zayon to transcribe your speech into real estate prompts.</string>
+    <string>Allow Zane-ai to transcribe your speech into real estate prompts.</string>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
