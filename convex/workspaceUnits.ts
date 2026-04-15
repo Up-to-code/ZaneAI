@@ -45,6 +45,18 @@ export const listProjectUnits = query({
   },
 });
 
+export const listWorkspaceUnits = query({
+  args: {},
+  handler: async (ctx) => {
+    const { membership } = await requireWorkspaceContext(ctx);
+    const rows = await ctx.db
+      .query("workspaceUnits")
+      .withIndex("by_organizationId", (q) => q.eq("organizationId", membership.organizationId))
+      .collect();
+    return rows.sort((a, b) => b.updatedAt - a.updatedAt);
+  },
+});
+
 export const getUnit = query({
   args: {
     unitId: v.id("workspaceUnits"),

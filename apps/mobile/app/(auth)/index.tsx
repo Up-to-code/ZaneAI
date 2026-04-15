@@ -1,9 +1,9 @@
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Redirect, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
-import { ArrowRight, Mail, X } from "lucide-react-native";
+import { Mail, X } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 
@@ -17,7 +17,6 @@ import { getOAuthCallbackUrl } from "@/auth/AuthProvider";
 import { AppleIcon, GoogleIcon } from "@/foundation/components/BrandIcons";
 import { TypewriterText } from "@/foundation/components/TypewriterText";
 import { useAppStore } from "@/store";
-import { LogoMark } from "@/foundation/icons/LogoMark";
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -62,13 +61,22 @@ export default function AuthScreen() {
     }
   };
 
+  const handleDismiss = async () => {
+    if (canAccessApp) {
+      router.replace("/(app)");
+      return;
+    }
+
+    await handleAnonymousContinue();
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Absolute Dismiss Button */}
       <View style={[styles.header, { top: insets.top + 10 }]}>
         <Pressable 
           accessibilityLabel="Dismiss sign in"
-          onPress={() => router.navigate("/(app)")}
+          onPress={() => void handleDismiss()}
           style={styles.closeBtn}
         >
           <X size={24} color={colors.textPrimary} />
@@ -227,5 +235,4 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingVertical: 10,
   },
 });
-
 

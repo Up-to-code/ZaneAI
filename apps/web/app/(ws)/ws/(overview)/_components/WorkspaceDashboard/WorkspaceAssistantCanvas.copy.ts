@@ -30,22 +30,26 @@ export function getWorkspaceAssistantLandingCopy(locale: AppLocale) {
     ar: {
       unavailableTitle: "تعذر العثور على المحادثة المطلوبة.",
       newConversationLabel: "بدء محادثة جديدة",
-      landingTitle: "كيف يمكنني مساعدتك اليوم؟",
+      landingTitle: "كيف يمكنني مساعدتك؟",
+      landingSubtext: "اسألني عن العقارات، الأحياء، أو اتجاهات السوق.",
     },
     en: {
       unavailableTitle: "Could not find the requested conversation.",
       newConversationLabel: "Start a new conversation",
-      landingTitle: "How can I help you today?",
+      landingTitle: "How can I help?",
+      landingSubtext: "Ask me about properties, neighborhoods, or market trends.",
     },
     fr: {
       unavailableTitle: "Impossible de trouver la conversation demandée.",
       newConversationLabel: "Démarrer une nouvelle conversation",
-      landingTitle: "Comment puis-je vous aider aujourd'hui ?",
+      landingTitle: "Comment puis-je vous aider ?",
+      landingSubtext: "Posez-moi des questions sur les propriétés, les quartiers ou les tendances du marché.",
     },
   } satisfies Record<AppLocale, {
     unavailableTitle: string;
     newConversationLabel: string;
     landingTitle: string;
+    landingSubtext: string;
   }>;
 
   return {

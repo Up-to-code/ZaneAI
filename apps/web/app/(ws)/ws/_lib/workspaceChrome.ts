@@ -7,7 +7,7 @@ export type WorkspaceShellVariant = "default" | "assistant";
 
 type WorkspaceMatchMode = "exact" | "section";
 
-const ASSISTANT_CHROME_HREFS = ["/ws", "/ws/notifications", "/ws/settings", "/ws/me"] as const;
+const ASSISTANT_CHROME_HREFS = ["/ws", "/ws/ai", "/ws/notifications", "/ws/settings", "/ws/me"] as const;
 
 function resolveWorkspaceMatchMode(href: string, mode?: WorkspaceMatchMode) {
   if (mode) return mode;
@@ -65,7 +65,7 @@ export function getWorkspaceChromeState(args: {
 
   return {
     variant,
-    isAssistantHome: variant === "assistant" && args.pathname === "/ws",
+    isAssistantHome: variant === "assistant" && (args.pathname === "/ws" || args.pathname === "/ws/ai"),
     headerTitle: resolveWorkspaceHeaderTitle({
       pathname: args.pathname,
       variant,

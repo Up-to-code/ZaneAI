@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { StickToBottomContext } from "use-stick-to-bottom";
 import { getWorkspaceAssistantLandingCopy } from "./WorkspaceAssistantCanvas.copy";
+import LuxuriousLogo from "../../../_components/AIMotion/LuxuriousLogo";
 
 export type AssistantComposerProps = {
   audience: WorkspaceAudience;
@@ -330,18 +331,24 @@ export function LandingView(props: LandingViewProps) {
             </div>
           ) : null}
 
-          <div className="flex flex-col items-center gap-6 text-center pt-2">
+          <div className="flex flex-col items-center gap-10 text-center pt-4">
             <motion.div
               initial={false}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: "backOut" }}
-              className="mb-2"
+              transition={{ duration: 1, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
+              className="mb-4 h-24 w-24"
             >
-              <AIMotionLogo state="idle" size="standard" />
+              <LuxuriousLogo className="h-full w-full text-[var(--zane-ai-deep)] dark:text-white" />
             </motion.div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 uppercase">
-              {copy.landingTitle}
-            </h1>
+            
+            <div className="flex flex-col gap-4">
+              <h1 className="text-4xl sm:text-5xl font-black tracking-[-0.03em] text-[var(--zane-ai-deep)] dark:text-white uppercase leading-none">
+                {copy.landingTitle}
+              </h1>
+              <p className="mx-auto max-w-lg text-[13px] font-bold uppercase tracking-[0.15em] text-[var(--zane-ai-text-muted)] dark:text-white/40 leading-relaxed">
+                {(copy as any).landingSubtext}
+              </p>
+            </div>
           </div>
 
           <motion.div
@@ -355,23 +362,21 @@ export function LandingView(props: LandingViewProps) {
           </motion.div>
 
           <motion.div
-            className="grid w-full grid-cols-1 sm:grid-cols-2 gap-3 pt-4"
+            className="flex flex-wrap items-center justify-center gap-3 pt-8"
             initial={false}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
             dir={isRtl ? "rtl" : "ltr"}
           >
             {suggestionChips.map((chip) => {
-              const Icon = chip.icon;
               return (
                 <button
                   key={chip.label}
                   type="button"
                   onClick={() => props.onSend(chip.label)}
-                  className="flex h-14 w-full items-center justify-start gap-4 rounded-full border border-slate-200/60 bg-white px-5 text-[13px] font-bold transition-all hover:bg-slate-50 hover:shadow-sm dark:border-white/5 dark:bg-white/[0.03] dark:text-slate-300 dark:hover:bg-white/[0.06] active:scale-[0.98] text-right"
+                  className="flex items-center justify-center gap-2 rounded-full border border-[var(--zane-ai-line)] bg-white/5 px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-deep)] transition-all hover:bg-[var(--zane-ai-deep)] hover:text-white dark:border-white/10 dark:text-white dark:hover:bg-white dark:hover:text-black active:scale-[0.96]"
                 >
-                  <Icon className={cn("h-[18px] w-[18px] shrink-0", chip.colorClass)} strokeWidth={2.5} />
-                  <span className="truncate pt-[2px]">{chip.label}</span>
+                  <span className="pt-[1px]">{chip.label}</span>
                 </button>
               );
             })}

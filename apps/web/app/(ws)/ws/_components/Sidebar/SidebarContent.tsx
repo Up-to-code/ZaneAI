@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { SidebarProps } from "./types";
 import { PenSquare, LifeBuoy, MessageSquare, Moon, Globe, Check } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getWorkspaceZonesForKeys } from "../../_lib/zones";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import ThemeToggle from "@/app/_components/ThemeToggle";
@@ -27,13 +27,25 @@ export default function SidebarContent({
   void titleId;
   void onNavigate;
   const zones = getWorkspaceZonesForKeys(visibleZoneKeys ?? ["overview"], locale);
-  
+
   const threads = (recentAssistantThreads || []).slice(0, 4).map(t => ({
     id: String("_id" in t ? t._id : (t as any).id),
     title: ("title" in t ? (t as any).title : null) || "Assistant Thread",
   }));
 
   const SIDEBAR_SHELL_CLASS = "bg-[var(--zane-ai-background)] text-[var(--zane-ai-deep)] dark:bg-black dark:text-white";
+  const searchParams = useSearchParams();
+  void searchParams;
+  const router = useRouter();
+  const isAiMode = pathname === "/ws/ai";
+
+  const handleModeToggle = (ai: boolean) => {
+    if (ai) {
+      router.replace("/ws/ai");
+    } else {
+      router.replace("/ws");
+    }
+  };
 
   return (
     <div
@@ -63,22 +75,43 @@ export default function SidebarContent({
             className="flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition-all hover:bg-[var(--zane-ai-deep)] hover:text-white active:scale-95 dark:border-white/10 dark:text-white dark:hover:bg-white dark:hover:text-black"
             title="New Context"
           >
-            <PenSquare className="h-4 w-4" />
+            <MessageSquare className="h-4 w-4" />
           </Link>
         </div>
       </div>
 
+      {/* ── Mode Switcher & Header ───────────────────────────── */}
       <div className="px-4 lg:px-6 py-4">
         <div className="flex h-10 w-full items-center rounded-full border border-[var(--zane-ai-line)] bg-[var(--zane-ai-background)] p-1 dark:border-white/10 dark:bg-black">
-          <div className="flex h-full flex-1 items-center justify-center rounded-full bg-[var(--zane-ai-deep)] text-[9px] font-black uppercase tracking-widest text-white transition-all dark:bg-white dark:text-black">
-             {dictionary.nav.normalMode}
-          </div>
-          <div className="group relative flex h-full flex-1 items-center justify-center rounded-full bg-transparent text-[9px] font-black uppercase tracking-widest text-[var(--zane-ai-text-muted)] transition-all dark:text-white/40">
-             {dictionary.nav.aiMode}
-             <span className="absolute -right-1 -top-1 rounded bg-[var(--zane-ai-accent)] px-1 py-0.5 text-[6px] font-black text-white">
-               {dictionary.nav.soonBadge}
-             </span>
-          </div>
+          <button
+            onClick={() => handleModeToggle(false)}
+            className={cn(
+              "flex h-full flex-1 items-center justify-center rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
+              !isAiMode 
+                ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black" 
+                : "bg-transparent text-[var(--zane-ai-text-muted)] dark:text-white/40 hover:opacity-70"
+            )}
+          >
+            {dictionary.nav.normalMode}
+          </button>
+          <button
+            onClick={() => {
+              // DISABLED: AI Mode is "Coming Soon"
+            }}
+            className={cn(
+              "group relative flex h-full flex-1 items-center justify-center rounded-full text-[9px] font-black uppercase tracking-widest transition-all",
+              isAiMode 
+                ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black" 
+                : "bg-transparent text-[var(--zane-ai-text-muted)] dark:text-white/40 cursor-default"
+            )}
+          >
+            {dictionary.nav.aiMode}
+            {!isAiMode && (
+              <span className="absolute -right-1 -top-1 rounded bg-[var(--zane-ai-accent)] px-1 py-0.5 text-[6px] font-black text-white">
+                {dictionary.nav.soonBadge}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 

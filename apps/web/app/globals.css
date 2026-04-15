@@ -266,7 +266,8 @@
   }
 }
 
-@media (hover: none), (pointer: coarse) {
+@media (hover: none),
+(pointer: coarse) {
   .assistant-composer-dock-safe-area {
     --assistant-composer-dock-inset: calc(env(safe-area-inset-bottom) + 1.25rem);
   }

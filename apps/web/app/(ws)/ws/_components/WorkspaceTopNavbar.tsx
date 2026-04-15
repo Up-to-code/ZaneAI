@@ -16,12 +16,12 @@ import { matchesWorkspacePath, type WorkspaceShellVariant } from "../_lib/worksp
 
 
 const HEADER_ACTION_BASE_CLASS_NAME =
-  "inline-flex h-9 w-9 lg:h-10 lg:w-10 shrink-0 items-center justify-center rounded-full border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition-all hover:text-[var(--zane-ai-accent)] focus-visible:outline-none dark:border-white/10 dark:text-white dark:hover:text-[var(--zane-ai-accent)] active:scale-[0.98]";
+  "inline-flex h-9 w-9 lg:h-10 lg:w-10 shrink-0 items-center justify-center rounded-full border border-transparent bg-transparent text-[var(--zane-ai-deep)] transition-all hover:bg-[var(--zane-ai-line)] hover:text-[var(--zane-ai-accent)] focus-visible:outline-none dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white active:scale-[0.96]";
 
 const HEADER_ICON_ACTION_CLASS_NAME = HEADER_ACTION_BASE_CLASS_NAME;
 
 const DEFAULT_HEADER_CLASS_NAME =
-  "h-16 lg:h-20 border-[var(--zane-ai-line)] bg-[var(--zane-ai-background)] px-4 lg:px-6 dark:border-white/10 dark:bg-black";
+  "h-16 lg:h-18 border-b border-[color:var(--zane-ai-line)] bg-background/80 backdrop-blur-md px-4 lg:px-8 dark:border-white/5 dark:bg-black/80";
 
 export default function WorkspaceTopNavbar({
   user,
@@ -66,11 +66,11 @@ export default function WorkspaceTopNavbar({
         {mobileNavigation ? <div className="lg:hidden">{mobileNavigation}</div> : null}
         {isAssistantVariant ? (
           <div className={cn("flex min-w-0 items-center gap-2 lg:gap-3", isRtl ? "flex-row-reverse" : "flex-row")}>
-            <h1 className="truncate text-xs lg:text-sm font-black uppercase tracking-widest text-[var(--zane-ai-deep)] dark:text-white">{resolvedTitle}</h1>
-            <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--zane-ai-line)] dark:bg-white/20" aria-hidden="true" />
+            <h1 className="truncate text-[11px] lg:text-[12px] font-extrabold uppercase tracking-[0.2em] text-[var(--zane-ai-deep)] dark:text-white">{resolvedTitle}</h1>
+            <span className="h-2 w-px shrink-0 bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
             <p
               className={cn(
-                "hidden max-w-[20rem] truncate text-[11px] lg:text-[12px] font-black uppercase tracking-[0.24em] text-[var(--zane-ai-text-muted)] sm:block dark:text-white/40",
+                "hidden max-w-[20rem] truncate text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--zane-ai-text-muted)] sm:block dark:text-white/40",
                 isRtl ? "text-right" : "text-left",
               )}
               title={organization.name}
@@ -79,17 +79,19 @@ export default function WorkspaceTopNavbar({
             </p>
           </div>
         ) : (
-          <h1 className="truncate text-sm font-black uppercase tracking-[0.15em] text-[var(--zane-ai-deep)] dark:text-white lg:text-base">{resolvedTitle}</h1>
+          <h1 className="truncate text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--zane-ai-deep)] dark:text-white lg:text-[13px]">{resolvedTitle}</h1>
         )}
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
-        <WebLocaleSwitcher className="h-9 w-9 lg:h-10 lg:w-10 border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition hover:text-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:hover:text-[var(--zane-ai-accent)]" />
-        <ThemeToggle className="h-9 w-9 lg:h-10 lg:w-10 border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition hover:text-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:hover:text-[var(--zane-ai-accent)]" />
+        <div className="flex items-center gap-1">
+          <WebLocaleSwitcher className="h-9 w-9 lg:h-10 lg:w-10 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] dark:text-white/80 dark:hover:bg-white/10" />
+          <ThemeToggle className="h-9 w-9 lg:h-10 lg:w-10 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] dark:text-white/80 dark:hover:bg-white/10" />
+        </div>
         
-        <div className="mx-0.5 lg:mx-1 h-5 lg:h-6 w-px bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
+        <div className="mx-1 h-4 lg:h-5 w-px bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
         
-        <div className="flex items-center gap-1.5 lg:gap-2">
+        <div className="flex items-center gap-1 lg:gap-1.5">
           <SignalButton
             label={dictionary.nav.notifications}
             count={signalCounts.notificationCount}
@@ -109,7 +111,7 @@ export default function WorkspaceTopNavbar({
           ) : null}
         </div>
         
-        <div className="mx-1 h-6 w-px bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
+        <div className="mx-1 h-4 lg:h-5 w-px bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
         
         {verificationBadgeLabel ? (
           <Link
@@ -156,8 +158,8 @@ function SignalButton({
         HEADER_ICON_ACTION_CLASS_NAME,
         "relative",
         isActive
-          ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black"
-          : "text-[var(--zane-ai-deep)] dark:text-white",
+          ? "bg-[var(--zane-ai-deep)] text-white shadow-sm dark:bg-white dark:text-black"
+          : "text-[var(--zane-ai-deep)] hover:bg-[var(--zane-ai-line)] dark:text-white/80 dark:hover:bg-white/10",
       )}
       aria-label={`${label}: ${count}`}
       title={label}
