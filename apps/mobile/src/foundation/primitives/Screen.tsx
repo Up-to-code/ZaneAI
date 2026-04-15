@@ -1,15 +1,29 @@
-import { SafeAreaView, View, StyleSheet, type ViewProps } from "react-native";
+import { View, StyleSheet, type ViewProps } from "react-native";
 import { useMemo } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 
-export function Screen({ style, children, ...props }: ViewProps) {
+export type ScreenProps = ViewProps & {
+  safe?: boolean;
+  edges?: ("top" | "bottom" | "left" | "right")[];
+};
+
+export function Screen({ style, children, safe = false, edges = ["bottom"], ...props }: ScreenProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const safeStyle = safe ? {
+    paddingTop: edges.includes("top") ? insets.top : 0,
+    paddingBottom: edges.includes("bottom") ? insets.bottom : 0,
+    paddingLeft: edges.includes("left") ? insets.left : 0,
+    paddingRight: edges.includes("right") ? insets.right : 0,
+  } : {};
+
   return (
     <View style={styles.content}>
-      <View style={[styles.inner, style]} {...props}>
+      <View style={[styles.inner, safeStyle, style]} {...props}>
         {children}
       </View>
     </View>
@@ -26,3 +40,4 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 });
+

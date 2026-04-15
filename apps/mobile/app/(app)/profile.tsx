@@ -1,15 +1,14 @@
 import { ScrollView, StyleSheet, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
-import { Settings, LogOut, Shield, ChevronRight, Bell, Heart, CreditCard, ArrowRight, SunMoon } from "lucide-react-native";
+import { Settings, LogOut, Shield, ChevronRight, Bell, Heart, CreditCard, ArrowLeft, SunMoon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown, Layout } from "react-native-reanimated";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { authClient } from "@/auth/authClient";
+import { authClient, deleteAnonymousAccount } from "@/auth/authClient";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { resetE2EAuthState } from "@/e2e/store";
 import { useAppStore } from "@/store";
@@ -19,12 +18,27 @@ export default function ProfileScreen() {
   const { colors, appearanceMode } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { canUpgrade, user, isAuthenticated, isGuest } = useAuthSession();
+  const { user, isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
+  const setGuestMode = useAppStore((state) => state.setGuestMode);
+  const clearGuestMirror = useAppStore((state) => state.clearGuestMirror);
+  const setComparePropertyIds = useAppStore((state) => state.setComparePropertyIds);
+  const resetConversationState = useAppStore((state) => state.resetConversationState);
+  const setSelectedPropertyId = useAppStore((state) => state.setSelectedPropertyId);
 
   const handleLogout = () => {
     if (e2eQaMode) {
       resetE2EAuthState();
+      router.replace("/(auth)");
+      return;
+    }
+    if (isGuest) {
+      void deleteAnonymousAccount().catch(() => authClient.signOut().catch(() => null));
+      clearGuestMirror();
+      setComparePropertyIds([]);
+      setSelectedPropertyId(null);
+      resetConversationState();
+      setGuestMode(false);
       router.replace("/(auth)");
       return;
     }
@@ -33,366 +47,258 @@ export default function ProfileScreen() {
     }
   };
 
-  const displayName = isGuest ? "Anonymous session" : user?.name ?? user?.email ?? "Zane-ai Member";
+  const displayName = isGuest ? "Anonymous Session" : user?.name ?? user?.email ?? "Ahmed Mansour";
   const initials = displayName
     .split(" ")
     .map((part: string) => part[0]?.toUpperCase() ?? "")
     .join("")
     .slice(0, 2);
 
-  const appearanceLabel =
-    appearanceMode === "system"
-      ? "Follow your phone setting"
-      : `${appearanceMode[0].toUpperCase()}${appearanceMode.slice(1)} mode enabled`;
-
-  const profileItems = [
+  const menuGroups = [
     {
-      id: "appearance",
-      title: "Appearance",
-      icon: <SunMoon size={20} color={colors.textPrimary} />,
-      desc: appearanceLabel,
-      testID: "profile.appearance",
-      onPress: () => router.push("/(app)/appearance"),
+      label: "Account",
+      items: [
+        { id: "pref", label: "AI Search Style", icon: <Settings size={18} color={colors.accent} /> },
+        { id: "appearance", label: "Appearance", icon: <SunMoon size={18} color={colors.textPrimary} />, onPress: () => router.push("/(app)/appearance") },
+      ]
     },
     {
-      id: "pref",
-      title: "AI Personalization",
-      icon: <Settings size={22} color={colors.accent} />,
-      desc: "Adjust confidence thresholds & search style",
+      label: "Security",
+      items: [
+        { id: "security", label: "Login & Security", icon: <Shield size={18} color={colors.textPrimary} /> },
+        { id: "privacy", label: "Memory & Privacy", icon: <Heart size={18} color={colors.textPrimary} /> },
+      ]
     },
     {
-      id: "security",
-      title: "Account Security",
-      icon: <Shield size={20} color={colors.textPrimary} />,
-      desc: "2-Factor Authentication & session logs",
-    },
-    {
-      id: "notif",
-      title: "Market Reports",
-      icon: <Bell size={20} color={colors.textPrimary} />,
-      desc: "Weekly analytics and portfolio alerts",
-    },
-    {
-      id: "billing",
-      title: "Subscription Plan",
-      icon: <CreditCard size={22} color={colors.accent} />,
-      desc: "Manage your Premium Analytics access",
-    },
-    {
-      id: "privacy",
-      title: "Data & Privacy",
-      icon: <Heart size={20} color={colors.textPrimary} />,
-      desc: "Configure memory and identity protection",
-    },
+      label: "Services",
+      items: [
+        { id: "billing", label: "Subscription", icon: <CreditCard size={18} color={colors.accent} /> },
+        { id: "notif", label: "Market Alerts", icon: <Bell size={18} color={colors.textPrimary} /> },
+      ]
+    }
   ];
 
   return (
-    <Screen style={styles.screen}>
-      <View style={[styles.identityHeader, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.headerContent}>
-          <View style={styles.identityBlock}>
-            <View style={styles.avatarMini}>
-              <Text style={styles.avatarLetter}>{initials.slice(0, 1) || "Z"}</Text>
-            </View>
-            <Text variant="body" style={styles.identityName}>{displayName}</Text>
-          </View>
-
-          <View style={styles.headerTitleWrap} />
-
-          <Pressable accessibilityLabel="Go back" style={styles.headerBtn} onPress={() => router.back()}>
-            <ArrowRight size={20} color={colors.textPrimary} />
-          </Pressable>
-        </View>
+    <Screen safe={false}>
+      <View style={[styles.header, { top: insets.top + 10 }]}>
+        <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
+          <ArrowLeft size={24} color={colors.textPrimary} />
+        </Pressable>
       </View>
 
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 88, paddingBottom: insets.bottom + 40 },
+          { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 40 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInDown.springify()} style={styles.heroBlock}>
-          <View style={styles.bigAvatar}>
-            <Text variant="title" style={styles.bigAvatarText}>{initials || "ZM"}</Text>
-            <View style={styles.badge}>
-              <Shield size={12} color={colors.background} />
+        <Animated.View entering={FadeInUp.springify()} style={styles.hero}>
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials || "Z"}</Text>
             </View>
           </View>
           <View style={styles.heroText}>
-            <Text variant="title" style={styles.userName} numberOfLines={2}>{displayName}</Text>
-            <Text variant="label" tone="muted" style={styles.userStatus}>
-              {isGuest
-                ? "Upgrade any time. Anonymous chats and saved items merge into account."
-                : user?.email ?? "Authenticated account"}
-            </Text>
+            <Text variant="display" style={styles.userName}>{displayName}</Text>
           </View>
         </Animated.View>
 
-        {isGuest && canUpgrade ? (
-          <Animated.View entering={FadeInDown.delay(120).springify()} style={styles.upgradeCard}>
-            <Text variant="label" style={styles.upgradeTitle}>Upgrade and keep everything</Text>
-            <Text variant="caption" tone="secondary" style={styles.upgradeBody}>
-              Sign in or create account. Threads, saved properties, and compare state follow you.
-            </Text>
-            <Pressable style={styles.upgradeAction} onPress={() => router.push("/(auth)")}>
-              <Text variant="caption" style={styles.upgradeActionText}>Upgrade account</Text>
+        {isGuest && (
+          <View style={styles.authPrompt}>
+            <Pressable style={styles.loginBtn} onPress={() => router.push("/(auth)")}>
+              <Text style={styles.loginBtnText}>Log In to Sync Research</Text>
+              <ChevronRight size={16} color={colors.background} />
             </Pressable>
-          </Animated.View>
-        ) : null}
+          </View>
+        )}
 
-        <View style={styles.listContainer}>
-          {profileItems.map((item, index) => (
-            <ProfileListItem key={item.id} item={item} index={index} styles={styles} colors={colors} />
+        <View style={styles.menu}>
+          {menuGroups.map((group) => (
+            <View key={group.label} style={styles.groupWrapper}>
+              <Text variant="caption" tone="muted" style={styles.groupLabel}>{group.label}</Text>
+              <View style={styles.groupCard}>
+                {group.items.map((item, idx) => (
+                  <View key={item.id}>
+                    <Pressable style={styles.item} onPress={() => item.onPress?.()}>
+                      <View style={styles.itemMain}>
+                        <View style={styles.itemIconBox}>
+                          {item.icon}
+                        </View>
+                        <View style={styles.itemTextWrap}>
+                          <Text variant="body" style={styles.itemLabel}>{item.label}</Text>
+                        </View>
+                      </View>
+                      <ChevronRight size={14} color={colors.textMuted} />
+                    </Pressable>
+                    {idx < group.items.length - 1 && <View style={styles.divider} />}
+                  </View>
+                ))}
+              </View>
+            </View>
           ))}
         </View>
 
-        <Animated.View entering={FadeInDown.delay(700).springify()} style={styles.logoutBlock}>
-          <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-            <LogOut size={20} color={colors.background} />
-            <Text style={styles.logoutText}>Sign Out</Text>
+        <View style={styles.footer}>
+          <Pressable style={styles.signOutBtn} onPress={handleLogout}>
+            <LogOut size={18} color={colors.textPrimary} />
+            <Text style={styles.signOutText}>{isGuest ? "Reset session" : "Sign Out"}</Text>
           </Pressable>
-        </Animated.View>
+        </View>
       </ScrollView>
     </Screen>
   );
 }
 
-function ProfileListItem({ item, index, styles, colors }: any) {
-  return (
-    <Animated.View
-      entering={FadeInDown.delay(index * 100).springify()}
-      layout={Layout.springify()}
-      style={styles.itemWrapper}
-    >
-      <Pressable testID={item.testID} style={styles.profileItem} onPress={item.onPress}>
-        <View
-          style={[
-            styles.iconWrap,
-            item.id === "pref" || item.id === "billing" ? { backgroundColor: `${colors.accent}10` } : null,
-          ]}
-        >
-          {item.icon}
-        </View>
-        <View style={styles.itemText}>
-          <Text variant="body" style={styles.itemTitle}>{item.title}</Text>
-          <Text variant="caption" tone="muted" style={styles.itemDesc}>{item.desc}</Text>
-        </View>
-        <ChevronRight size={16} color={colors.textMuted} />
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    screen: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    identityHeader: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 100,
-      backgroundColor: `${colors.background}FA`,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.divider,
-    },
-    headerContent: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: theme.spacing.lg,
-      height: 72,
-    },
-    headerTitleWrap: {
-      flex: 1,
-      alignItems: "center",
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: "800",
-      color: colors.textPrimary,
-    },
-    identityBlock: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-      flex: 1,
-    },
-    avatarMini: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.accent,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    avatarLetter: {
-      color: "#fff",
-      fontSize: 14,
-      fontWeight: "800",
-    },
-    identityName: {
-      fontSize: 15,
-      fontWeight: "700",
-      color: colors.textPrimary,
-    },
-    headerBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.surface,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: colors.divider,
-    },
-    miniAvatar: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      backgroundColor: colors.accent,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    avatarText: {
-      color: colors.background,
-      fontSize: 10,
-      fontWeight: "800",
-    },
-    scrollContent: {
-      paddingHorizontal: theme.spacing.lg,
-    },
-    heroBlock: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 32,
-      gap: 20,
-    },
-    upgradeCard: {
-      marginTop: theme.spacing.lg,
-      gap: theme.spacing.sm,
-      padding: theme.spacing.lg,
-      borderRadius: theme.radii.lg,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.divider,
-    },
-    upgradeTitle: {
-      color: colors.textPrimary,
-    },
-    upgradeBody: {
-      lineHeight: 18,
-    },
-    upgradeAction: {
-      alignSelf: "flex-start",
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
-      borderRadius: theme.radii.pill,
-      backgroundColor: colors.surfaceRaised,
-      borderWidth: 1,
-      borderColor: colors.divider,
-    },
-    upgradeActionText: {
-      color: colors.textPrimary,
-    },
-    bigAvatar: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: colors.accent,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 4,
-      borderColor: colors.surface,
-      position: "relative",
-    },
-    bigAvatarText: {
-      color: colors.background,
-      fontSize: 24,
-      fontWeight: "900",
-    },
-    badge: {
-      position: "absolute",
-      bottom: -2,
-      right: -2,
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      backgroundColor: colors.textPrimary,
-      borderWidth: 3,
-      borderColor: colors.background,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    heroText: {
-      flex: 1,
-      gap: 4,
-    },
-    userName: {
-      fontSize: 24,
-      fontWeight: "900",
-      color: colors.textPrimary,
-    },
-    userStatus: {
-      fontSize: 9,
-      letterSpacing: 1.5,
-    },
-    listContainer: {
-      gap: 12,
-    },
-    itemWrapper: {
-      width: "100%",
-    },
-    profileItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: colors.surface,
-      borderRadius: 20,
-      paddingVertical: 18,
-      paddingHorizontal: 20,
-      gap: 16,
-      borderWidth: 1,
-      borderColor: colors.divider,
-    },
-    iconWrap: {
-      width: 48,
-      height: 48,
-      borderRadius: 15,
-      backgroundColor: colors.backgroundSoft,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    itemText: {
-      flex: 1,
-      gap: 2,
-    },
-    itemTitle: {
-      fontWeight: "700",
-      fontSize: 15,
-    },
-    itemDesc: {
-      fontSize: 12,
-    },
-    logoutBlock: {
-      marginTop: 24,
-      paddingBottom: 20,
-    },
-    logoutBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 12,
-      backgroundColor: colors.textPrimary,
-      paddingVertical: 22,
-      borderRadius: 24,
-    },
-    logoutText: {
-      color: colors.background,
-      fontWeight: "700",
-      fontSize: 16,
-    },
-  });
+const createStyles = (colors: any) => StyleSheet.create({
+  header: {
+    position: "absolute",
+    left: 20,
+    zIndex: 100,
+  },
+  backBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+  },
+  hero: {
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 32,
+    marginTop: 12,
+  },
+  avatarWrap: {
+    position: "relative",
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.divider,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  avatarText: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: colors.textPrimary,
+    lineHeight: 34,
+    letterSpacing: -1,
+    textAlign: "center",
+    includeFontPadding: false,
+  },
+  heroText: {
+    alignItems: "center",
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  authPrompt: {
+    marginBottom: 40,
+    alignItems: "center",
+    gap: 12,
+  },
+  loginBtn: {
+    backgroundColor: colors.textPrimary,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+  },
+  loginBtnText: {
+    color: colors.background,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  menu: {
+    gap: 24,
+  },
+  groupWrapper: {
+    gap: 10,
+  },
+  groupCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    overflow: "hidden",
+  },
+  groupLabel: {
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    fontSize: 10,
+    marginLeft: 12,
+  },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  itemMain: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  itemIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  itemTextWrap: {
+    gap: 2,
+  },
+  itemLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.divider,
+    marginLeft: 68,
+  },
+  footer: {
+    marginTop: 60,
+    paddingTop: 24,
+  },
+  signOutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+    paddingVertical: 18,
+    borderRadius: 24,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: "800",
+  },
+});

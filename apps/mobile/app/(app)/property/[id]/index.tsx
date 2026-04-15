@@ -37,8 +37,9 @@ export default function PropertyDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isAuthenticated } = useAuthSession();
+  const { isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
+  const toggleGuestMirrorSavedProperty = useAppStore((state) => state.toggleGuestMirrorSavedProperty);
 
   const property = usePropertyById(params.id);
   const savedProperties = useSavedProperties();
@@ -86,14 +87,16 @@ export default function PropertyDetailScreen() {
                 accessibilityLabel="Save property"
                 style={[styles.heroBtn, isSaved && styles.heroBtnActive]}
                 onPress={() => {
-                  if (!isAuthenticated && !e2eQaMode) {
+                  if (!isAuthenticated && !isGuest && !e2eQaMode) {
                     Alert.alert("Sign in required", "Create an account or sign in to save properties across devices.");
                     return;
                   }
                   if (e2eQaMode) {
                     toggleE2ESavedProperty(property.id);
-                  } else {
+                  } else if (isAuthenticated) {
                     void toggleSavedProperty({ propertyExternalId: property.id });
+                  } else {
+                    toggleGuestMirrorSavedProperty(property.id);
                   }
                   track("property_save", { propertyId: property.id, saved: !isSaved });
                 }}

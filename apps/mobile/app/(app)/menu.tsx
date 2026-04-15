@@ -1,9 +1,9 @@
 import { StyleSheet, View, Pressable, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
-import { ArrowRight, Search, Settings, Bookmark, Scale, User, MapPin, Plus, ChevronRight } from "lucide-react-native";
-import { TextInput } from "react-native";
+import { ArrowRight, Search, Settings, Bookmark, Scale, User, MapPin, Plus, ChevronRight, X } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
@@ -30,7 +30,12 @@ export default function MenuScreen() {
 
   const handleNewThread = async () => {
     if (!isAuthenticated) {
-      Alert.alert("Guest browsing", "Sign in to create and sync conversation threads.");
+      Alert.alert(
+        isGuest ? "Restoring guest workspace" : "Sign in required",
+        isGuest
+          ? "Reconnecting guest workspace. Try again in a moment."
+          : "Sign in to create and sync conversation threads.",
+      );
       router.navigate("/(app)");
       return;
     }
@@ -46,131 +51,120 @@ export default function MenuScreen() {
     router.navigate("/(app)");
   };
 
-  const displayName = isGuest ? "Anonymous session" : user?.name ?? user?.email ?? "Ahmed Mansour";
-  const avatarLetter = displayName[0]?.toUpperCase() ?? "A";
+  const displayName = isGuest ? "Anonymous Session" : user?.name ?? user?.email ?? "Ahmed Mansour";
+  const initials = displayName
+    .split(" ")
+    .map((part: string) => part[0]?.toUpperCase() ?? "")
+    .join("")
+    .slice(0, 2);
 
   return (
-    <Screen>
-      {/* Reversed Identity Back Button Pattern */}
-      <View style={[styles.identityHeader, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.headerContent}>
-          <Pressable 
-            style={({ pressed }) => [styles.identityBlock, pressed && { opacity: 0.7 }]}
-            onPress={() => router.navigate("/(app)/profile")}
-          >
-            <View style={styles.avatarMini}>
-              <Text style={styles.avatarLetter}>{avatarLetter}</Text>
-            </View>
-            <Text variant="body" style={styles.identityName}>{displayName}</Text>
-          </Pressable>
-          
-          <View style={styles.headerActions}>
-            <Pressable testID="menu.close" style={styles.iconBtn} onPress={() => router.dismissAll()}>
-              <ArrowRight size={20} color={colors.textPrimary} />
-            </Pressable>
-          </View>
-        </View>
+    <Screen safe={false}>
+      <View style={[styles.header, { top: insets.top + 10 }]}>
+        <Pressable 
+          accessibilityLabel="Close"
+          onPress={() => router.dismissAll()}
+          style={styles.closeBtn}
+        >
+          <X size={24} color={colors.textPrimary} />
+        </Pressable>
       </View>
 
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 88, paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        {isGuest ? (
-          <View style={styles.guestBanner}>
-            <Text variant="label" style={styles.guestBannerTitle}>Anonymous research active</Text>
-            <Text variant="caption" tone="secondary" style={styles.guestBannerBody}>
-              Threads, saved properties, and compare tray stay live now. Upgrade any time to merge everything into account.
-            </Text>
-            {canUpgrade ? (
-              <Pressable style={styles.guestBannerAction} onPress={() => router.push("/(auth)")}>
-                <Text variant="caption" style={styles.guestBannerActionText}>Upgrade account</Text>
+        <Animated.View entering={FadeInUp.springify()} style={styles.profile}>
+          <Pressable 
+            style={styles.profileTap}
+            onPress={() => router.navigate("/(app)/profile")}
+          >
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials || "Z"}</Text>
+            </View>
+            <View style={styles.profileMeta}>
+              <Text variant="title" style={styles.profileName}>{displayName}</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textMuted} />
+          </Pressable>
+        </Animated.View>
+
+        {isGuest && canUpgrade && (
+          <Pressable style={styles.authLink} onPress={() => router.push("/(auth)")}>
+            <Text style={styles.authLinkText}>Log in to sync your research archive →</Text>
+          </Pressable>
+        )}
+
+        <View style={styles.menuGroups}>
+          <View style={styles.groupWrapper}>
+            <Text variant="caption" tone="muted" style={styles.groupLabel}>RESEARCH ARCHIVE</Text>
+            <View style={styles.groupCard}>
+              <Pressable style={styles.listItem} onPress={handleNewThread}>
+                <View style={styles.itemIconBox}>
+                  <Plus size={18} color={colors.accent} />
+                </View>
+                <Text variant="body" style={styles.itemLabel}>Start New Conversation</Text>
+                <ChevronRight size={14} color={colors.textMuted} />
               </Pressable>
-            ) : null}
-          </View>
-        ) : null}
 
-        <View style={styles.block}>
-            <Text variant="caption" tone="muted" style={styles.sectionEyebrow}>THEORIES</Text>
-          <View style={styles.theoryGroup}>
-            {/* New Thread Action Integrated */}
-            <Pressable testID="chat.new_thread" style={styles.theoryActionItem} onPress={handleNewThread}>
-              <View style={styles.plusCircle}>
-                <Plus size={18} color={colors.textPrimary} />
-              </View>
-              <Text variant="body" style={styles.theoryActionText}>New Conversation</Text>
-            </Pressable>
+              <View style={styles.divider} />
 
-            <View style={styles.divider} />
-
-            {/* List of Recent Theories */}
-            {threads.slice(0, 3).map((thread: any) => (
-              <View key={thread._id}>
-                <Pressable
-                  testID={`history.thread.${thread._id}`}
-                  style={styles.theoryItem}
-                  onPress={() => {
-                    setActiveThreadId(thread._id);
-                    router.navigate("/(app)");
-                  }}
-                >
-                  <View style={styles.theoryHeader}>
-                    <Text variant="body" style={styles.theoryTitle}>{thread.title ?? "Untitled search"}</Text>
-                    <Text variant="caption" style={styles.theoryTime}>
-                      {new Date(thread._creationTime).toLocaleDateString()}
+              {threads.slice(0, 3).map((thread: any, idx: number) => (
+                <View key={thread._id}>
+                  <Pressable
+                    style={styles.listItem}
+                    onPress={() => {
+                      setActiveThreadId(thread._id);
+                      router.navigate("/(app)");
+                    }}
+                  >
+                    <View style={styles.itemIconBox}>
+                      <Search size={18} color={colors.textPrimary} />
+                    </View>
+                    <Text variant="body" style={styles.itemLabel} numberOfLines={1}>
+                      {thread.title ?? "Untitled search"}
                     </Text>
-                  </View>
-                </Pressable>
-                <View style={styles.divider} />
-              </View>
-            ))}
-
-            <Pressable 
-              style={styles.seeAllItem} 
-              onPress={() => router.navigate("/(app)/theories")}
-            >
-              <Text variant="caption" style={styles.seeAllText}>See All Research Archive</Text>
-              <ChevronRight size={14} color={colors.textMuted} />
-            </Pressable>
+                    <ChevronRight size={14} color={colors.textMuted} />
+                  </Pressable>
+                  {idx < 2 && <View style={styles.divider} />}
+                </View>
+              ))}
+              
+              <Pressable 
+                style={styles.seeAll} 
+                onPress={() => router.navigate("/(app)/theories")}
+              >
+                <Text style={styles.seeAllText}>View full history</Text>
+                <ArrowRight size={14} color={colors.textMuted} />
+              </Pressable>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.block}>
-          <Text variant="caption" tone="muted" style={styles.sectionEyebrow}>COLLECTIONS & TOOLS</Text>
-          <View style={styles.cardGroup}>
-            <Pressable testID="menu.saved" style={styles.menuItem} onPress={() => router.navigate("/(app)/saved")}>
-              <View style={styles.circleIcon}>
-                <Bookmark size={18} color={colors.textPrimary} />
-              </View>
-              <Text variant="body" tone="primary" style={styles.itemText}>Saved Properties</Text>
-            </Pressable>
+          <View style={styles.groupWrapper}>
+            <Text variant="caption" tone="muted" style={styles.groupLabel}>WORKSPACE TOOLS</Text>
+            <View style={styles.groupCard}>
+              <Pressable style={styles.listItem} onPress={() => router.navigate("/(app)/saved")}>
+                <View style={styles.itemIconBox}><Bookmark size={18} color={colors.textPrimary} /></View>
+                <Text variant="body" style={styles.itemLabel}>Saved Properties</Text>
+                <ChevronRight size={14} color={colors.textMuted} />
+              </Pressable>
+              
+              <View style={styles.divider} />
 
-            <View style={styles.divider} />
+              <Pressable style={styles.listItem} onPress={() => router.navigate("/(app)/compare")}>
+                <View style={styles.itemIconBox}><Scale size={18} color={colors.textPrimary} /></View>
+                <Text variant="body" style={styles.itemLabel}>Compare Tray</Text>
+                <ChevronRight size={14} color={colors.textMuted} />
+              </Pressable>
 
-            <Pressable testID="menu.compare" style={styles.menuItem} onPress={() => router.navigate("/(app)/compare")}>
-              <View style={styles.circleIcon}>
-                <Scale size={18} color={colors.textPrimary} />
-              </View>
-              <Text variant="body" tone="primary" style={styles.itemText}>Compare Tray</Text>
-            </Pressable>
-            
-            <View style={styles.divider} />
+              <View style={styles.divider} />
 
-            <Pressable testID="menu.profile" style={styles.menuItem} onPress={() => router.navigate("/(app)/profile")}>
-              <View style={styles.circleIcon}>
-                <User size={18} color={colors.textPrimary} />
-              </View>
-              <Text variant="body" tone="primary" style={styles.itemText}>User Profile</Text>
-            </Pressable>
-
-            <View style={styles.divider} />
-
-            <Pressable style={styles.menuItem}>
-              <View style={styles.circleIcon}>
-                <Settings size={18} color={colors.textPrimary} />
-              </View>
-              <Text variant="body" tone="primary" style={styles.itemText}>Settings</Text>
-            </Pressable>
+              <Pressable style={styles.listItem} onPress={() => router.navigate("/(app)/profile")}>
+                <View style={styles.itemIconBox}><Settings size={18} color={colors.textPrimary} /></View>
+                <Text variant="body" style={styles.itemLabel}>User Settings</Text>
+                <ChevronRight size={14} color={colors.textMuted} />
+              </Pressable>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -179,239 +173,154 @@ export default function MenuScreen() {
 }
 
 const createStyles = (colors: any) => StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingTop: theme.spacing.lg,
-    gap: 32, // Airy, professional gap
-    paddingBottom: 40,
-  },
-  identityHeader: {
+  header: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    right: 20,
     zIndex: 100,
-    backgroundColor: `${colors.background}FA`,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
   },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.lg,
-    height: 72,
-  },
-  identityBlock: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flex: 1,
-  },
-  avatarMini: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.accent,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarLetter: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  identityName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    letterSpacing: -0.4,
-  },
-  headerTitleWrap: {
-    flex: 1,
-    alignItems: "center",
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  iconBtn: {
+  closeBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(255,255,255,0.05)",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: "rgba(255,255,255,0.08)",
   },
-  block: {
-    gap: theme.spacing.sm,
-  },
-  guestBanner: {
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-    borderRadius: theme.radii.lg,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  guestBannerTitle: {
-    color: colors.textPrimary,
-  },
-  guestBannerBody: {
-    lineHeight: 18,
-  },
-  guestBannerAction: {
-    alignSelf: "flex-start",
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radii.pill,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  guestBannerActionText: {
-    color: colors.textPrimary,
-  },
-  searchBlock: {
-    marginBottom: theme.spacing.md,
-  },
-  searchSurface: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    height: 48,
-    borderRadius: 24,
+  scrollContent: {
     paddingHorizontal: 16,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.divider,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.textPrimary,
-    fontFamily: "Manrope_600SemiBold",
-    letterSpacing: -0.2,
+  profile: {
+    marginBottom: 24,
+    marginTop: 12,
   },
-  sectionHeader: {
+  profileTap: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 16,
   },
-  seeAll: {
-    color: colors.textSecondary,
-    fontWeight: "700",
-  },
-  theoryGroup: {
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: colors.surface,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  theoryItem: {
-    padding: theme.spacing.md,
-  },
-  theoryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  theoryTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    flex: 1,
-    marginRight: 8,
-    letterSpacing: -0.3,
-  },
-  theoryTime: {
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-  theoryPreview: {
-    marginTop: 4,
-    fontSize: 12,
-    color: colors.textSecondary,
-    opacity: 0.75,
-    lineHeight: 18,
-  },
-  cardGroup: {
-    backgroundColor: colors.surface,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.divider,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    gap: 12,
-  },
-  circleIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surfaceRaised,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
     borderColor: colors.divider,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  itemText: {
-    fontWeight: "600",
+  avatarText: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: colors.textPrimary,
+    lineHeight: 28,
+    letterSpacing: -0.5,
+    textAlign: "center",
+    includeFontPadding: false,
   },
-  theoryActionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: theme.spacing.md,
-    gap: 12,
+  guestDot: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.background,
   },
-  plusCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surfaceRaised,
-    justifyContent: "center",
-    alignItems: "center",
+  profileMeta: {
+    flex: 1,
+    gap: 2,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  profileSub: {
+    letterSpacing: 2,
+    fontSize: 9,
+  },
+  authLink: {
+    marginBottom: 32,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.divider,
   },
-  theoryActionText: {
+  authLinkText: {
     fontSize: 14,
     fontWeight: "700",
     color: colors.textPrimary,
-    letterSpacing: -0.3,
   },
-  seeAllItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: theme.spacing.md,
+  menuGroups: {
+    gap: 24,
   },
-  seeAllText: {
-    color: colors.textMuted,
-    fontWeight: "700",
-    fontSize: 12,
-    letterSpacing: -0.1,
+  groupWrapper: {
+    gap: 10,
   },
-  sectionEyebrow: {
-    color: colors.textMuted,
+  groupLabel: {
     textTransform: "uppercase",
-    letterSpacing: 2.2, // Elite tracking
+    letterSpacing: 3,
     fontSize: 10,
-    paddingHorizontal: theme.spacing.xs,
-    marginBottom: 6,
+    marginLeft: 12,
+  },
+  groupCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    overflow: "hidden",
+  },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 14,
+  },
+  itemIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  itemLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "700",
   },
   divider: {
-    height: StyleSheet.hairlineWidth, // Visionary precision
+    height: 1,
     backgroundColor: colors.divider,
-    marginHorizontal: theme.spacing.md,
+    marginLeft: 68,
+  },
+  seeAll: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: "rgba(255,255,255,0.02)",
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+  },
+  seeAllText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: colors.textMuted,
   },
 });

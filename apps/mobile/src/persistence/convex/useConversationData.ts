@@ -120,21 +120,55 @@ export function useAgentRuntimeHealth() {
 }
 
 export function useThreads() {
-  const { isAuthenticated } = useAuthSession();
+  const { isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const e2eThreads = useAppStore((state) => state.e2eThreads);
+  const guestMirrorThreads = useAppStore((state) => state.guestMirrorThreads);
+  const syncGuestMirrorThreadSummaries = useAppStore((state) => state.syncGuestMirrorThreadSummaries);
   const rows = useQuery(
     api.agent.public.listThreads.listThreads,
     isAuthenticated && !e2eQaMode ? {} : "skip",
   );
 
-  return e2eQaMode ? e2eThreads : rows ?? [];
+  useEffect(() => {
+    if (e2eQaMode || !isGuest || rows === undefined) {
+      return;
+    }
+
+    if (rows.length === 0 && guestMirrorThreads.length > 0) {
+      return;
+    }
+
+    syncGuestMirrorThreadSummaries(
+      rows.map((thread: any) => ({
+        _id: thread._id,
+        _creationTime: thread._creationTime,
+        title: thread.title ?? null,
+        summary: thread.summary ?? null,
+      })),
+    );
+  }, [e2eQaMode, guestMirrorThreads.length, isGuest, rows, syncGuestMirrorThreadSummaries]);
+
+  if (e2eQaMode) {
+    return e2eThreads;
+  }
+
+  if (rows !== undefined) {
+    if (rows.length === 0 && isGuest && guestMirrorThreads.length > 0) {
+      return guestMirrorThreads;
+    }
+    return rows;
+  }
+
+  return isGuest ? guestMirrorThreads : [];
 }
 
 export function useThreadMessages(threadId: string | null, pendingPrompt?: string | null) {
-  const { isAuthenticated } = useAuthSession();
+  const { isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const e2eThreads = useAppStore((state) => state.e2eThreads);
+  const guestMirrorThreads = useAppStore((state) => state.guestMirrorThreads);
+  const storeGuestMirrorThreadMessages = useAppStore((state) => state.storeGuestMirrorThreadMessages);
   const result = useQuery(
     api.agent.public.getThreadMessages.getThreadMessages,
     isAuthenticated && !e2eQaMode && threadId
@@ -148,43 +182,10 @@ export function useThreadMessages(threadId: string | null, pendingPrompt?: strin
       : "skip",
   );
 
-  return useMemo(() => {
+  const baseMessages = useMemo(() => {
     if (e2eQaMode) {
       const thread = e2eThreads.find((item) => item._id === threadId);
-      const messages = [...(thread?.messages ?? [])].sort((left, right) => left.createdAt - right.createdAt);
-
-      if (pendingPrompt) {
-        const scenario = resolveE2EPromptScenario(pendingPrompt);
-        const hasOptimisticUser = messages.some((m) => m.role === "user" && m.text === pendingPrompt);
-        if (!hasOptimisticUser) {
-          messages.push({
-            id: "optimistic-user",
-            sessionId: threadId ?? "threadless",
-            role: "user",
-            kind: "text",
-            text: pendingPrompt,
-            streamState: "complete",
-            relatedPropertyIds: [],
-            createdAt: Date.now() - 1,
-            runId: undefined,
-            sourceMetadata: [],
-          });
-        }
-        messages.push({
-          id: "pending-assistant",
-          sessionId: threadId ?? "threadless",
-          role: "assistant",
-          kind: scenario.kind ?? "property_bundle",
-          text: DEFAULT_PENDING_ASSISTANT_TEXT,
-          streamState: "streaming",
-          relatedPropertyIds: [],
-          createdAt: Date.now(),
-          runId: undefined,
-          sourceMetadata: scenario.sources,
-        });
-      }
-
-      return messages;
+      return [...(thread?.messages ?? [])].sort((left, right) => left.createdAt - right.createdAt);
     }
 
     const page = result?.page ?? [];
@@ -203,6 +204,39 @@ export function useThreadMessages(threadId: string | null, pendingPrompt?: strin
       turnMeta: getMessageMeta(message),
     }));
     messages.sort((left, right) => left.createdAt - right.createdAt);
+    return messages;
+  }, [e2eQaMode, e2eThreads, result?.page, threadId]);
+
+  useEffect(() => {
+    if (e2eQaMode || !isGuest || !threadId || result === undefined) {
+      return;
+    }
+
+    if (baseMessages.length === 0 && guestMirrorThreads.some((item) => item._id === threadId && item.messages.length > 0)) {
+      return;
+    }
+
+    storeGuestMirrorThreadMessages(threadId, baseMessages);
+  }, [baseMessages, e2eQaMode, guestMirrorThreads, isGuest, result, storeGuestMirrorThreadMessages, threadId]);
+
+  return useMemo(() => {
+    const mirroredMessages = guestMirrorThreads.find((item) => item._id === threadId)?.messages ?? [];
+    const useMirrorMessages =
+      !e2eQaMode
+      && result !== undefined
+      && baseMessages.length === 0
+      && mirroredMessages.length > 0;
+    const messages = [...(
+      e2eQaMode
+        ? baseMessages
+        : useMirrorMessages
+        ? mirroredMessages
+        : result !== undefined
+        ? baseMessages
+        : isGuest
+        ? mirroredMessages
+        : []
+    )];
 
     if (pendingPrompt) {
       const hasOptimisticUser = messages.some((m) => m.role === "user" && m.text === pendingPrompt);
@@ -235,7 +269,7 @@ export function useThreadMessages(threadId: string | null, pendingPrompt?: strin
     }
 
     return messages;
-  }, [e2eQaMode, e2eThreads, pendingPrompt, result?.page, threadId]);
+  }, [baseMessages, e2eQaMode, guestMirrorThreads, isGuest, pendingPrompt, result, threadId]);
 }
 
 export function useRecommendationBatches(threadId: string | null) {

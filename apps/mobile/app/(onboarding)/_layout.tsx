@@ -2,6 +2,7 @@ import { Redirect, Stack } from "expo-router";
 
 import { useAuthSession } from "@/auth/useAuthSession";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { AppBootScreen } from "@/shell/components/AppBootScreen";
 import { useAppStore } from "@/store";
 
 export default function OnboardingLayout() {
@@ -11,7 +12,7 @@ export default function OnboardingLayout() {
   const { colors } = useTheme();
 
   if (!hydrationComplete || !isReady) {
-    return null;
+    return <AppBootScreen />;
   }
 
   if (!canAccessApp) {

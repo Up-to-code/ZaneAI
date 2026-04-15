@@ -3,6 +3,20 @@ import path from "node:path";
 import type { ExpoConfig } from "expo/config";
 
 const workspaceRoot = path.resolve(__dirname, "../..");
+const appRoot = __dirname;
+
+function normalizeUrlEnvValue(value: string | undefined) {
+  if (!value) {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  if (/^=+https?:\/\//.test(trimmed)) {
+    return trimmed.replace(/^=+/, "");
+  }
+
+  return trimmed;
+}
 
 function loadEnvFile(filePath: string) {
   if (!existsSync(filePath)) {
@@ -26,16 +40,20 @@ function loadEnvFile(filePath: string) {
   }
 }
 
+loadEnvFile(path.join(appRoot, ".env.local"));
+loadEnvFile(path.join(appRoot, ".env"));
 loadEnvFile(path.join(workspaceRoot, ".env.local"));
 loadEnvFile(path.join(workspaceRoot, ".env"));
 
-const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "";
-const authUrl = process.env.EXPO_PUBLIC_AUTH_URL ?? convexUrl;
+const convexUrl = normalizeUrlEnvValue(
+  process.env.EXPO_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "",
+) ?? "";
+const authUrl = normalizeUrlEnvValue(process.env.EXPO_PUBLIC_AUTH_URL) ?? convexUrl;
 
 const config: ExpoConfig = {
-  name: "Zane-ai",
-  slug: "zayon-mobile",
-  scheme: "zayon",
+  name: "Zane-AI",
+  slug: "zane-ai-mobile",
+  scheme: "zane-ai",
   version: "0.1.0",
   orientation: "portrait",
   userInterfaceStyle: "automatic",
@@ -44,10 +62,10 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: "com.zayon.mobile",
+    bundleIdentifier: "com.zaneai.mobile",
   },
   android: {
-    package: "com.zayon.mobile",
+    package: "com.zaneai.mobile",
   },
   plugins: [
     "expo-font",

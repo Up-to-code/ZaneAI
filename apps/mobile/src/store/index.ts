@@ -5,6 +5,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { createComposerSlice, type ComposerSlice } from "@/store/slices/composerSlice";
 import { createConversationSlice, type ConversationSlice } from "@/store/slices/conversationSlice";
 import { createE2ESlice, type E2ESlice } from "@/store/slices/e2eSlice";
+import { createGuestMirrorSlice, type GuestMirrorSlice } from "@/store/slices/guestMirrorSlice";
 import { createPreferenceSlice, type PreferenceSlice } from "@/store/slices/preferenceSlice";
 import { createPropertySlice, type PropertySlice } from "@/store/slices/propertySlice";
 import { createSessionSlice, type SessionSlice } from "@/store/slices/sessionSlice";
@@ -13,6 +14,7 @@ import { createVoiceSlice, type VoiceSlice } from "@/store/slices/voiceSlice";
 
 export type AppStore = SessionSlice &
   E2ESlice &
+  GuestMirrorSlice &
   ConversationSlice &
   ComposerSlice &
   VoiceSlice &
@@ -25,6 +27,7 @@ export const useAppStore = create<AppStore>()(
     (...args) => ({
       ...createSessionSlice(...args),
       ...createE2ESlice(...args),
+      ...createGuestMirrorSlice(...args),
       ...createConversationSlice(...args),
       ...createComposerSlice(...args),
       ...createVoiceSlice(...args),
@@ -33,11 +36,15 @@ export const useAppStore = create<AppStore>()(
       ...createUiSlice(...args),
     }),
     {
-      name: "zayon-mobile-store",
+      name: "zane-ai-mobile-store",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         sessionId: state.sessionId,
         guestMode: state.guestMode,
+        guestMirrorThreads: state.guestMirrorThreads,
+        guestMirrorSavedPropertyIds: state.guestMirrorSavedPropertyIds,
+        guestMirrorComparePropertyIds: state.guestMirrorComparePropertyIds,
+        guestMirrorActiveThreadId: state.guestMirrorActiveThreadId,
         onboardingComplete: state.onboardingComplete,
         comparePropertyIds: state.comparePropertyIds,
         preferenceProfile: state.preferenceProfile,

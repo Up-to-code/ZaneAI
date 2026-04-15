@@ -64,7 +64,7 @@ test("toPropertyCardVM preserves enriched optional property fields when present"
     broker: {
       id: "broker-42",
       name: "Salma Adel",
-      agency: "Zayon Prime",
+      agency: "Zane-AI Prime",
       avatarUrl: "https://example.com/broker.jpg",
       rating: 4.9,
       activeListingsCount: 12,

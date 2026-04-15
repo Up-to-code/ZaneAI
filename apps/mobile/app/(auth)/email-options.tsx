@@ -1,130 +1,154 @@
-import { StyleSheet, View, Pressable, Platform, KeyboardAvoidingView } from "react-native";
+import { StyleSheet, View, Pressable, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeInUp, FadeInDown } from "react-native-reanimated";
 import { ArrowLeft, User, LogIn } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/foundation/primitives/Button";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { theme } from "@/foundation/theme/tokens";
 
 export default function EmailOptionsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { canUpgrade } = useAuthSession();
 
-  const styles = StyleSheet.create({
-    container: {
-      padding: 0,
-      backgroundColor: colors.background,
-    },
-    flex: {
-      flex: 1,
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingTop: 60,
-      paddingHorizontal: 24,
-      gap: 16,
-    },
-    backBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.surface,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: colors.divider,
-    },
-    headerTitle: {
-      fontSize: 14,
-      fontWeight: "700",
-      letterSpacing: 1,
-      textTransform: "uppercase",
-      color: colors.textPrimary,
-    },
-    content: {
-      flex: 1,
-      padding: 24,
-      justifyContent: "center",
-      gap: 40,
-      marginTop: -20,
-    },
-    intro: {
-      gap: 12,
-    },
-    display: {
-      fontSize: 32,
-      fontWeight: "900",
-      color: colors.textPrimary,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      lineHeight: 24,
-    },
-    actions: {
-      gap: 16,
-    },
-    mainBtn: {
-      height: 64,
-      backgroundColor: colors.textPrimary,
-    },
-    secondaryBtn: {
-      backgroundColor: colors.surfaceRaised,
-      height: 64,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.divider,
-    },
-  });
-
   return (
-    <Screen style={styles.container}>
-      <View style={styles.flex}>
-        <View style={styles.header}>
-          <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
+    <Screen safe={false}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { top: insets.top + 10 }]}>
+          <Pressable 
+            accessibilityLabel="Back" 
+            onPress={() => router.back()}
+            style={styles.backBtn}
+          >
+            <ArrowLeft size={24} color={colors.textPrimary} />
           </Pressable>
-          <Text variant="title" style={styles.headerTitle}>Account Access</Text>
+          <Text variant="title" style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Account Access
+          </Text>
         </View>
 
-        <View style={styles.content}>
-          <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
-            <Text variant="display" style={styles.display}>Welcome Back</Text>
-            <Text style={styles.subtitle}>
-              {canUpgrade
-                ? "Choose sign in or account creation. Anonymous research merges into your account."
-                : "Securely sign in to your Zane-ai account or create a new one to get started."}
+        <ScrollView
+          bounces={false}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: insets.top + 100, paddingBottom: Math.max(insets.bottom, 24) + 20 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View entering={FadeInUp.delay(120).springify()} style={styles.heroWrap}>
+            <Text variant="display" style={[styles.display, { color: colors.textPrimary }]}>
+              Welcome Back
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Securely sign in to your Zane-ai account or create a new one to get started.
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.actions}>
-            <Button
-              testID="auth.login"
-              label="Log In"
-              leading={<LogIn size={20} color={colors.background} />}
-              variant="primary"
-              onPress={() => router.push("/(auth)/login")}
-              style={styles.mainBtn}
-              textStyle={{ color: colors.background }}
-            />
-            
-            <Button
-              testID="auth.signup"
-              label="Create an Account"
-              leading={<User size={20} color={colors.textPrimary} />}
-              variant="secondary"
-              onPress={() => router.push("/(auth)/register")}
-              style={styles.secondaryBtn}
-              textStyle={{ color: colors.textPrimary }}
-            />
+          <Animated.View entering={FadeInDown.delay(220).springify()} style={styles.actionsWrap}>
+            <View style={styles.buttonStack}>
+              <Button
+                testID="auth.login"
+                label="Log In"
+                leading={<LogIn size={20} color={colors.background} />}
+                variant="primary"
+                onPress={() => router.push("/(auth)/login")}
+                style={[styles.mainBtn, { backgroundColor: colors.textPrimary }]}
+                textStyle={{ color: colors.background }}
+              />
+              
+              <Button
+                testID="auth.signup"
+                label="Create an Account"
+                leading={<User size={20} color={colors.textPrimary} />}
+                variant="secondary"
+                onPress={() => router.push("/(auth)/register")}
+                style={[
+                  styles.secondaryBtn,
+                  { backgroundColor: colors.surface, borderColor: colors.divider },
+                ]}
+                textStyle={{ color: colors.textPrimary }}
+              />
+            </View>
           </Animated.View>
-        </View>
+        </ScrollView>
+
       </View>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    zIndex: 100,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backBtn: {
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  headerTitle: {
+    marginLeft: 16,
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: 2,
+    textTransform: "uppercase",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: theme.spacing.xxxl,
+    justifyContent: "space-between",
+  },
+  heroWrap: {
+    alignItems: "center",
+    gap: 16,
+    marginTop: 60,
+  },
+  display: {
+    fontSize: 40,
+    fontFamily: "Manrope_800ExtraBold",
+    textAlign: "center",
+    letterSpacing: 0,
+    lineHeight: 48,
+  },
+
+
+  subtitle: {
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: "center",
+    opacity: 0.7,
+    maxWidth: 280,
+  },
+  actionsWrap: {
+    marginBottom: 40,
+  },
+  buttonStack: {
+    gap: 12,
+  },
+  mainBtn: {
+    minHeight: 58,
+    borderRadius: 29,
+  },
+  secondaryBtn: {
+    minHeight: 58,
+    borderRadius: 29,
+    borderWidth: 1,
+  },
+});

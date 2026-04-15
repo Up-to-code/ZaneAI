@@ -57,14 +57,7 @@ export function ConversationViewport() {
           />
         ) : null}
 
-        {isAnonymous ? (
-          <ConversationStatusBanner
-            title="Anonymous session active"
-            body="Chat, saved properties, and thread history stay available now. Upgrade later to merge everything into account."
-            actionLabel={canUpgrade ? "Upgrade" : undefined}
-            onAction={canUpgrade ? openUpgrade : undefined}
-          />
-        ) : null}
+
 
         <ConversationFeed
           messages={messages}

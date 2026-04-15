@@ -27,9 +27,10 @@ export type ZoneDescriptor = {
   icon: typeof LayoutGrid;
   roles: WorkspaceRole[];
   localNav: ZoneNavItem[];
+  comingSoon?: boolean;
 };
 
-export type ZoneShellData = Pick<ZoneDescriptor, "key" | "label" | "description" | "localNav">;
+export type ZoneShellData = Pick<ZoneDescriptor, "key" | "label" | "description" | "localNav" | "comingSoon">;
 
 const zoneDescriptors: ZoneDescriptor[] = [
   {
@@ -49,6 +50,7 @@ const zoneDescriptors: ZoneDescriptor[] = [
     icon: Mail,
     roles: ["developer", "RED", "broker"],
     localNav: [],
+    comingSoon: true,
   },
   {
     key: "crm",
@@ -61,6 +63,7 @@ const zoneDescriptors: ZoneDescriptor[] = [
       { label: "CRM", href: "/ws/crm" },
       { label: "Clients", href: "/ws/crm/clients" },
     ],
+    comingSoon: true,
   },
   {
     key: "projects",
@@ -79,6 +82,7 @@ const zoneDescriptors: ZoneDescriptor[] = [
     icon: BriefcaseBusiness,
     roles: ["developer", "RED", "broker"],
     localNav: [{ label: "Offers", href: "/ws/offers" }],
+    comingSoon: true,
   },
   {
     key: "market",
@@ -93,6 +97,7 @@ const zoneDescriptors: ZoneDescriptor[] = [
       { label: "الفرص", href: "/ws/market/opportunities" },
       { label: "البحث والكلمات", href: "/ws/market/research" },
     ],
+    comingSoon: true,
   },
   {
     key: "settings",
@@ -201,5 +206,6 @@ export function toZoneShellData(zone: ZoneDescriptor): ZoneShellData {
     label: zone.label,
     description: zone.description,
     localNav: zone.localNav,
+    comingSoon: zone.comingSoon,
   };
 }

@@ -23,7 +23,7 @@ import { useAppStore } from "@/store";
 import type { ConversationMessage, PropertyCardVM } from "@/types/domain";
 
 export function useConversationController() {
-  const { canUpgrade, isAnonymous, isAuthenticated } = useAuthSession();
+  const { canUpgrade, isGuest, isAuthenticated } = useAuthSession();
   const router = useRouter();
   const sessionId = useAppStore((state) => state.sessionId);
   const draftText = useAppStore((state) => state.draftText);
@@ -41,6 +41,7 @@ export function useConversationController() {
   const clearDraft = useAppStore((state) => state.clearDraft);
   const setDraftText = useAppStore((state) => state.setDraftText);
   const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
+  const toggleGuestMirrorSavedProperty = useAppStore((state) => state.toggleGuestMirrorSavedProperty);
   const setSelectedPropertyId = useAppStore((state) => state.setSelectedPropertyId);
   const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -190,7 +191,11 @@ export function useConversationController() {
     }
 
     if (!isAuthenticated) {
-      setRunFailureMessage("Sign in required before sending a prompt.");
+      setRunFailureMessage(
+        isGuest
+          ? "Restoring your guest session. Try again in a moment."
+          : "Sign in required before sending a prompt.",
+      );
       return;
     }
 
@@ -287,7 +292,11 @@ export function useConversationController() {
     };
 
     if (action.name === "save_property") {
-      await toggleSavedPropertyMutation({ propertyExternalId: action.payload.propertyId });
+      if (isAuthenticated) {
+        await toggleSavedPropertyMutation({ propertyExternalId: action.payload.propertyId });
+      } else if (isGuest) {
+        toggleGuestMirrorSavedProperty(action.payload.propertyId);
+      }
       track("property_save", basePayload);
       return;
     }
@@ -345,7 +354,7 @@ export function useConversationController() {
   return {
     activeThreadId,
     canUpgrade,
-    isAnonymous,
+    isAnonymous: isGuest,
     runtimeHealth,
     messages,
     isStreaming,

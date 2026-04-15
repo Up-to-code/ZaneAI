@@ -48,14 +48,14 @@
 }
 
 :root {
-  --zayon-deep: #000000;
-  --zayon-surface: #FAFAFA;
-  --zayon-surface-strong: #F4F4F5;
-  --zayon-accent: #FF3D00;
-  --zayon-accent-soft: #FFF0EA;
-  --zayon-text-muted: #52525B;
-  --zayon-text-secondary: #A1A1AA;
-  --zayon-line: rgba(0, 0, 0, 0.08);
+  --zane-ai-deep: #000000;
+  --zane-ai-surface: #FAFAFA;
+  --zane-ai-surface-strong: #F4F4F5;
+  --zane-ai-accent: #FF3D00;
+  --zane-ai-accent-soft: #FFF0EA;
+  --zane-ai-text-muted: #52525B;
+  --zane-ai-text-secondary: #A1A1AA;
+  --zane-ai-line: rgba(0, 0, 0, 0.08);
   --background: #FFFFFF;
   --foreground: #000000;
   --card: #FFFFFF;
@@ -111,14 +111,14 @@
 }
 
 .dark {
-  --zayon-deep: #FFFFFF;
-  --zayon-surface: #0A0A0A;
-  --zayon-surface-strong: #121212;
-  --zayon-accent: #FF3D00;
-  --zayon-accent-soft: rgba(255, 61, 0, 0.14);
-  --zayon-text-muted: #A3A3A3;
-  --zayon-text-secondary: #737373;
-  --zayon-line: rgba(255, 255, 255, 0.08);
+  --zane-ai-deep: #FFFFFF;
+  --zane-ai-surface: #0A0A0A;
+  --zane-ai-surface-strong: #121212;
+  --zane-ai-accent: #FF3D00;
+  --zane-ai-accent-soft: rgba(255, 61, 0, 0.14);
+  --zane-ai-text-muted: #A3A3A3;
+  --zane-ai-text-secondary: #737373;
+  --zane-ai-line: rgba(255, 255, 255, 0.08);
   --background: #000000;
   --foreground: #FFFFFF;
   --card: #000000;
@@ -190,7 +190,7 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--zayon-accent) 78%, transparent);
+    background: color-mix(in srgb, var(--zane-ai-accent) 78%, transparent);
     color: white;
   }
 

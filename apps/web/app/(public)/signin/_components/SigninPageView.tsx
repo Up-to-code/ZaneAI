@@ -24,9 +24,9 @@ type SigninPageViewProps = {
 type AuthMode = "signin" | "signup" | "forgot" | "reset";
 
 const AUTH_TEXT_INPUT_CLASS_NAME =
-  "w-full border-b border-[var(--zayon-line)] bg-transparent px-2 py-4 text-lg tracking-wide text-[var(--zayon-deep)] outline-none transition-all placeholder:text-[var(--zayon-text-muted)] focus:border-[var(--zayon-deep)] dark:border-white/20 dark:text-white dark:focus:border-white opacity-80 focus:opacity-100";
+  "w-full border-b border-[var(--zane-ai-line)] bg-transparent px-2 py-4 text-lg tracking-wide text-[var(--zane-ai-deep)] outline-none transition-all placeholder:text-[var(--zane-ai-text-muted)] focus:border-[var(--zane-ai-deep)] dark:border-white/20 dark:text-white dark:focus:border-white opacity-80 focus:opacity-100";
 const AUTH_PRIMARY_BUTTON_CLASS_NAME =
-  "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--zayon-deep)] px-5 py-4 mt-4 text-[13px] tracking-[0.2em] font-black text-white transition-all hover:scale-[1.02] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 dark:bg-white dark:text-black uppercase";
+  "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--zane-ai-deep)] px-5 py-4 mt-4 text-[13px] tracking-[0.2em] font-black text-white transition-all hover:scale-[1.02] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 dark:bg-white dark:text-black uppercase";
 
 function Pill({
   active,
@@ -41,16 +41,15 @@ function Pill({
     <button
       type="button"
       onClick={onClick}
-      className={`relative px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--zayon-deep)] dark:hover:text-white ${
-        active
-          ? "text-[var(--zayon-deep)] dark:text-white"
-          : "text-[var(--zayon-text-muted)] dark:text-white/40"
-      }`}
+      className={`relative px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--zane-ai-deep)] dark:hover:text-white ${active
+          ? "text-[var(--zane-ai-deep)] dark:text-white"
+          : "text-[var(--zane-ai-text-muted)] dark:text-white/40"
+        }`}
     >
       {active && (
         <motion.div
           layoutId="pill-indicator"
-          className="absolute inset-x-0 bottom-0 h-[2px] bg-[var(--zayon-deep)] dark:bg-white"
+          className="absolute inset-x-0 bottom-0 h-[2px] bg-[var(--zane-ai-deep)] dark:bg-white"
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         />
       )}
@@ -116,8 +115,8 @@ export default function SigninPageView({
 
   useEffect(() => {
     if (session.data?.session && !pending) {
-       router.replace(redirectTo);
-       router.refresh();
+      router.replace(redirectTo);
+      router.refresh();
     }
   }, [session.data?.session, router, redirectTo, pending]);
 
@@ -134,11 +133,11 @@ export default function SigninPageView({
         password: fields.password,
       });
       if (result?.error) throw new Error(result.error.message ?? "Unable to sign in.");
-      
+
       if (inviteToken) {
         await acceptInvite({ token: inviteToken });
       }
-      
+
       setPending(false);
       // Let the useEffect handle the redirect safely once the session is fully hydrated
     } catch (cause) {
@@ -160,7 +159,7 @@ export default function SigninPageView({
       });
       if (result?.error) throw new Error(result.error.message ?? "Unable to create account.");
       setMessage(locale === "ar" ? "جارٍ تجهيز مساحة العمل الخاصة بك..." : "Preparing your workspace...");
-      
+
       // Wait 1 second to ensure cross-domain session reaches internal WebSocket before mutation
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -172,7 +171,7 @@ export default function SigninPageView({
           type: fields.organizationType,
         });
       }
-      
+
       setPending(false);
       // Let the useEffect handle the redirect safely once the session is fully hydrated
     } catch (cause) {
@@ -225,7 +224,7 @@ export default function SigninPageView({
   if (session.isPending || session.data?.session) {
     const statusLabel = session.data?.session ? "Redirecting to workspace…" : "Verifying session…";
     return (
-      <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--zayon-background)] px-6 py-12 dark:bg-black">
+      <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--zane-ai-background)] px-6 py-12 dark:bg-black">
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -236,15 +235,15 @@ export default function SigninPageView({
           <motion.span
             animate={{ opacity: [0.3, 1, 0.3] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="text-3xl font-black uppercase tracking-[0.28em] text-[var(--zayon-deep)] dark:text-white select-none"
+            className="text-3xl font-black uppercase tracking-[0.28em] text-[var(--zane-ai-deep)] dark:text-white select-none"
           >
-            Zane-ai
+            Zane-AI
           </motion.span>
 
           {/* Shimmer bar */}
           <div className="relative h-[2px] w-48 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
             <motion.div
-              className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--zayon-deep)] dark:bg-white"
+              className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--zane-ai-deep)] dark:bg-white"
               animate={{ x: ["-100%", "288px"] }}
               transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -255,7 +254,7 @@ export default function SigninPageView({
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--zayon-text-muted)] dark:text-white/40"
+            className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--zane-ai-text-muted)] dark:text-white/40"
           >
             {statusLabel}
           </motion.p>
@@ -265,7 +264,7 @@ export default function SigninPageView({
   }
 
   return (
-    <main className="flex min-h-[100dvh] flex-col items-center bg-[var(--zayon-background)] px-6 py-12 dark:bg-black lg:flex-row lg:px-24">
+    <main className="flex min-h-[100dvh] flex-col items-center bg-[var(--zane-ai-background)] px-6 py-12 dark:bg-black lg:flex-row lg:px-24">
       {/* Brand Identity / Typewriter Section */}
       <div className="flex w-full flex-col items-center justify-center pb-12 lg:w-1/2 lg:pb-0 lg:pr-12">
         <motion.div
@@ -274,8 +273,8 @@ export default function SigninPageView({
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center"
         >
-          <h1 className="mb-8 text-5xl font-black uppercase tracking-[0.24em] text-[var(--zayon-deep)] dark:text-white lg:text-7xl">
-            Zane-ai
+          <h1 className="mb-8 text-5xl font-black uppercase tracking-[0.24em] text-[var(--zane-ai-deep)] dark:text-white lg:text-7xl">
+            Zane-AI
           </h1>
           <TypewriterText
             phrases={[
@@ -312,7 +311,7 @@ export default function SigninPageView({
           >
             <AnimatePresence mode="wait">
               {invitePreview && (
-                <motion.div key="invite" variants={staggerItem} initial="hidden" animate="show" exit="exit" className="mb-8 border-l-2 border-[var(--zayon-deep)] pl-5 dark:border-white">
+                <motion.div key="invite" variants={staggerItem} initial="hidden" animate="show" exit="exit" className="mb-8 border-l-2 border-[var(--zane-ai-deep)] pl-5 dark:border-white">
                   <div className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Invite</div>
                   <div className="text-xl font-black">{invitePreview.organizationName}</div>
                   <div className="mt-1 text-sm tracking-wide opacity-80">
@@ -411,7 +410,7 @@ export default function SigninPageView({
                           placeholder="Strong Password"
                         />
                       </motion.div>
-                      
+
                       {!inviteToken && (
                         <div className="space-y-6 pt-2">
                           <motion.div variants={staggerItem}>
@@ -428,22 +427,20 @@ export default function SigninPageView({
                             <button
                               type="button"
                               onClick={() => setFields((curr) => ({ ...curr, organizationType: "red" }))}
-                              className={`relative overflow-hidden border-b-2 px-1 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
-                                fields.organizationType === "red"
-                                  ? "border-[var(--zayon-deep)] text-[var(--zayon-deep)] dark:border-white dark:text-white"
+                              className={`relative overflow-hidden border-b-2 px-1 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] transition-all ${fields.organizationType === "red"
+                                  ? "border-[var(--zane-ai-deep)] text-[var(--zane-ai-deep)] dark:border-white dark:text-white"
                                   : "border-transparent text-opacity-40 hover:text-opacity-100 dark:border-white/10 dark:text-white"
-                              }`}
+                                }`}
                             >
                               Developer
                             </button>
                             <button
                               type="button"
                               onClick={() => setFields((curr) => ({ ...curr, organizationType: "broker" }))}
-                              className={`relative overflow-hidden border-b-2 px-1 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
-                                fields.organizationType === "broker"
-                                  ? "border-[var(--zayon-deep)] text-[var(--zayon-deep)] dark:border-white dark:text-white"
+                              className={`relative overflow-hidden border-b-2 px-1 py-4 text-left text-[11px] font-black uppercase tracking-[0.2em] transition-all ${fields.organizationType === "broker"
+                                  ? "border-[var(--zane-ai-deep)] text-[var(--zane-ai-deep)] dark:border-white dark:text-white"
                                   : "border-transparent text-opacity-40 hover:text-opacity-100 dark:border-white/10 dark:text-white"
-                              }`}
+                                }`}
                             >
                               Broker
                             </button>
@@ -510,7 +507,7 @@ export default function SigninPageView({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="text-center text-[10px] uppercase tracking-[0.2em] leading-relaxed text-[var(--zayon-text-muted)] dark:text-[var(--zayon-text-secondary)] opacity-50"
+            className="text-center text-[10px] uppercase tracking-[0.2em] leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-[var(--zane-ai-text-secondary)] opacity-50"
           >
             {dictionary.signin.agreementPrefix}{" "}
             <Link href="/terms" className="font-bold underline-offset-8 hover:opacity-100 hover:underline">{dictionary.signin.agreementTerms}</Link>{" "}

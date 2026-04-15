@@ -85,7 +85,7 @@ export default function WorkspaceShell({
       data-variant={chrome.variant}
       dir={direction}
       className={cn(
-        "app-shell-height app-shell-fixed-height flex h-full min-h-0 w-full flex-col overflow-hidden bg-[var(--zayon-background)] dark:bg-black lg:flex-row",
+        "app-shell-height app-shell-fixed-height flex h-full min-h-0 w-full flex-col overflow-hidden bg-[var(--zane-ai-background)] dark:bg-black lg:flex-row",
         !chrome.isAssistantHome && "lg:overflow-hidden",
       )}
     >
@@ -111,7 +111,7 @@ export default function WorkspaceShell({
             allAssistantThreads={allAssistantThreads}
             variant={chrome.variant}
             headerAction={!sidebarCollapsed ? sidebarToggleButton : undefined}
-            className="h-full w-full overflow-hidden border-e border-[var(--zayon-line)] dark:border-white/10"
+            className="h-full w-full overflow-hidden border-e border-[var(--zane-ai-line)] dark:border-white/10"
           />
         </div>
         {sidebarCollapsed ? (
@@ -127,7 +127,7 @@ export default function WorkspaceShell({
         ) : null}
         <div
           className={cn(
-            "hidden h-full w-full flex-col items-center border-e border-[var(--zayon-line)] bg-[var(--zayon-background)] dark:border-white/10 dark:bg-black px-2 pb-4 lg:flex motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out",
+            "hidden h-full w-full flex-col items-center border-e border-[var(--zane-ai-line)] bg-[var(--zane-ai-background)] dark:border-white/10 dark:bg-black px-2 pb-4 lg:flex motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out",
             collapsedRailPaddingTopClassName,
             sidebarCollapsed
               ? "translate-x-0 opacity-100"
@@ -138,7 +138,7 @@ export default function WorkspaceShell({
           <div className="flex w-full flex-col items-center gap-2">
             <Link
               href="/ws"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--zayon-line)] bg-transparent text-[var(--zayon-deep)] transition hover:bg-[var(--zayon-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5 active:scale-95"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5 active:scale-95"
               aria-label={dictionary.nav.newChat}
               title={dictionary.nav.newChat}
             >
@@ -149,6 +149,20 @@ export default function WorkspaceShell({
             {visibleZones.map((item) => {
               const Icon = item.icon;
               const isActive = matchesWorkspacePath(pathname, item.href);
+              const isComingSoon = item.comingSoon;
+
+              if (isComingSoon) {
+                return (
+                  <div
+                    key={item.href}
+                    className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] opacity-30 dark:border-white/5 dark:text-white/40 cursor-not-allowed group"
+                    title={`${item.label} (Coming Soon)`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <div className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-[var(--zane-ai-accent)]" />
+                  </div>
+                );
+              }
 
               return (
                 <Link
@@ -157,8 +171,8 @@ export default function WorkspaceShell({
                   className={cn(
                     "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition-all active:scale-95",
                     isActive
-                      ? "border-[var(--zayon-deep)] bg-[var(--zayon-deep)] text-white dark:border-white dark:bg-white dark:text-black"
-                      : "border-[var(--zayon-line)] bg-transparent text-[var(--zayon-deep)] hover:bg-[var(--zayon-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5",
+                      ? "border-[var(--zane-ai-deep)] bg-[var(--zane-ai-deep)] text-white dark:border-white dark:bg-white dark:text-black"
+                      : "border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] hover:bg-[var(--zane-ai-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5",
                   )}
                   aria-label={item.label}
                   title={item.label}
@@ -171,7 +185,7 @@ export default function WorkspaceShell({
         </div>
       </div>
 
-      <div className="relative flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col bg-[var(--zayon-surface)] dark:bg-[#0A0A0A] lg:overflow-hidden">
+      <div className="relative flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col bg-[var(--zane-ai-surface)] dark:bg-[#0A0A0A] lg:overflow-hidden">
         <WorkspaceTopNavbar
           user={user}
           organization={organization}

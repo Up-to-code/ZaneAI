@@ -142,12 +142,6 @@ export function ZaneAiComposerDock({
   }, [setKeyboardHeight]);
 
   useEffect(() => {
-    if (!draftText.trim().length) {
-      setInputHeight(24);
-    }
-  }, [draftText]);
-
-  useEffect(() => {
     if (isStreaming) {
       Keyboard.dismiss();
       setComposerFocused(false);
@@ -189,15 +183,11 @@ export function ZaneAiComposerDock({
   };
 
   const handleVoicePress = () => {
-    if (disabled) {
-      return;
-    }
-
+    if (disabled) return;
     if (isRecording) {
       stop();
       return;
     }
-
     void start();
   };
 
@@ -351,14 +341,14 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     zIndex: 20,
     backgroundColor: "transparent",
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: 0, // Ultra-tight for visionary feel
+    paddingTop: 0,
     paddingBottom: Math.max(insets.bottom, theme.spacing.md),
   },
   keyboardOpen: {
     paddingBottom: 4,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.background,
   },
   promptsContainer: {
@@ -461,7 +451,6 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     paddingTop: theme.spacing.xs,
     paddingBottom: theme.spacing.xs,
     justifyContent: "center",
-    // Border instead of shadow for clean UI
     borderWidth: 1,
     borderColor: colors.divider,
   },
@@ -491,7 +480,6 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surface,
-    // Border instead of shadow for clean UI
     borderWidth: 1,
     borderColor: colors.divider,
   },
@@ -518,3 +506,6 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     transform: [{ scale: 0.96 }],
   },
 });
+
+
+

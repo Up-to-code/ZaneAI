@@ -1,8 +1,9 @@
 import { StyleSheet, View, Pressable, ScrollView, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { ArrowRight, Search, ChevronRight } from "lucide-react-native";
+import { ArrowLeft, Search, ChevronRight } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
@@ -25,12 +26,11 @@ export default function TheoriesScreen() {
   );
 
   return (
-    <Screen>
-      {/* Search Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+    <Screen safe={false}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
-          <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowRight size={20} color={colors.textPrimary} style={{ transform: [{ rotate: "180deg" }] }} />
+          <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={colors.textPrimary} />
           </Pressable>
           <Text variant="title" style={styles.headerTitle}>Archive</Text>
           <View style={{ width: 44 }} />
@@ -40,7 +40,7 @@ export default function TheoriesScreen() {
           <View style={styles.searchSurface}>
             <Search size={18} color={colors.textMuted} />
             <TextInput 
-              placeholder="Search spoke theories..."
+              placeholder="Search conversations..."
               placeholderTextColor={colors.textMuted}
               style={styles.searchInput}
               value={searchQuery}
@@ -51,38 +51,43 @@ export default function TheoriesScreen() {
       </View>
 
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[
+          styles.scrollContent, 
+          { paddingTop: insets.top + 120, paddingBottom: insets.bottom + 40 }
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.theoryGroup}>
-          {filteredTheories.map((thread: any, index: number) => (
-            <View key={thread._id}>
-              <Pressable
-                testID={`history.thread.${thread._id}`}
-                style={styles.theoryItem}
-                onPress={() => {
-                  setActiveThreadId(thread._id);
-                  router.replace("/(app)");
-                }}
-              >
-                <View style={styles.theoryMain}>
-                  <View style={styles.theoryContent}>
-                    <Text variant="body" style={styles.theoryTitle}>{thread.title ?? "Untitled search"}</Text>
-                    <Text variant="caption" style={styles.theoryPreview} numberOfLines={1}>
-                      {thread.summary ?? "Open this thread to continue the research."}
-                    </Text>
+          <View style={styles.groupCard}>
+            {filteredTheories.map((thread: any, index: number) => (
+              <View key={thread._id}>
+                <Pressable
+                  testID={`history.thread.${thread._id}`}
+                  style={styles.theoryItem}
+                  onPress={() => {
+                    setActiveThreadId(thread._id);
+                    router.replace("/(app)");
+                  }}
+                >
+                  <View style={styles.theoryMain}>
+                    <View style={styles.theoryContent}>
+                      <Text variant="body" style={styles.theoryTitle}>{thread.title ?? "Untitled search"}</Text>
+                      <Text variant="caption" style={styles.theoryPreview} numberOfLines={1}>
+                        {thread.summary ?? "Open this thread to continue the research."}
+                      </Text>
+                    </View>
+                    <View style={styles.theoryMeta}>
+                      <Text variant="caption" style={styles.theoryTime}>
+                        {new Date(thread._creationTime).toLocaleDateString()}
+                      </Text>
+                      <ChevronRight size={14} color={colors.textMuted} />
+                    </View>
                   </View>
-                  <View style={styles.theoryMeta}>
-                    <Text variant="caption" style={styles.theoryTime}>
-                      {new Date(thread._creationTime).toLocaleDateString()}
-                    </Text>
-                    <ChevronRight size={14} color={colors.textMuted} />
-                  </View>
-                </View>
-              </Pressable>
-              {index < filteredTheories.length - 1 && <View style={styles.divider} />}
-            </View>
-          ))}
+                </Pressable>
+                {index < filteredTheories.length - 1 && <View style={styles.divider} />}
+              </View>
+            ))}
+          </View>
           
           {filteredTheories.length === 0 && (
             <View style={styles.emptyState}>
@@ -101,45 +106,53 @@ export default function TheoriesScreen() {
 
 const createStyles = (colors: any) => StyleSheet.create({
   header: {
-    paddingHorizontal: theme.spacing.lg,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
     backgroundColor: `${colors.background}FA`,
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
-    zIndex: 100,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 12,
   },
   headerTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    height: 56,
+    height: 44,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "800",
     color: colors.textPrimary,
     letterSpacing: -0.6,
+    textAlign: "center",
+    flex: 1,
   },
   backBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(255,255,255,0.05)",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: "rgba(255,255,255,0.08)",
   },
   searchBlock: {
-    paddingVertical: 12,
+    paddingVertical: 4,
   },
   searchSurface: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.surface,
-    height: 48,
-    borderRadius: 12, // Apple-style tighter radius
-    paddingHorizontal: 16,
-    gap: 12,
+    height: 44,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    gap: 10,
     borderWidth: 1,
     borderColor: colors.divider,
   },
@@ -147,22 +160,24 @@ const createStyles = (colors: any) => StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: colors.textPrimary,
-    fontFamily: "Manrope_600SemiBold",
-    letterSpacing: -0.2,
+    fontWeight: "700",
   },
   scrollContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
+    paddingHorizontal: 16,
   },
   theoryGroup: {
+    marginTop: 20,
+  },
+  groupCard: {
     backgroundColor: colors.surface,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.xs,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.divider,
+    overflow: "hidden",
   },
   theoryItem: {
-    padding: theme.spacing.md,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
   },
   theoryMain: {
     flexDirection: "row",
@@ -175,8 +190,8 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 2,
   },
   theoryTitle: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "800",
     color: colors.textPrimary,
     letterSpacing: -0.4,
   },
@@ -186,17 +201,19 @@ const createStyles = (colors: any) => StyleSheet.create({
     opacity: 0.7,
   },
   theoryMeta: {
-    alignItems: "flex-end",
-    gap: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
   theoryTime: {
     fontSize: 11,
     color: colors.textMuted,
+    fontFamily: "SpaceMono_400Regular",
   },
   divider: {
-    height: StyleSheet.hairlineWidth,
+    height: 1,
     backgroundColor: colors.divider,
-    marginHorizontal: theme.spacing.md,
+    marginHorizontal: 16,
   },
   emptyState: {
     padding: 32,

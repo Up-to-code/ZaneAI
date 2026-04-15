@@ -295,7 +295,7 @@ export default function ProjectUnitsManager({ projectId }: { projectId: string }
               type="button"
               onClick={handleSave}
               disabled={saving || !form.label.trim()}
-              className="rounded-xl bg-[var(--zayon-deep)] px-5 py-2 text-[12px] font-bold text-white transition hover:opacity-90 disabled:opacity-50 dark:bg-white dark:text-black"
+              className="rounded-xl bg-[var(--zane-ai-deep)] px-5 py-2 text-[12px] font-bold text-white transition hover:opacity-90 disabled:opacity-50 dark:bg-white dark:text-black"
             >
               {saving ? "..." : dictionary.units.saveUnit}
             </button>

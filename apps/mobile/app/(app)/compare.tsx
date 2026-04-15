@@ -2,14 +2,14 @@ import { ScrollView, StyleSheet, View, Pressable, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Image } from "expo-image";
-import { Scale, Bookmark, MapPin, BedDouble, Bath, Ruler } from "lucide-react-native";
+import { Scale, Bookmark, MapPin, BedDouble, Bath, Ruler, ArrowLeft } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { ScreenHeader } from "@/shell/components/ScreenHeader";
 import { toggleE2ESavedProperty } from "@/e2e/store";
 import { track } from "@/persistence/analytics/track";
 import { api } from "@/persistence/convex/api";
@@ -24,11 +24,12 @@ export default function CompareScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isAuthenticated } = useAuthSession();
+  const { isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
 
   const comparePropertyIds = useAppStore((state) => state.comparePropertyIds);
   const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
+  const toggleGuestMirrorSavedProperty = useAppStore((state) => state.toggleGuestMirrorSavedProperty);
   const savedProperties = useSavedProperties();
   const toggleSavedProperty = useMutation(api.property.public.toggleSavedProperty.toggleSavedProperty);
   const compareProperties = usePropertiesByIds(comparePropertyIds);
@@ -38,23 +39,34 @@ export default function CompareScreen() {
   );
 
   return (
-    <Screen style={styles.screen}>
-      <ScreenHeader
-        eyebrow="ANALYSIS"
-        title="Compare Tray"
-        subtitle="Side-by-side breakdown of your top picks."
-        showCopy={true}
-      />
+    <Screen safe={false}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <View style={styles.headerTop}>
+          <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={colors.textPrimary} />
+          </Pressable>
+          <Text variant="title" style={styles.headerTitle}>Comparison</Text>
+          <View style={{ width: 44 }} />
+        </View>
+        <Text variant="caption" tone="muted" style={styles.subtitle}>
+          Side-by-side breakdown of your selected choices.
+        </Text>
+      </View>
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
+        contentContainerStyle={[
+          styles.content, 
+          { paddingTop: insets.top + 110, paddingBottom: insets.bottom + 40 }
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {compareProperties.length === 0 ? (
           <View style={styles.emptyState}>
-            <Scale size={40} color={colors.textMuted} strokeWidth={1.5} />
+            <View style={styles.emptyIconWrap}>
+              <Scale size={48} color={colors.accent} strokeWidth={1} />
+            </View>
             <Text variant="title" style={styles.emptyTitle}>Compare tray is empty</Text>
-            <Text tone="secondary" style={styles.emptySubtitle}>
+            <Text variant="body" tone="muted" style={styles.emptySubtitle}>
               Tap the scale icon on any property card to add it for side-by-side analysis.
             </Text>
           </View>
@@ -62,17 +74,13 @@ export default function CompareScreen() {
           <>
             {/* Comparison Details Card */}
             {compareProperties.length === 2 && (
-              <View style={styles.cardGroup}>
-                <View style={[styles.section, { paddingBottom: 8 }]}>
-                  <Text variant="caption" tone="muted" style={styles.sectionEyebrow}>CORE COMPARISON</Text>
-                </View>
+              <Animated.View entering={FadeInUp.springify()} style={styles.comparisonSheet}>
                 <View testID="compare.table" style={styles.compareTable}>
                   {[
                     { label: "Price", values: compareProperties.map((p: PropertyCardVM) => p.priceLabel) },
                     { label: "Location", values: compareProperties.map((p: PropertyCardVM) => p.locationLabel) },
                     { label: "Beds", values: compareProperties.map((p: PropertyCardVM) => `${p.beds}`) },
                     { label: "Area", values: compareProperties.map((p: PropertyCardVM) => `${p.area.toLocaleString()} sqft`) },
-                    { label: "Yield", values: compareProperties.map((p: PropertyCardVM) => getYieldLabel(p.id)) },
                   ].map(({ label, values }, index) => (
                     <View key={label} style={[styles.tableRow, index === 0 && { borderTopWidth: 0 }]}>
                       <Text variant="caption" tone="muted" style={styles.tableLabel}>{label}</Text>
@@ -82,7 +90,7 @@ export default function CompareScreen() {
                     </View>
                   ))}
                 </View>
-              </View>
+              </Animated.View>
             )}
 
             {/* Individual Property Cards */}
@@ -99,70 +107,46 @@ export default function CompareScreen() {
                     }}
                   >
                     <Image source={property.heroUrl} style={styles.cardImage} contentFit="cover" />
-                    <View style={[styles.matchBadge, { backgroundColor: colors.accent }]}>
-                      <Text variant="label" style={styles.matchText}>{property.matchScore}</Text>
-                    </View>
                     <View style={styles.cardBody}>
-                      <View style={styles.cardTop}>
-                        <View style={styles.cardInfo}>
-                          <Text variant="title" style={{ color: colors.textPrimary }}>{property.priceLabel}</Text>
-                          <Text tone="secondary">{property.title}</Text>
-                          <View style={styles.locationRow}>
-                            <MapPin size={12} color={colors.accent} />
-                            <Text variant="caption" tone="muted">{property.locationLabel}</Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      <View style={styles.meta}>
-                        <View style={styles.metaItem}>
-                          <BedDouble size={14} color={colors.textMuted} />
-                          <Text variant="caption" tone="secondary">{property.beds} bd</Text>
-                        </View>
-                        <View style={styles.metaItem}>
-                          <Bath size={14} color={colors.textMuted} />
-                          <Text variant="caption" tone="secondary">{property.baths} ba</Text>
-                        </View>
-                        <View style={styles.metaItem}>
-                          <Ruler size={14} color={colors.textMuted} />
-                          <Text variant="caption" tone="secondary">{property.area.toLocaleString()} sqft</Text>
+                      <View style={styles.cardInfo}>
+                        <Text variant="title" style={{ color: colors.textPrimary }}>{property.priceLabel}</Text>
+                        <Text tone="secondary" variant="body">{property.title}</Text>
+                        <View style={styles.locationRow}>
+                          <MapPin size={12} color={colors.accent} />
+                          <Text variant="caption" tone="muted">{property.locationLabel}</Text>
                         </View>
                       </View>
 
                       <View style={styles.cardActions}>
                         <Pressable
-                          testID={`compare.remove.${property.id}`}
-                          style={[styles.actionBtn, styles.actionBtnAccent]}
-                          onPress={() => {
-                            toggleCompareProperty(property.id);
-                            track("property_compare", { propertyId: property.id, compared: false });
-                          }}
+                          style={styles.actionBtn}
+                          onPress={() => toggleCompareProperty(property.id)}
                         >
-                          <Scale size={16} color={colors.accent} />
-                          <Text variant="caption" style={{ color: colors.accent }}>Remove</Text>
+                          <Scale size={16} color={colors.textMuted} />
+                          <Text variant="caption" tone="muted">Remove</Text>
                         </Pressable>
                         <Pressable
-                          testID={`compare.save.${property.id}.${isSaved ? "saved" : "idle"}`}
-                          style={[styles.actionBtn, isSaved && styles.actionBtnActive]}
+                          style={styles.actionBtn}
                           onPress={() => {
-                            if (!isAuthenticated && !e2eQaMode) {
-                              Alert.alert("Sign in required", "Create an account or sign in to save properties across devices.");
+                            if (!isAuthenticated && !isGuest && !e2eQaMode) {
+                              Alert.alert("Sign in required", "Sign in to save properties.");
                               return;
                             }
                             if (e2eQaMode) {
                               toggleE2ESavedProperty(property.id);
-                            } else {
+                            } else if (isAuthenticated) {
                               void toggleSavedProperty({ propertyExternalId: property.id });
+                            } else {
+                              toggleGuestMirrorSavedProperty(property.id);
                             }
-                            track("property_save", { propertyId: property.id, saved: !isSaved });
                           }}
                         >
                           <Bookmark
                             size={16}
-                            color={isSaved ? colors.accent : colors.textSecondary}
+                            color={isSaved ? colors.accent : colors.textMuted}
                             fill={isSaved ? colors.accent : "transparent"}
                           />
-                          <Text variant="caption" tone="secondary">
+                          <Text variant="caption" tone={isSaved ? "accent" : "muted"}>
                             {isSaved ? "Saved" : "Save"}
                           </Text>
                         </Pressable>
@@ -179,135 +163,126 @@ export default function CompareScreen() {
   );
 }
 
-function getYieldLabel(propertyId: string) {
-  if (propertyId === "prop-dubai-marina-01") {
-    return "6.2%";
-  }
-
-  if (propertyId === "prop-business-bay-02") {
-    return "5.7%";
-  }
-
-  if (propertyId === "prop-palm-03") {
-    return "4.9%";
-  }
-
-  return "5.0%";
-}
-
 const createStyles = (colors: any) => StyleSheet.create({
-  screen: {
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    backgroundColor: `${colors.background}FA`,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 44,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.textPrimary,
+    letterSpacing: -0.6,
+    textAlign: "center",
     flex: 1,
-    paddingVertical: 0,
-    backgroundColor: colors.backgroundSoft,
+  },
+  backBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  subtitle: {
+    textAlign: "center",
+    fontSize: 13,
   },
   content: {
-    paddingTop: theme.spacing.md,
-    gap: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: 16,
+    gap: 24,
   },
   emptyState: {
-    marginTop: theme.spacing.xxxl * 1.5,
+    marginTop: 80,
     alignItems: "center",
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.xl,
+    gap: 16,
   },
-  emptyTitle: { textAlign: "center", color: colors.textPrimary },
-  emptySubtitle: { textAlign: "center", lineHeight: 22, color: colors.textSecondary },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.accent + "10",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  emptyTitle: { textAlign: "center" },
+  emptySubtitle: { textAlign: "center", lineHeight: 22, maxWidth: 260 },
 
-  cardGroup: {
+  comparisonSheet: {
     backgroundColor: colors.surface,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.md,
+    borderRadius: 24,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    overflow: "hidden",
   },
-  section: {
-    paddingHorizontal: theme.spacing.lg,
-  },
-  sectionEyebrow: {
-    letterSpacing: 1.4,
-    color: colors.accent,
-  },
-
-  // Table
   compareTable: {
-    marginTop: theme.spacing.sm,
   },
   tableRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
   },
   tableLabel: {
     width: 80,
-    letterSpacing: 0.5,
+    fontSize: 11,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
   },
   tableValue: {
     flex: 1,
-    textAlign: "center",
-    color: colors.textPrimary,
+    textAlign: "right",
+    fontWeight: "800",
+    fontSize: 14,
   },
-
   propertyList: {
-    gap: theme.spacing.lg,
+    gap: 20,
   },
-
-  // Card
   card: {
-    borderRadius: theme.radii.lg,
+    borderRadius: 24,
     backgroundColor: colors.surface,
     overflow: "hidden",
-    position: "relative",
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   cardImage: {
     width: "100%",
-    height: 160,
+    height: 180,
   },
-  matchBadge: {
-    position: "absolute",
-    top: 136,
-    right: theme.spacing.lg,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  matchText: { color: colors.background, fontFamily: theme.typography.label.fontFamily },
   cardBody: {
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
+    padding: 16,
+    gap: 12,
   },
-  cardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  cardInfo: { flex: 1, gap: theme.spacing.xs },
+  cardInfo: { flex: 1, gap: 4 },
   locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-  },
-  meta: { flexDirection: "row", gap: theme.spacing.lg },
-  metaItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
   },
   cardActions: {
     flexDirection: "row",
-    gap: theme.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    paddingTop: theme.spacing.md,
+    gap: 12,
+    marginTop: 8,
   },
   actionBtn: {
     flex: 1,
@@ -315,16 +290,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radii.md,
-    backgroundColor: colors.surfaceRaised,
-  },
-  actionBtnAccent: {
-    backgroundColor: `${colors.accent}11`,
-  },
-  actionBtnActive: {
-    backgroundColor: `${colors.accent}11`,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: `${colors.accent}33`,
+    borderColor: colors.divider,
   },
 });

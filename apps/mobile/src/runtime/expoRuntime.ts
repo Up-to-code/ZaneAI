@@ -7,14 +7,35 @@ type ExpoExtra = {
   authUrl?: string;
 };
 
+function normalizeUrlEnvValue(value: string | undefined) {
+  if (!value) {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  if (/^=+https?:\/\//.test(trimmed)) {
+    return trimmed.replace(/^=+/, "");
+  }
+
+  return trimmed;
+}
+
 function getExpoExtra() {
   return (Constants.expoConfig?.extra ?? {}) as ExpoExtra;
 }
 
 export function getConvexUrl() {
-  return process.env.EXPO_PUBLIC_CONVEX_URL ?? getExpoExtra().convexUrl ?? "";
+  return (
+    normalizeUrlEnvValue(process.env.EXPO_PUBLIC_CONVEX_URL) ??
+    normalizeUrlEnvValue(getExpoExtra().convexUrl) ??
+    ""
+  );
 }
 
 export function getAuthUrl() {
-  return process.env.EXPO_PUBLIC_AUTH_URL ?? getExpoExtra().authUrl ?? getConvexUrl();
+  return (
+    normalizeUrlEnvValue(process.env.EXPO_PUBLIC_AUTH_URL) ??
+    normalizeUrlEnvValue(getExpoExtra().authUrl) ??
+    getConvexUrl()
+  );
 }

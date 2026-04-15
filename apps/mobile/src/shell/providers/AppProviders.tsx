@@ -1,4 +1,5 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -8,6 +9,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { ThemeProvider, useTheme } from "@/foundation/theme/ThemeProvider";
 import { SessionTracker } from "@/persistence/analytics/SessionTracker";
+import { useAppStore } from "@/store";
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [fontsLoaded] = useFonts({
@@ -17,7 +19,11 @@ export function AppProviders({ children }: PropsWithChildren) {
   });
 
   if (!fontsLoaded) {
-    return null;
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#f7f7f5" }}>
+        <ActivityIndicator size="small" color="#111111" />
+      </View>
+    );
   }
 
   return (
@@ -29,6 +35,14 @@ export function AppProviders({ children }: PropsWithChildren) {
 
 function ThemedAppChrome({ children }: PropsWithChildren) {
   const { resolvedColorScheme, colors } = useTheme();
+  const hydrationComplete = useAppStore((state) => state.hydrationComplete);
+  const setHydrationComplete = useAppStore((state) => state.setHydrationComplete);
+
+  useEffect(() => {
+    if (!hydrationComplete) {
+      setHydrationComplete(true);
+    }
+  }, [hydrationComplete, setHydrationComplete]);
 
   return (
     <SafeAreaProvider>

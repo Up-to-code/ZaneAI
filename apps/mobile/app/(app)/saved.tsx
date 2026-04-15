@@ -1,9 +1,8 @@
-import { ScrollView, StyleSheet, View, Pressable } from "react-native";
+import { ScrollView, StyleSheet, View, Pressable, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { PropertyCard } from "@/decision/components/PropertyCard";
-import { Bookmark, Search, ListFilter, ArrowRight } from "lucide-react-native";
-import { TextInput } from "react-native";
+import { Bookmark, Search, ArrowLeft } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
@@ -12,89 +11,80 @@ import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useSavedProperties } from "@/persistence/convex/usePropertyData";
+import { useAuthSession } from "@/auth/useAuthSession";
 import type { PropertyCardVM } from "@/types/domain";
 
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { user } = useAuthSession();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [searchQuery, setSearchQuery] = useState("");
+  
   const savedProperties = useSavedProperties()
     .map((item: { property: PropertyCardVM | null }) => item.property)
     .filter((property: PropertyCardVM | null): property is PropertyCardVM => property !== null);
+
   const filteredProperties = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) {
-      return savedProperties;
-    }
+    if (!query) return savedProperties;
     return savedProperties.filter((property: PropertyCardVM) =>
       `${property.title} ${property.locationLabel}`.toLowerCase().includes(query),
     );
   }, [savedProperties, searchQuery]);
 
   return (
-    <Screen style={styles.screen}>
-      {/* Unified Sticky Header (Identity + Search) */}
-      <View style={[styles.crystalHeader, { paddingTop: insets.top + 8 }]}>
-        <View style={styles.headerContentOuter}>
-          <View style={styles.identityRow}>
-            <View style={styles.identityBlock}>
-              <View style={styles.avatarMini}>
-                <Text style={styles.avatarLetter}>A</Text>
-              </View>
-              <Text variant="body" style={styles.identityName}>Ahmed Mansour</Text>
-            </View>
-            <Pressable accessibilityLabel="Go back" style={styles.headerBtn} onPress={() => router.back()}>
-              <ArrowRight size={20} color={colors.textPrimary} style={{ transform: [{ rotate: "180deg" }] }} />
-            </Pressable>
-          </View>
+    <Screen safe={false}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <View style={styles.headerTop}>
+          <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={colors.textPrimary} />
+          </Pressable>
+          <Text variant="title" style={styles.headerTitle}>Favorites</Text>
+          <View style={{ width: 44 }} />
+        </View>
 
-          {/* Integrated Search Hub - Now part of Sticky Portal */}
-          <View style={styles.archiveHeader}>
-            <View style={styles.searchSurface}>
-              <Search size={18} color={colors.textMuted} />
-              <TextInput 
-                placeholder="Search saved properties..."
-                placeholderTextColor={colors.textMuted}
-                style={styles.searchInput}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-            <Pressable style={styles.filterBtn}>
-              <ListFilter size={20} color={colors.textPrimary} />
-            </Pressable>
+        <View style={styles.search}>
+          <View style={styles.searchInner}>
+            <Search size={18} color={colors.textMuted} />
+            <TextInput 
+              placeholder="Search collection..."
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[
+          styles.scrollContent, 
+          { paddingTop: insets.top + 120, paddingBottom: insets.bottom + 40 }
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.sectionHead}>
-          <Text variant="caption" style={styles.sectionEyebrow}>CRAB EMOTIONS</Text>
-        </View>
-
         {filteredProperties.length === 0 ? (
-          <View style={[styles.emptyState, { marginTop: insets.top + 100 }]}>
-            <Animated.View entering={FadeInDown.springify()} style={styles.emptyIcon}>
-              <Bookmark size={48} color={colors.accent} strokeWidth={1.5} />
-            </Animated.View>
-            <Text variant="title">No favorites yet</Text>
-            <Text tone="muted" style={{ textAlign: "center", paddingHorizontal: 40 }}>
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconWrap}>
+              <Bookmark size={48} color={colors.accent} strokeWidth={1} />
+            </View>
+            <Text variant="title" style={styles.emptyTitle}>No Favorites Yet</Text>
+            <Text variant="body" tone="muted" style={styles.emptySub}>
               Properties you bookmark will materialize here as a curated collection.
             </Text>
           </View>
         ) : (
-          <View testID="saved.list" style={styles.heroList}>
+          <View style={styles.list}>
             {filteredProperties.map((p: PropertyCardVM, i: number) => (
               <Animated.View 
                 key={p.id}
                 entering={FadeInDown.delay(i * 100).springify()}
+                style={styles.cardItem}
               >
-                <PropertyCard property={p} style={{ marginHorizontal: 0 }} />
+                <PropertyCard property={p} />
               </Animated.View>
             ))}
           </View>
@@ -105,132 +95,96 @@ export default function SavedScreen() {
 }
 
 const createStyles = (colors: any) => StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  crystalHeader: {
+  header: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     zIndex: 100,
-    backgroundColor: `${colors.background}FA`, // 98% opacity for a crystal clear vision
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: `${colors.background}FA`,
+    borderBottomWidth: 1,
     borderBottomColor: colors.divider,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
-  headerContentOuter: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: 16,
-    gap: 16,
-  },
-  identityRow: {
+  headerTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    height: 56,
+    height: 44,
   },
-  identityBlock: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flex: 1,
-  },
-  avatarMini: {
-    width: 36, // Slight expansion for status
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.accent,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.05)", // Ghostly ring
-  },
-  avatarLetter: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  identityName: {
-    fontSize: 17,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "800",
     color: colors.textPrimary,
     letterSpacing: -0.6,
+    textAlign: "center",
+    flex: 1,
   },
-  headerBtn: {
+  backBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.surface,
+    backgroundColor: "rgba(255,255,255,0.05)",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: "rgba(255,255,255,0.08)",
   },
-  scrollContent: {
-    paddingTop: 160, // Accommodate larger sticky header
-    paddingHorizontal: theme.spacing.lg,
+  search: {
+    marginTop: 4,
   },
-  archiveHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    height: 48,
-  },
-  searchSurface: {
-    flex: 1,
+  searchInner: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.surface,
-    height: "100%", // Match parent
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    gap: 12,
+    height: 44,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    gap: 10,
     borderWidth: 1,
     borderColor: colors.divider,
   },
-  searchInput: {
+  input: {
     flex: 1,
     fontSize: 15,
     color: colors.textPrimary,
-    fontFamily: "Manrope_600SemiBold",
-    letterSpacing: -0.2,
+    fontWeight: "700",
   },
-  filterBtn: {
-    width: 48,
-    height: "100%", // Perfect symmetry
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.divider,
+  scrollContent: {
+    paddingHorizontal: 16,
   },
-  sectionHead: {
-    marginBottom: 16, // Refined gap
+  list: {
+    gap: 24,
+    marginTop: 20,
   },
-  sectionEyebrow: {
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 3.2, // Elite spectral tracking
-    fontSize: 9, // Slightly smaller, more sophisticated
-    paddingHorizontal: 6,
-    opacity: 0.6,
-  },
-  heroList: {
-    paddingVertical: theme.spacing.md,
+  cardItem: {
+    width: "100%",
   },
   emptyState: {
+    flex: 1,
     alignItems: "center",
-    gap: 16,
-    paddingTop: 60,
+    justifyContent: "center",
+    paddingTop: 80,
+    gap: 12,
   },
-  emptyIcon: {
+  emptyIconWrap: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: `${colors.accent}15`,
+    backgroundColor: colors.accent + "10",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 8,
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  emptySub: {
+    textAlign: "center",
+    maxWidth: 260,
+    lineHeight: 22,
   },
 });

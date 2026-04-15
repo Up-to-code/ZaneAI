@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { useMemo } from "react";
+import { AlertCircle, AlertTriangle, Info, X } from "lucide-react-native";
 
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
@@ -25,6 +26,22 @@ export function ConversationStatusBanner({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const Icon = useMemo(() => {
+    switch (tone) {
+      case "error": return AlertCircle;
+      case "warning": return AlertTriangle;
+      default: return Info;
+    }
+  }, [tone]);
+
+  const iconColor = useMemo(() => {
+    switch (tone) {
+      case "error": return "#EF4444";
+      case "warning": return colors.accent;
+      default: return colors.textSecondary;
+    }
+  }, [tone, colors]);
+
   return (
     <View
       style={[
@@ -33,21 +50,32 @@ export function ConversationStatusBanner({
         tone === "error" ? styles.error : null,
       ]}
     >
-      <View style={styles.copy}>
-        <Text variant="label" style={styles.title}>{title}</Text>
-        <Text tone="secondary" style={styles.body}>{body}</Text>
+      <View style={styles.headerRow}>
+        <View style={styles.titleWrap}>
+          <Icon size={14} color={iconColor} strokeWidth={2.5} />
+          <Text variant="label" style={styles.title}>{title}</Text>
+        </View>
+        {onDismiss ? (
+          <Pressable style={styles.dismissBtn} onPress={onDismiss}>
+            <X size={14} color={colors.textMuted} />
+          </Pressable>
+        ) : null}
       </View>
 
-      {actionLabel && onAction ? (
-        <Pressable style={styles.action} onPress={onAction}>
-          <Text variant="caption" style={styles.actionText}>{actionLabel}</Text>
-        </Pressable>
-      ) : null}
+      <Text tone="secondary" style={styles.body}>{body}</Text>
 
-      {onDismiss ? (
-        <Pressable style={styles.dismiss} onPress={onDismiss}>
-          <Text variant="caption" tone="secondary">Dismiss</Text>
-        </Pressable>
+      {actionLabel && onAction ? (
+        <View style={styles.actionRow}>
+          <Pressable 
+            style={({ pressed }) => [
+              styles.action,
+              pressed ? styles.actionPressed : null
+            ]} 
+            onPress={onAction}
+          >
+            <Text variant="caption" style={styles.actionText}>{actionLabel}</Text>
+          </Pressable>
+        </View>
       ) : null}
     </View>
   );
@@ -56,43 +84,74 @@ export function ConversationStatusBanner({
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
     marginHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
     padding: theme.spacing.md,
     borderRadius: theme.radii.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    gap: theme.spacing.sm,
+    backgroundColor: `${colors.surface}F2`, // Slightly more opaque translucent
+    gap: theme.spacing.xs,
+    // Soft, airy shadow for definition without borders
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
   warning: {
-    borderColor: colors.accent,
+    backgroundColor: `${colors.accent}12`,
   },
   error: {
-    borderColor: "#EF4444",
+    backgroundColor: "#EF444412",
   },
-  copy: {
-    gap: theme.spacing.xs,
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  titleWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   title: {
     color: colors.textPrimary,
+    fontFamily: "Manrope_700Bold",
+    fontSize: 12,
+    letterSpacing: 0.2,
   },
   body: {
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textSecondary,
+  },
+  actionRow: {
+    marginTop: theme.spacing.xs,
   },
   action: {
     alignSelf: "flex-start",
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: 6,
     borderRadius: theme.radii.pill,
     backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.divider,
+    // Subtle lift instead of border
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   actionText: {
     color: colors.textPrimary,
+    fontFamily: "Manrope_700Bold",
+    fontSize: 11,
   },
-  dismiss: {
-    alignSelf: "flex-start",
+  actionPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+  dismissBtn: {
+    padding: 4,
   },
 });
+
+

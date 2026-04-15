@@ -13,6 +13,7 @@
         "./src/*"
       ],
       "@convex/*": [
+        "./src/persistence/convex/*",
         "../../convex/*"
       ],
       "@zayon/assistant-protocol": [

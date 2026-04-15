@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useTransition, useMemo, useRef } from "react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { 
   Building, Home, Layers, Layout, Building2, Store, Palmtree, 
   Bed, Bath, Move, ChevronUp, Car, Sparkles, Receipt, Calendar, 
@@ -9,8 +9,9 @@ import {
   Video, Paperclip, AlertCircle, Info, Trash2, Plus, 
   CreditCard, Wind, DoorClosed, 
   Utensils, Wifi, Mic2, ArrowUpDown, ShieldCheck, Sun, Image, 
-  X, Maximize2
+  X, Maximize2, Dumbbell, type LucideIcon
 } from "lucide-react";
+import type { UnitType, ListingType } from "@/app/(ws)/ws/_lib/entities";
 import ZonePageIntro from "../../ZoneShell/ZonePageIntro";
 import { AgPropertyFormHeaderActions } from "../AgPropertyFormHeaderActions";
 import { TextInput, TextArea, FieldLabel } from "../AgPropertyForm/controls";
@@ -23,8 +24,8 @@ export type UnitPropertyFormData = {
   /* Step 1: Identity */
   name: string;
   location: string;
-  unitType: "apartment" | "villa" | "duplex" | "studio" | "penthouse" | "townhouse" | "chalet" | "commercial";
-  listingType: "sale" | "rent";
+  unitType: UnitType;
+  listingType: ListingType;
   /* Step 2: Specs */
   rooms: string;
   baths: string;
@@ -45,7 +46,7 @@ export type UnitPropertyFormData = {
   images: { id: string; url: string; file?: File; isCover?: boolean }[];
   videoUrl: string;
   /* Step 6: Documents */
-  documents: { id: string; name: string; type: string; fileKey?: string }[];
+  documents: { id: string; name: string; type: string; file?: File; fileKey?: string }[];
   /* Step 7: Legal & Review */
   description: string;
   adLicenseNumber: string;
@@ -66,7 +67,7 @@ export type AgUnitFormProps = {
    CONSTANTS
    ═══════════════════════════════════════════════════════════ */
 
-const UNIT_TYPES = [
+const UNIT_TYPES: { value: UnitType; label: string; icon: LucideIcon }[] = [
   { value: "apartment", label: "شقة", icon: Building },
   { value: "villa", label: "فيلا", icon: Home },
   { value: "duplex", label: "دوبلكس", icon: Layers },
@@ -75,7 +76,7 @@ const UNIT_TYPES = [
   { value: "townhouse", label: "تاون هاوس", icon: Home },
   { value: "chalet", label: "شاليه", icon: Palmtree },
   { value: "commercial", label: "تجاري", icon: Store },
-] as const;
+];
 
 const LISTING_TYPES = [
   { value: "sale", label: "للبيع" },
@@ -121,6 +122,7 @@ const SHARED_AMENITIES = [
   { label: "كاميرات مراقبة", icon: Camera },
   { label: "باب مصفح", icon: ShieldCheck },
   { label: "طاقة شمسية", icon: Sun },
+  { label: "نادي رياضي / جيم", icon: Dumbbell },
 ];
 
 const VILLA_AMENITIES = [
@@ -150,13 +152,13 @@ const TOTAL_STEPS = 7;
    ANIMATIONS
    ═══════════════════════════════════════════════════════════ */
 
-const stepVariants = {
+const stepVariants: Variants = {
   enter: (dir: number) => ({ x: dir > 0 ? 80 : -80, opacity: 0, scale: 0.96, filter: "blur(6px)" }),
   center: { x: 0, opacity: 1, scale: 1, filter: "blur(0px)" },
   exit: (dir: number) => ({ x: dir > 0 ? -80 : 80, opacity: 0, scale: 0.96, filter: "blur(6px)" }),
 };
-const staggerContainer = { center: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } } };
-const staggerItem = {
+const staggerContainer: Variants = { center: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } } };
+const staggerItem: Variants = {
   enter: { opacity: 0, y: 20, filter: "blur(4px)" },
   center: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
 };
@@ -185,16 +187,16 @@ export default function AgUnitCreateForm({
     location: initialData?.location ?? "",
     unitType: initialData?.unitType ?? "apartment",
     listingType: initialData?.listingType ?? "sale",
-    rooms: initialData?.rooms ?? "",
-    baths: initialData?.baths ?? "",
+    rooms: initialData?.rooms?.toString() ?? "",
+    baths: initialData?.baths?.toString() ?? "",
     area: initialData?.area ?? "",
     floor: initialData?.floor ?? "",
-    parking: initialData?.parking ?? "",
+    parking: initialData?.parking?.toString() ?? "",
     finishingLevel: initialData?.finishingLevel ?? "fully_finished",
     price: initialData?.price ?? "",
     paymentMethod: initialData?.paymentMethod ?? "cash",
     downPayment: initialData?.downPayment ?? "",
-    installmentYears: initialData?.installmentYears ?? "",
+    installmentYears: initialData?.installmentYears?.toString() ?? "",
     deliveryDate: initialData?.deliveryDate ?? "",
     unitAmenities: initialData?.unitAmenities ?? [],
     nearbyPlaces: initialData?.nearbyPlaces ?? [],
@@ -205,6 +207,9 @@ export default function AgUnitCreateForm({
     adLicenseNumber: initialData?.adLicenseNumber ?? "",
     registrationStatus: initialData?.registrationStatus ?? "not_registered",
   });
+
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   /* Dynamic amenities base */
   const availableAmenities = useMemo(() => {
@@ -264,6 +269,34 @@ export default function AgUnitCreateForm({
 
   const removeImage = (id: string) => setFormData({ ...formData, images: formData.images.filter(img => img.id !== id) });
   const removeDoc = (id: string) => setFormData({ ...formData, documents: formData.documents.filter(doc => doc.id !== id) });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const newImages = Array.from(files).map(file => ({
+      id: Math.random().toString(36).substring(7),
+      url: URL.createObjectURL(file),
+      file,
+      isCover: formData.images.length === 0
+    }));
+    
+    setFormData({ ...formData, images: [...formData.images, ...newImages] });
+  };
+
+  const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const newDocs = Array.from(files).map(file => ({
+      id: Math.random().toString(36).substring(7),
+      name: file.name,
+      type: file.type,
+      file
+    }));
+    
+    setFormData({ ...formData, documents: [...formData.documents, ...newDocs] });
+  };
 
   /* ═══════════════ RENDER ═══════════════ */
 
@@ -538,8 +571,17 @@ export default function AgUnitCreateForm({
                       type="button"
                       whileHover={{ scale: 1.02 }} 
                       whileTap={{ scale: 0.98 }} 
+                      onClick={() => imageInputRef.current?.click()}
                       className="group flex h-36 flex-col items-center justify-center gap-3 rounded-[32px] border-2 border-dashed border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] text-[var(--workspace-muted)] hover:border-[var(--workspace-highlight)] hover:text-foreground transition-all"
                     >
+                      <input 
+                        type="file" 
+                        ref={imageInputRef} 
+                        onChange={handleImageUpload} 
+                        multiple 
+                        accept="image/*" 
+                        className="hidden" 
+                      />
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background shadow-sm transition-transform group-hover:scale-110">
                         <Plus size={24} />
                       </div>
@@ -621,7 +663,20 @@ export default function AgUnitCreateForm({
                 </motion.div>
 
                 <motion.div variants={staggerItem} className="space-y-4">
-                  <motion.button type="button" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="flex w-full items-center justify-center gap-4 rounded-[32px] border-2 border-dashed border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-12 text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground transition-all">
+                  <motion.button 
+                    type="button" 
+                    whileHover={{ scale: 1.01 }} 
+                    whileTap={{ scale: 0.99 }} 
+                    onClick={() => docInputRef.current?.click()}
+                    className="flex w-full items-center justify-center gap-4 rounded-[32px] border-2 border-dashed border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-12 text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground transition-all"
+                  >
+                    <input 
+                      type="file" 
+                      ref={docInputRef} 
+                      onChange={handleDocUpload} 
+                      multiple 
+                      className="hidden" 
+                    />
                     <Paperclip size={28} />
                     <span className="text-[15px] font-black tracking-tight">اضغط هنا لإرفاق الملفات (PDF, JPG, PNG)</span>
                   </motion.button>

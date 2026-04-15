@@ -8,12 +8,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "zayon-dark": "#000000",
-        "zayon-soft-dark": "#0A0A0A",
-        "zayon-red": "#FF3D00",
-        "zayon-card": "#121212",
-        "zayon-secondary": "#A3A3A3",
-        "zayon-muted": "#737373",
+        "zane-ai-dark": "#000000",
+        "zane-ai-soft-dark": "#0A0A0A",
+        "zane-ai-red": "#FF3D00",
+        "zane-ai-card": "#121212",
+        "zane-ai-secondary": "#A3A3A3",
+        "zane-ai-muted": "#737373",
       },
       borderColor: {
         divider: "rgba(255,255,255,0.06)",

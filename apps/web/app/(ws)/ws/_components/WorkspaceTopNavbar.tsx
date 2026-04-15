@@ -16,12 +16,12 @@ import { matchesWorkspacePath, type WorkspaceShellVariant } from "../_lib/worksp
 
 
 const HEADER_ACTION_BASE_CLASS_NAME =
-  "inline-flex h-9 w-9 lg:h-10 lg:w-10 shrink-0 items-center justify-center rounded-full border border-[var(--zayon-line)] bg-transparent text-[var(--zayon-deep)] transition-all hover:text-[var(--zayon-accent)] focus-visible:outline-none dark:border-white/10 dark:text-white dark:hover:text-[var(--zayon-accent)] active:scale-[0.98]";
+  "inline-flex h-9 w-9 lg:h-10 lg:w-10 shrink-0 items-center justify-center rounded-full border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition-all hover:text-[var(--zane-ai-accent)] focus-visible:outline-none dark:border-white/10 dark:text-white dark:hover:text-[var(--zane-ai-accent)] active:scale-[0.98]";
 
 const HEADER_ICON_ACTION_CLASS_NAME = HEADER_ACTION_BASE_CLASS_NAME;
 
 const DEFAULT_HEADER_CLASS_NAME =
-  "h-16 lg:h-20 border-[var(--zayon-line)] bg-[var(--zayon-background)] px-4 lg:px-6 dark:border-white/10 dark:bg-black";
+  "h-16 lg:h-20 border-[var(--zane-ai-line)] bg-[var(--zane-ai-background)] px-4 lg:px-6 dark:border-white/10 dark:bg-black";
 
 export default function WorkspaceTopNavbar({
   user,
@@ -66,11 +66,11 @@ export default function WorkspaceTopNavbar({
         {mobileNavigation ? <div className="lg:hidden">{mobileNavigation}</div> : null}
         {isAssistantVariant ? (
           <div className={cn("flex min-w-0 items-center gap-2 lg:gap-3", isRtl ? "flex-row-reverse" : "flex-row")}>
-            <h1 className="truncate text-xs lg:text-sm font-black uppercase tracking-widest text-[var(--zayon-deep)] dark:text-white">{resolvedTitle}</h1>
-            <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--zayon-line)] dark:bg-white/20" aria-hidden="true" />
+            <h1 className="truncate text-xs lg:text-sm font-black uppercase tracking-widest text-[var(--zane-ai-deep)] dark:text-white">{resolvedTitle}</h1>
+            <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--zane-ai-line)] dark:bg-white/20" aria-hidden="true" />
             <p
               className={cn(
-                "hidden max-w-[18rem] truncate text-[9px] lg:text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zayon-text-muted)] sm:block dark:text-white/40",
+                "hidden max-w-[20rem] truncate text-[11px] lg:text-[12px] font-black uppercase tracking-[0.24em] text-[var(--zane-ai-text-muted)] sm:block dark:text-white/40",
                 isRtl ? "text-right" : "text-left",
               )}
               title={organization.name}
@@ -79,15 +79,15 @@ export default function WorkspaceTopNavbar({
             </p>
           </div>
         ) : (
-          <h1 className="truncate text-sm font-black uppercase tracking-[0.15em] text-[var(--zayon-deep)] dark:text-white lg:text-base">{resolvedTitle}</h1>
+          <h1 className="truncate text-sm font-black uppercase tracking-[0.15em] text-[var(--zane-ai-deep)] dark:text-white lg:text-base">{resolvedTitle}</h1>
         )}
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
-        <WebLocaleSwitcher className="h-9 w-9 lg:h-10 lg:w-10 border border-[var(--zayon-line)] bg-transparent text-[var(--zayon-deep)] transition hover:text-[var(--zayon-accent)] dark:border-white/10 dark:text-white dark:hover:text-[var(--zayon-accent)]" />
-        <ThemeToggle className="h-9 w-9 lg:h-10 lg:w-10 border border-[var(--zayon-line)] bg-transparent text-[var(--zayon-deep)] transition hover:text-[var(--zayon-accent)] dark:border-white/10 dark:text-white dark:hover:text-[var(--zayon-accent)]" />
+        <WebLocaleSwitcher className="h-9 w-9 lg:h-10 lg:w-10 border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition hover:text-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:hover:text-[var(--zane-ai-accent)]" />
+        <ThemeToggle className="h-9 w-9 lg:h-10 lg:w-10 border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition hover:text-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:hover:text-[var(--zane-ai-accent)]" />
         
-        <div className="mx-0.5 lg:mx-1 h-5 lg:h-6 w-px bg-[var(--zayon-line)] dark:bg-white/10" aria-hidden="true" />
+        <div className="mx-0.5 lg:mx-1 h-5 lg:h-6 w-px bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
         
         <div className="flex items-center gap-1.5 lg:gap-2">
           <SignalButton
@@ -109,17 +109,17 @@ export default function WorkspaceTopNavbar({
           ) : null}
         </div>
         
-        <div className="mx-1 h-6 w-px bg-[var(--zayon-line)] dark:bg-white/10" aria-hidden="true" />
+        <div className="mx-1 h-6 w-px bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
         
         {verificationBadgeLabel ? (
           <Link
             href={verificationHref}
             data-slot="workspace-compliance-badge"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--zayon-line)] bg-transparent px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-[var(--zayon-deep)] transition-all hover:bg-[var(--zayon-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--zane-ai-line)] bg-transparent px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-deep)] transition-all hover:bg-[var(--zane-ai-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5"
             title={complianceBanner?.title}
             aria-label={verificationBadgeLabel}
           >
-            <AlertTriangle className="h-3 w-3 text-[var(--zayon-accent)]" />
+            <AlertTriangle className="h-3 w-3 text-[var(--zane-ai-accent)]" />
             <span className="hidden sm:inline">{verificationBadgeLabel}</span>
           </Link>
         ) : null}
@@ -156,15 +156,15 @@ function SignalButton({
         HEADER_ICON_ACTION_CLASS_NAME,
         "relative",
         isActive
-          ? "bg-[var(--zayon-deep)] text-white dark:bg-white dark:text-black"
-          : "text-[var(--zayon-deep)] dark:text-white",
+          ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black"
+          : "text-[var(--zane-ai-deep)] dark:text-white",
       )}
       aria-label={`${label}: ${count}`}
       title={label}
     >
       {icon}
       {count > 0 ? (
-        <span className="absolute end-0 top-0 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-[var(--zayon-accent)] ring-2 ring-[var(--zayon-background)] dark:ring-black" />
+        <span className="absolute end-0 top-0 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-[var(--zane-ai-accent)] ring-2 ring-[var(--zane-ai-background)] dark:ring-black" />
       ) : null}
     </Link>
   );

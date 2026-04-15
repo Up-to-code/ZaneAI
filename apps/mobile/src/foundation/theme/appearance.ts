@@ -4,7 +4,7 @@ import type { AppearanceMode } from "@/store/slices/preferenceSlice";
 
 export function resolveAppearanceMode(
   appearanceMode: AppearanceMode,
-  systemColorScheme: ColorSchemeName,
+  systemColorScheme: ColorSchemeName | null | undefined,
 ): "light" | "dark" {
   if (appearanceMode === "light" || appearanceMode === "dark") {
     return appearanceMode;

@@ -1,7 +1,9 @@
-import { Alert, StyleSheet, View, Pressable } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Redirect, useRouter } from "expo-router";
-import Animated, { FadeInUp, FadeInDown } from "react-native-reanimated";
-import { Mail } from "lucide-react-native";
+import { useEffect, useMemo, useState } from "react";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+
+import { ArrowRight, Mail, X } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 
@@ -14,69 +16,16 @@ import { authClient, signInAnonymously } from "@/auth/authClient";
 import { getOAuthCallbackUrl } from "@/auth/AuthProvider";
 import { AppleIcon, GoogleIcon } from "@/foundation/components/BrandIcons";
 import { TypewriterText } from "@/foundation/components/TypewriterText";
+import { useAppStore } from "@/store";
+import { LogoMark } from "@/foundation/icons/LogoMark";
 
 export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { canAccessApp, canUpgrade, isReady } = useAuthSession();
-  
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    topSection: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: theme.spacing.xxl,
-      backgroundColor: colors.background,
-    },
-    identityWrap: {
-      alignItems: "center",
-      gap: theme.spacing.lg,
-      marginTop: -theme.spacing.xxl,
-    },
-    brandTitle: {
-      fontSize: 52,
-      fontWeight: "900",
-      color: colors.textPrimary,
-      letterSpacing: 6,
-      paddingVertical: 10,
-      lineHeight: 60,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      textAlign: "center",
-      marginTop: 8,
-    },
-    bottomSection: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 52,
-      borderTopRightRadius: 52,
-      paddingTop: theme.spacing.xxxl,
-      paddingHorizontal: theme.spacing.xl,
-      borderTopWidth: 1,
-      borderColor: colors.divider,
-    },
-    buttonStack: {
-      gap: theme.spacing.md,
-    },
-    primaryBtn: {
-      backgroundColor: colors.textPrimary,
-      height: 64,
-      borderRadius: 24,
-    },
-    secondaryBtn: {
-      backgroundColor: colors.surfaceRaised,
-      height: 64,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.divider,
-    },
-  });
+  const setGuestMode = useAppStore((state) => state.setGuestMode);
 
   if (isReady && canAccessApp && !canUpgrade) {
     return <Redirect href="/(app)" />;
@@ -100,83 +49,183 @@ export default function AuthScreen() {
   };
 
   const handleAnonymousContinue = async () => {
-    if (canUpgrade) {
-      router.replace("/(app)");
-      return;
-    }
-
     try {
       await signInAnonymously();
+      setGuestMode(true);
       router.replace("/(app)");
     } catch (error) {
+      setGuestMode(false);
       Alert.alert(
-        "Anonymous mode unavailable",
-        error instanceof Error ? error.message : "Unable to start anonymous session.",
+        "Guest mode unavailable",
+        error instanceof Error ? error.message : "Unable to start guest mode right now.",
       );
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topSection}>
-        <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.identityWrap}>
-          <Text variant="display" style={styles.brandTitle}>ZANE-AI</Text>
-          <TypewriterText
-            phrases={[
-              "The first unified real estate agent.",
-              "Deep market analysis.",
-              "Maximize profit and ROI.",
-              "Smartest property insights.",
-              "Zane-ai."
-            ]}
-          />
-        </Animated.View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Absolute Dismiss Button */}
+      <View style={[styles.header, { top: insets.top + 10 }]}>
+        <Pressable 
+          accessibilityLabel="Dismiss sign in"
+          onPress={() => router.navigate("/(app)")}
+          style={styles.closeBtn}
+        >
+          <X size={24} color={colors.textPrimary} />
+        </Pressable>
       </View>
 
-      <Animated.View
-        entering={FadeInDown.duration(600).springify()}
-        style={[styles.bottomSection, { paddingBottom: Math.max(insets.bottom, 48) }]}
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 80, paddingBottom: Math.max(insets.bottom, 24) + 20 },
+        ]}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.buttonStack}>
-          <Button
-            testID="auth.continue_anonymous"
-            variant="secondary"
-            label={canUpgrade ? "Back to Chat" : "Continue Anonymously"}
-            onPress={() => void handleAnonymousContinue()}
-            style={styles.secondaryBtn}
-          />
+        <Animated.View entering={FadeInUp.delay(120).springify()} style={styles.heroWrap}>
+          <Text variant="display" style={[styles.wordmark, { color: colors.textPrimary }]}>
+            ZANE-AI
+          </Text>
 
-          <Button
-            testID="auth.continue_apple"
-            variant="primary"
-            leading={<AppleIcon size={20} color={colors.background} />}
-            label="Continue with Apple"
-            onPress={() => void handleSocialSignIn("apple")}
-            style={styles.primaryBtn}
-            textStyle={{ color: colors.background }}
-          />
+          <View style={styles.typewriterWrap}>
+            <TypewriterText
+              phrases={[
+                "Zane-ai searching...",
+                "Comparing properties.",
+                "And more in the app.",
+              ]}
+            />
+          </View>
+        </Animated.View>
 
-          <Button
-            testID="auth.continue_google"
-            variant="secondary"
-            leading={<GoogleIcon size={22} />}
-            label="Continue with Google"
-            onPress={() => void handleSocialSignIn("google")}
-            style={styles.secondaryBtn}
-          />
 
-          <Button
-            testID="auth.continue_email"
-            variant="secondary"
-            leading={<Mail size={22} color={colors.textPrimary} />}
-            label={canUpgrade ? "Upgrade with Email" : "Continue with Email"}
-            onPress={() => {
-              router.push("/(auth)/email-options");
-            }}
-            style={styles.secondaryBtn}
-          />
-        </View>
-      </Animated.View>
+        <Animated.View
+          entering={FadeInDown.delay(220).springify()}
+          style={styles.actionsWrap}
+        >
+          <View style={styles.buttonStack}>
+            <Button
+              testID="auth.continue_apple"
+              variant="primary"
+              leading={<AppleIcon size={18} color={colors.background} />}
+              label="Continue with Apple"
+              onPress={() => void handleSocialSignIn("apple")}
+              style={[styles.primaryBtn, { backgroundColor: colors.textPrimary }]}
+              textStyle={{ color: colors.background }}
+            />
+
+            <Button
+              testID="auth.continue_google"
+              variant="secondary"
+              leading={<GoogleIcon size={20} />}
+              label="Continue with Google"
+              onPress={() => void handleSocialSignIn("google")}
+              style={[
+                styles.secondaryBtn,
+                { backgroundColor: colors.surface, borderColor: colors.divider },
+              ]}
+              textStyle={{ color: colors.textPrimary }}
+            />
+
+            <Button
+              testID="auth.continue_email"
+              variant="secondary"
+              leading={<Mail size={20} color={colors.textPrimary} />}
+              label="Continue with Email"
+              onPress={() => {
+                router.push("/(auth)/email-options");
+              }}
+              style={[
+                styles.secondaryBtn,
+                { backgroundColor: colors.surface, borderColor: colors.divider },
+              ]}
+              textStyle={{ color: colors.textPrimary }}
+            />
+
+            {!canUpgrade && (
+              <Pressable
+                testID="auth.continue_anonymous"
+                onPress={() => void handleAnonymousContinue()}
+                style={styles.guestAction}
+              >
+                <Text variant="caption" tone="muted">
+                  Or continue as guest
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        </Animated.View>
+      </ScrollView>
     </View>
   );
 }
+
+const createStyles = (colors: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: theme.spacing.xxxl,
+    justifyContent: "space-between",
+  },
+  heroWrap: {
+    alignItems: "center",
+    gap: 20,
+    marginTop: 100,
+  },
+  logoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  wordmark: {
+    fontSize: 42,
+    fontFamily: "Manrope_800ExtraBold",
+    letterSpacing: 2,
+    lineHeight: 52,
+    textAlign: "center",
+    color: colors.textPrimary,
+  },
+  typewriterWrap: {
+    minHeight: 40,
+    justifyContent: "center",
+    opacity: 0.7,
+  },
+  header: {
+    position: "absolute",
+    right: 24,
+    zIndex: 100,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  actionsWrap: {
+    marginBottom: 40,
+  },
+  buttonStack: {
+    gap: 12,
+  },
+  primaryBtn: {
+    minHeight: 58,
+    borderRadius: 29,
+  },
+  secondaryBtn: {
+    minHeight: 58,
+    borderRadius: 29,
+    borderWidth: 1,
+  },
+  guestAction: {
+    alignItems: "center",
+    marginTop: 16,
+    paddingVertical: 10,
+  },
+});
+
+

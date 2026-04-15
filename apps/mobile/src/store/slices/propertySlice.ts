@@ -5,6 +5,7 @@ export type PropertySlice = {
   comparePropertyIds: string[];
   dismissedPropertyIds: string[];
   setSelectedPropertyId: (id: string | null) => void;
+  setComparePropertyIds: (ids: string[]) => void;
   toggleCompareProperty: (id: string) => void;
   dismissProperty: (id: string) => void;
   clearDismissedProperties: () => void;
@@ -15,6 +16,10 @@ export const createPropertySlice: StateCreator<PropertySlice, [], [], PropertySl
   comparePropertyIds: [],
   dismissedPropertyIds: [],
   setSelectedPropertyId: (id) => set({ selectedPropertyId: id }),
+  setComparePropertyIds: (ids) =>
+    set({
+      comparePropertyIds: Array.from(new Set(ids)).slice(-2),
+    }),
   toggleCompareProperty: (id) =>
     set((state) => ({
       comparePropertyIds: state.comparePropertyIds.includes(id)

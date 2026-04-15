@@ -31,8 +31,8 @@ export type E2EFixtureThread = {
 
 export const E2E_QA_USER: E2EFixtureUser = {
   id: "e2e-qa-user",
-  name: "QA Zayon",
-  email: "qa@zayon.ai",
+  name: "QA Zane-AI",
+  email: "qa@zaneai.ai",
 };
 export const E2E_QA_PASSWORD = "qa-password";
 

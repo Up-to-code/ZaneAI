@@ -49,13 +49,13 @@ export function TypewriterText({
 
   return (
     <div className="flex min-h-[32px] items-center justify-center space-x-[2px] overflow-hidden text-center">
-      <span className="text-lg tracking-wide text-[var(--zayon-text-muted)] dark:text-[var(--zayon-text-secondary)] xl:text-xl">
+      <span className="text-lg tracking-wide text-[var(--zane-ai-text-muted)] dark:text-[var(--zane-ai-text-secondary)] xl:text-xl">
         {displayText}
       </span>
       <motion.div
         animate={{ opacity: [1, 0, 1] }}
         transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
-        className="mb-[2px] h-[20px] w-[2px] bg-[var(--zayon-text-muted)] dark:bg-[var(--zayon-text-secondary)]"
+        className="mb-[2px] h-[20px] w-[2px] bg-[var(--zane-ai-text-muted)] dark:bg-[var(--zane-ai-text-secondary)]"
       />
     </div>
   );

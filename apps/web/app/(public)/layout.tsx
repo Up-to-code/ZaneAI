@@ -12,7 +12,7 @@ export default async function PublicLayout({
     const locale = resolveLocale(cookieStore.get(WEB_LOCALE_COOKIE)?.value);
     return (
         <div
-            className="min-h-screen bg-background text-foreground selection:bg-[var(--zayon-accent)] selection:text-white transition-colors"
+            className="min-h-screen bg-background text-foreground selection:bg-[var(--zane-ai-accent)] selection:text-white transition-colors"
             dir={isRtlLocale(locale) ? "rtl" : "ltr"}
         >
             <Navbar locale={locale} />

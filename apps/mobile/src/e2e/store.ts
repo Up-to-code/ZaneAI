@@ -20,6 +20,10 @@ export function resetE2EAuthState() {
     e2eThreads: [],
     e2eForceAuthScreen: true,
     guestMode: false,
+    guestMirrorThreads: [],
+    guestMirrorSavedPropertyIds: [],
+    guestMirrorComparePropertyIds: [],
+    guestMirrorActiveThreadId: null,
     authEmailDraft: "",
     authPasswordDraft: "",
     authNameDraft: "",
@@ -51,6 +55,8 @@ export function resetE2EUserState() {
     comparePropertyIds: [],
     dismissedPropertyIds: [],
     selectedPropertyId: null,
+    guestMirrorSavedPropertyIds: [],
+    guestMirrorComparePropertyIds: [],
   });
 }
 
@@ -61,6 +67,8 @@ export function resetE2EThreadState() {
     activeRunId: null,
     pendingPrompt: null,
     pendingStartedAt: null,
+    guestMirrorThreads: [],
+    guestMirrorActiveThreadId: null,
   });
 }
 
