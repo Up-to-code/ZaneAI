@@ -2,6 +2,8 @@
 
 # dependencies
 node_modules/
+.pnp
+.pnp.js
 
 # Expo
 .expo/
@@ -30,8 +32,13 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Next.js
+.next/
+out/
+
 # local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
@@ -42,3 +49,6 @@ yarn-error.*
 
 # Maestro
 apps/mobile/.maestro/artifacts/
+
+# Vercel
+.vercel/

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zane-ai — The Future of Property Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0e0d0b;
+    --ink-2: #3a3833;
+    --ink-3: #7a7670;
+    --cream: #f7f4ee;
+    --cream-2: #edeae2;
+    --cream-3: #e0dbd0;
+    --gold: #b8914a;
+    --gold-light: #d4aa6a;
+    --gold-pale: #f0e6d0;
+    --white: #ffffff;
+    --ff-display: 'Cormorant Garamond', Georgia, serif;
+    --ff-sans: 'Syne', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--ff-sans);
+    background: var(--cream);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 4rem;
+    background: rgba(247, 244, 238, 0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--cream-3);
+  }
+
+  .nav-logo {
+    font-family: var(--ff-display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--gold); font-style: italic; }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 4rem 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 30%, rgba(184,145,74,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 80% at 10% 80%, rgba(184,145,74,0.05) 0%, transparent 50%),
+      var(--cream);
+  }
+
+  .hero-grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(184,145,74,0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(184,145,74,0.06) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  .hero-content { position: relative; z-index: 2; max-width: 900px; }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.2s;
+  }
+
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  h1 {
+    font-family: var(--ff-display);
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.4s;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--gold);
+    font-weight: 300;
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--ink-3);
+    max-width: 480px;
+    line-height: 1.8;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.6s;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    right: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 1s;
+  }
+
+  .hero-scroll-line {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  section { padding: 7rem 4rem; }
+
+  .section-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 3rem;
+  }
+
+  .section-label::after {
+    content: '';
+    display: block;
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.4;
+  }
+
+  h2 {
+    font-family: var(--ff-display);
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    font-weight: 300;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 1.5rem;
+  }
+
+  h2 em { font-style: italic; color: var(--gold); }
+
+  h3 {
+    font-family: var(--ff-display);
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: var(--ink-2);
+    line-height: 1.85;
+  }
+
+  .problem {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .problem p { color: rgba(247,244,238,0.65); }
+  .problem h2 { color: var(--cream); }
+  .problem .section-label { color: var(--gold-light); }
+  .problem .section-label::after { background: var(--gold-light); }
+
+  .problem-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+  }
+
+  .problem-quote {
+    font-family: var(--ff-display);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--gold-light);
+    line-height: 1.4;
+    border-left: 1px solid rgba(184,145,74,0.4);
+    padding-left: 2rem;
+  }
+
+  .product-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+
+  .product-sticky { position: sticky; top: 8rem; }
+
+  .feature-list { margin-top: 3rem; display: flex; flex-direction: column; gap: 2rem; }
+
+  .feature-item {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding-bottom: 2rem;
+    border-bottom: 0.5px solid var(--cream-3);
+  }
+
+  .feature-item:last-child { border-bottom: none; }
+
+  .feature-num {
+    font-family: var(--ff-display);
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--gold);
+    opacity: 0.5;
+    line-height: 1;
+    min-width: 2rem;
+    padding-top: 2px;
+  }
+
+  .feature-text h3 { margin-bottom: 0.4rem; }
+
+  .vision {
+    background: var(--cream-2);
+    border-top: 0.5px solid var(--cream-3);
+    border-bottom: 0.5px solid var(--cream-3);
+  }
+
+  .vision-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 4rem;
+    background: var(--cream-3);
+    border: 0.5px solid var(--cream-3);
+  }
+
+  .vision-card {
+    background: var(--cream-2);
+    padding: 2.5rem 2rem;
+    transition: background 0.3s;
+  }
+
+  .vision-card:hover { background: var(--white); }
+
+  .vision-card-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+
+  .vision-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .vision-card p { font-size: 0.88rem; color: var(--ink-3); }
+
+  .origin-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 6rem;
+    align-items: start;
+  }
+
+  .origin-marker {
+    font-family: var(--ff-display);
+    font-size: 6rem;
+    font-weight: 300;
+    color: var(--gold);
+    opacity: 0.15;
+    line-height: 1;
+  }
+
+  .origin-body p { margin-bottom: 1.25rem; }
+
+  .stats {
+    background: var(--ink);
+    padding: 5rem 4rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .stat-item {
+    background: var(--ink);
+    padding: 3rem 2rem;
+    border-right: 0.5px solid rgba(255,255,255,0.08);
+  }
+
+  .stat-item:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: var(--ff-display);
+    font-size: 3.5rem;
+    font-weight: 300;
+    color: var(--gold-light);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(247,244,238,0.4);
+  }
+
+  .cta {
+    text-align: center;
+    padding: 8rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(184,145,74,0.1) 0%, transparent 70%);
+  }
+
+  .cta-content { position: relative; z-index: 2; }
+
+  .cta h2 {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    margin-bottom: 1.5rem;
+  }
+
+  .cta p {
+    max-width: 480px;
+    margin: 0 auto 3rem;
+    color: var(--ink-3);
+  }
+
+  .btn-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gold);
+    color: var(--white);
+    font-family: var(--ff-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1rem 2.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--ff-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1rem 2.5rem;
+    border: 1px solid var(--cream-3);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, transform 0.15s;
+  }
+
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-1px); }
+
+  footer {
+    border-top: 0.5px solid var(--cream-3);
+    padding: 3rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: var(--ff-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .footer-logo span { color: var(--gold); font-style: italic; }
+
+  .footer-copy {
+    font-size: 0.75rem;
+    color: var(--ink-3);
+    letter-spacing: 0.05em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.1); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 2rem; }
+    .nav-links { display: none; }
+    section { padding: 5rem 2rem; }
+    .hero { padding: 0 2rem 5rem; }
+    .hero-scroll { display: none; }
+    .problem-layout,
+    .product-layout,
+    .origin-layout { grid-template-columns: 1fr; gap: 3rem; }
+    .product-sticky { position: static; }
+    .vision-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .cta { padding: 5rem 2rem; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem; }
+    stats { padding: 4rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Zane<span>-ai</span></a>
+  <ul class="nav-links">
+    <li><a href="#problem">The Problem</a></li>
+    <li><a href="#product">The Product</a></li>
+    <li><a href="#vision">Vision</a></li>
+    <li><a href="#origin">Our Story</a></li>
+  </ul>
+</nav>
+
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-grid-lines"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Egyptian-founded · AI-native · Property tech</div>
+    <h1>Finding a home<br>should feel <em>human.</em></h1>
+    <p class="hero-sub">Zane-ai is a new kind of real estate product. One that listens to how you actually think — and finds the right property for you.</p>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<section class="problem" id="problem">
+  <div class="problem-layout">
+    <div class="reveal">
+      <div class="section-label">The problem</div>
+      <h2>Real estate is<br>still <em>exhausting.</em></h2>
+      <p>You open an app. You scroll. You filter. You compare. And after all of that, most of what you see still doesn't feel right.</p>
+      <br>
+      <p>The tools haven't caught up with how people actually think. Nobody wakes up searching for "3BR, 90sqm, Zone 5." They think about light, and quiet, and their kids' school, and whether they can finally breathe.</p>
+    </div>
+    <div class="reveal reveal-delay-2">
+      <p class="problem-quote">"The technology has been forcing people to think like a database. We decided to build something that thinks like a person instead."</p>
+    </div>
+  </div>
+</section>
+
+<section id="product">
+  <div class="product-layout">
+    <div class="product-sticky reveal">
+      <div class="section-label">The product</div>
+      <h2>Say what you want.<br><em>Get what you mean.</em></h2>
+      <p>Zane-ai is a mobile app for property buyers. Instead of filters and checkboxes, you describe what you're looking for in plain language. The app understands your intent and matches you with properties that actually make sense for your life.</p>
+      <br>
+      <p>It's not a search engine with a chat box on top. It's a fundamentally different experience — one that puts you at the center.</p>
+    </div>
+    <div class="feature-list">
+      <div class="feature-item reveal">
+        <div class="feature-num">01</div>
+        <div class="feature-text">
+          <h3>Natural language search</h3>
+          <p>Describe what you want the way you actually think about it. No filters. No technical jargon. Just your words, understood.</p>
+        </div>
+      </div>
+      <div class="feature-item reveal reveal-delay-1">
+        <div class="feature-num">02</div>
+        <div class="feature-text">
+          <h3>Intelligent matching</h3>
+          <p>The app reads your intent — not just your keywords — and surfaces the options most likely to feel right for you.</p>
+        </div>
+      </div>
+      <div class="feature-item reveal reveal-delay-2">
+        <div class="feature-num">03</div>
+        <div class="feature-text">
+          <h3>Smarter discovery</h3>
+          <p>No endless scrolling. No irrelevant results. A curated, AI-led property experience built around your actual needs.</p>
+        </div>
+      </div>
+      <div class="feature-item reveal reveal-delay-3">
+        <div class="feature-num">04</div>
+        <div class="feature-text">
+          <h3>Built to grow</h3>
+          <p>Today, discovery. Tomorrow, the full journey — scheduling, offers, follow-up, and an intelligent layer across every step of buying property.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="vision" id="vision">
+  <div class="reveal">
+    <div class="section-label">The vision</div>
+    <h2>A real estate <em>operating system</em><br>for the next generation.</h2>
+    <p style="max-width: 560px;">We're starting with property discovery. But the future is bigger — an intelligent platform that connects every part of the real estate experience.</p>
+  </div>
+  <div class="vision-grid">
+    <div class="vision-card reveal">
+      <div class="vision-card-label">Today</div>
+      <h3>Smarter discovery</h3>
+      <p>AI-powered property matching for buyers who want results that understand them, not just list at them.</p>
+    </div>
+    <div class="vision-card reveal reveal-delay-1">
+      <div class="vision-card-label">Tomorrow</div>
+      <h3>Full buyer journey</h3>
+      <p>Scheduling, follow-up, offers, pipelines, and inbox tools — the complete experience, connected and intelligent.</p>
+    </div>
+    <div class="vision-card reveal reveal-delay-2">
+      <div class="vision-card-label">The horizon</div>
+      <h3>Real estate OS</h3>
+      <p>An AI layer that connects buyers, agents, and developers — making every side of property tech faster and more human.</p>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-num">AI</div>
+      <div class="stat-label">Native from day one</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-num">EG</div>
+      <div class="stat-label">Egyptian-founded</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-num">MVP</div>
+      <div class="stat-label">In active development</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Vision: full property OS</div>
+    </div>
+  </div>
+</section>
+
+<section id="origin">
+  <div class="origin-layout">
+    <div class="reveal">
+      <div class="origin-marker">مصر</div>
+      <div class="section-label">Our story</div>
+    </div>
+    <div class="origin-body reveal reveal-delay-1">
+      <h2>Built in Egypt.<br><em>Built for the world.</em></h2>
+      <p>Zane-ai was founded in Egypt — a country with a fast-growing real estate market and a generation of builders who believe the best technology doesn't have to come from somewhere else.</p>
+      <p>We're an AI-native company. That doesn't mean we put AI on top of an old product. It means AI is in the foundation — in how we search, how we match, how we understand what people actually need.</p>
+      <p>We're building the MVP carefully and intentionally. Not racing to launch something half-finished. Building the right base, with a clear direction, and a product that earns trust before it asks for it.</p>
+      <p style="color: var(--gold); font-family: var(--ff-display); font-size: 1.1rem; font-style: italic;">We are not building another old real estate interface. We are building the future of property tech.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-bg"></div>
+  <div class="cta-content reveal">
+    <div class="section-label" style="justify-content: center;">Get in touch</div>
+    <h2>Ready to meet<br><em>the future of property?</em></h2>
+    <p>Whether you're an investor, a partner, or someone who's just tired of endless scrolling — we'd love to hear from you.</p>
+    <div class="btn-group">
+      <a href="mailto:hello@zane-ai.com" class="btn-primary">Contact us →</a>
+      <a href="#product" class="btn-outline">See the product</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Zane<span>-ai</span></div>
+  <div class="footer-copy">© 2025 Zane-ai. Egyptian-founded. AI-native. Built for what's next.</div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
