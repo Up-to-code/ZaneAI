@@ -1,10 +1,24 @@
 import localFont from "next/font/local";
+import { Syne, Playfair_Display } from "next/font/google";
+
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
 
 const cairo = localFont({
   src: "../public/fonts/cairo-arabic.woff2",
   weight: "200 1000",
   style: "normal",
   display: "swap",
+  variable: "--font-cairo",
   declarations: [
     {
       prop: "unicode-range",
@@ -56,7 +70,7 @@ const extraFontFaces = `
 }
 `.trim();
 
-export const rootFontClassName = `${cairo.className} ${geistMono.variable} antialiased font-sans`;
+export const rootFontClassName = `${cairo.variable} ${geistMono.variable} ${syne.variable} ${playfair.variable} antialiased font-sans`;
 
 export function RootFontFaces() {
   return <style dangerouslySetInnerHTML={{ __html: extraFontFaces }} />;
