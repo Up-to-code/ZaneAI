@@ -85,7 +85,7 @@ export default function WorkspaceError({
       </div>
       
       <div className="mt-12 text-[9px] font-black uppercase tracking-[0.4em] text-[var(--zane-ai-text-muted)] opacity-30">
-        Infrastructure Node: Zane-AI / WS-DIAG-00
+        Infrastructure Node: Zane-ai / WS-DIAG-00
       </div>
     </div>
   );

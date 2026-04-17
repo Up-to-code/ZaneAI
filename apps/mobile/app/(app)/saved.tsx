@@ -22,17 +22,17 @@ export default function SavedScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [searchQuery, setSearchQuery] = useState("");
   
-  const savedProperties = useSavedProperties()
+  const savedListings = useSavedProperties()
     .map((item: { property: PropertyCardVM | null }) => item.property)
     .filter((property: PropertyCardVM | null): property is PropertyCardVM => property !== null);
 
   const filteredProperties = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return savedProperties;
-    return savedProperties.filter((property: PropertyCardVM) =>
+    if (!query) return savedListings;
+    return savedListings.filter((property: PropertyCardVM) =>
       `${property.title} ${property.locationLabel}`.toLowerCase().includes(query),
     );
-  }, [savedProperties, searchQuery]);
+  }, [savedListings, searchQuery]);
 
   return (
     <Screen safe={false}>

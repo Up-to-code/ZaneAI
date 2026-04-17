@@ -22,7 +22,7 @@ export default function Navbar({ locale = "ar" }: { locale?: AppLocale }) {
                         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background dark:bg-white dark:text-black">
                            <Eye className="h-6 w-6" />
                         </div>
-                        <span className="hidden text-xl font-black uppercase tracking-tighter sm:block">Zane AI</span>
+                        <span className="hidden text-xl font-black uppercase tracking-tighter sm:block">Zane-ai</span>
                     </a>
 
                     <div className="hidden lg:flex items-center gap-8 border-l border-border pl-10 ml-4">

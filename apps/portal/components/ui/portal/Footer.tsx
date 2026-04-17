@@ -14,7 +14,7 @@ export default function Footer({ locale = "ar" }: { locale?: AppLocale }) {
                     <div className="space-y-2">
                         <div className="font-bold text-foreground">Zane Platform</div>
                         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
-                           © 2026 Zane-AI Intelligence Node
+                           © 2026 Zane-ai Intelligence Node
                         </div>
                     </div>
 

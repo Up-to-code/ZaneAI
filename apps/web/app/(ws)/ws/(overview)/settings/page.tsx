@@ -85,7 +85,7 @@ export default function WorkspaceSettingsPage() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
            <p className="max-w-3xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/50">
              Manage your organization's digital identity, contact channels, and team access credentials. 
-             Changes made here propagate across the entire Zane-AI partner network globally.
+             Changes made here propagate across the entire Zane-ai partner network globally.
            </p>
            <div className="flex items-center gap-3 rounded-2xl border border-[var(--zane-ai-accent-soft)] bg-[var(--zane-ai-accent-soft)]/20 px-5 py-3 dark:border-[var(--zane-ai-accent)]/20">
               <ShieldCheck className="h-4 w-4 text-[var(--zane-ai-accent)]" />

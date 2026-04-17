@@ -56,7 +56,7 @@ const authUrl = normalizeUrlEnvValue(
 ) ?? "";
 
 const config: ExpoConfig = {
-  name: "Zane-AI",
+  name: "Zane-ai",
   slug: "zane-ai-mobile",
   scheme: "zane-ai",
   version: "0.1.0",

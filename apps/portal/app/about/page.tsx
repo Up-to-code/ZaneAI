@@ -23,7 +23,7 @@ export default async function AboutPage() {
             <div className="p-10 rounded-[40px] border border-border bg-slate-50 dark:bg-zinc-950/20 shadow-sm relative overflow-hidden group">
                  <div className="absolute top-0 right-0 h-full w-1.5 bg-primary/20 group-hover:bg-primary transition-all" />
                  <p className="text-xl md:text-2xl font-bold leading-relaxed text-foreground tracking-tight">
-                    "Zane AI is the intelligent infrastructure that unifies the real estate market. By automating communication and workflows at the core, we replace fragmented tools with one smart, unified system."
+                    "Zane-ai is the intelligent infrastructure that unifies the real estate market. By automating communication and workflows at the core, we replace fragmented tools with one smart, unified system."
                  </p>
             </div>
         </div>
@@ -62,7 +62,7 @@ export default async function AboutPage() {
                         The Resolution
                     </div>
                     <div className="space-y-6">
-                        <h3 className="text-3xl font-black uppercase tracking-tight">Zane AI Infrastructure.</h3>
+                        <h3 className="text-3xl font-black uppercase tracking-tight">Zane-ai Infrastructure.</h3>
                         <div className="space-y-6">
                             {[
                                 { title: "Connected Data", text: "One source of truth for properties and people." },
@@ -99,7 +99,7 @@ export default async function AboutPage() {
                 <div className="pt-8">
                     <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/40 mb-10">Premium One-Liner</p>
                     <div className="p-10 rounded-3xl border border-border bg-slate-50 dark:bg-black font-sans text-xl md:text-2xl font-black leading-relaxed tracking-tight border-b-4 border-b-primary shadow-xl">
-                        Zane AI is the intelligent infrastructure for real estate — connecting people, properties, and data into one unified system.
+                        Zane-ai is the intelligent infrastructure for real estate — connecting people, properties, and data into one unified system.
                     </div>
                 </div>
             </div>

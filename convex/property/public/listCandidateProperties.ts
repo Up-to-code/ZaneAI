@@ -1,7 +1,7 @@
 import { query } from "../../_generated/server";
-import { listCatalogProperties } from "../lib/catalog";
+import { listCatalogListings } from "../lib/catalog";
 
 export const listCandidateProperties = query({
   args: {},
-  handler: async (ctx) => await listCatalogProperties(ctx, 12),
+  handler: async (ctx) => await listCatalogListings(ctx, 12),
 });

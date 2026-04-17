@@ -23,7 +23,7 @@ function ensureArray<T>(value: unknown, label: string): T[] {
 export function useCandidateProperties() {
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const rows = useQuery(
-    api.property.public.listCandidateProperties.listCandidateProperties,
+    api.listings.listCandidateListings,
     e2eQaMode ? "skip" : {},
   );
 
@@ -39,8 +39,8 @@ export function useCandidateProperties() {
 export function usePropertyById(propertyId: string | undefined) {
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const row = useQuery(
-    api.property.public.getById.getById,
-    e2eQaMode || !propertyId ? "skip" : { propertyExternalId: propertyId },
+    api.listings.getListing,
+    e2eQaMode || !propertyId ? "skip" : { listingId: propertyId },
   );
 
   return useMemo(() => {
@@ -55,8 +55,8 @@ export function usePropertyById(propertyId: string | undefined) {
 export function usePropertiesByIds(propertyIds: string[]) {
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const rows = useQuery(
-    api.property.public.listByIds.listByIds,
-    e2eQaMode || propertyIds.length === 0 ? "skip" : { propertyExternalIds: propertyIds },
+    api.listings.listListingsByIds,
+    e2eQaMode || propertyIds.length === 0 ? "skip" : { listingIds: propertyIds },
   );
 
   return useMemo(() => {
@@ -74,16 +74,16 @@ export function useSavedProperties() {
   const e2eSavedPropertyIds = useAppStore((state) => state.e2eSavedPropertyIds);
   const guestMirrorSavedPropertyIds = useAppStore((state) => state.guestMirrorSavedPropertyIds);
   const setGuestMirrorSavedPropertyIds = useAppStore((state) => state.setGuestMirrorSavedPropertyIds);
-  const syncSavedProperty = useMutation(api.property.public.toggleSavedProperty.toggleSavedProperty);
+  const syncSavedListing = useMutation(api.listings.toggleSavedListing);
   const [syncingGuestSaves, setSyncingGuestSaves] = useState(false);
   const rows = useQuery(
-    api.property.public.listSavedProperties.listSavedProperties,
+    api.listings.listSavedListings,
     isAuthenticated && !e2eQaMode ? {} : "skip",
   );
   const mirroredRows = useQuery(
-    api.property.public.listByIds.listByIds,
+    api.listings.listListingsByIds,
     !e2eQaMode && isGuest && guestMirrorSavedPropertyIds.length > 0
-      ? { propertyExternalIds: guestMirrorSavedPropertyIds }
+      ? { listingIds: guestMirrorSavedPropertyIds }
       : "skip",
   );
 
@@ -98,7 +98,7 @@ export function useSavedProperties() {
       return;
     }
 
-    setGuestMirrorSavedPropertyIds(savedRows.map((row: any) => row.propertyExternalId));
+    setGuestMirrorSavedPropertyIds(savedRows.map((row: any) => row.listingId));
   }, [e2eQaMode, guestMirrorSavedPropertyIds.length, isGuest, rows, setGuestMirrorSavedPropertyIds]);
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export function useSavedProperties() {
     }
 
     const savedRows = ensureArray<any>(rows, "listSavedProperties");
-    const existingIds = savedRows.map((row: any) => row.propertyExternalId);
+    const existingIds = savedRows.map((row: any) => row.listingId);
     const missingIds = guestMirrorSavedPropertyIds.filter((propertyId) => !existingIds.includes(propertyId));
 
     if (missingIds.length === 0) {
@@ -125,7 +125,7 @@ export function useSavedProperties() {
     setSyncingGuestSaves(true);
 
     void Promise.all(
-      missingIds.map((propertyExternalId) => syncSavedProperty({ propertyExternalId })),
+      missingIds.map((listingId) => syncSavedListing({ listingId })),
     ).finally(() => {
       if (!cancelled) {
         setSyncingGuestSaves(false);
@@ -141,7 +141,7 @@ export function useSavedProperties() {
     isAuthenticated,
     isGuest,
     rows,
-    syncSavedProperty,
+    syncSavedListing,
     syncingGuestSaves,
   ]);
 
@@ -149,7 +149,7 @@ export function useSavedProperties() {
     () => {
       if (e2eQaMode) {
         return e2eSavedPropertyIds.map((propertyId) => ({
-          propertyExternalId: propertyId,
+          listingId: propertyId,
           property: mockProperties.find((property) => property.id === propertyId) ?? null,
         }));
       }
@@ -159,15 +159,16 @@ export function useSavedProperties() {
       if (rows !== undefined && !(savedRows.length === 0 && isGuest && guestMirrorSavedPropertyIds.length > 0)) {
         return savedRows.map((row: any) => ({
           ...row,
+          listingId: row.listingId,
           property: row.property ? toPropertyCardVM(row.property) : null,
         }));
       }
 
       if (isGuest) {
         const mirroredProperties = ensureArray<any>(mirroredRows, "listByIds.mirrored").map(toPropertyCardVM);
-        return guestMirrorSavedPropertyIds.map((propertyExternalId) => ({
-          propertyExternalId,
-          property: mirroredProperties.find((property: PropertyCardVM) => property.id === propertyExternalId) ?? null,
+        return guestMirrorSavedPropertyIds.map((listingId) => ({
+          listingId,
+          property: mirroredProperties.find((property: PropertyCardVM) => property.id === listingId) ?? null,
         }));
       }
 

@@ -1,6 +1,6 @@
 # PTM: Project Technical Memorandum (Profile PDF) Knowledge Base
 
-This document serves as the architectural and technical "Ground Truth" for generating high-fidelity Property and Project Profiles (PTMs) within the Zane-AI ecosystem. It defines the structure, data requirements, and aesthetic standards for the system when building exportable PDF documents.
+This document serves as the architectural and technical "Ground Truth" for generating high-fidelity Property and Project Profiles (PTMs) within the Zane-ai ecosystem. It defines the structure, data requirements, and aesthetic standards for the system when building exportable PDF documents.
 
 ## 1. Document Architecture
 
@@ -42,7 +42,7 @@ A PTM is divided into five core layers. Every generated PDF MUST respect this hi
 The PTM PDF must inherit the **"Pure Canvas"** design system used in the web workspace.
 
 *   **Color Palette**:
-    - **Primary**: `#FF3D00` (Zane-AI Accent) for calls to action and key metrics.
+    - **Primary**: `#FF3D00` (Zane-ai Accent) for calls to action and key metrics.
     - **Background**: White (`#FFFFFF`) or Slate-50 (`#F8FAFC`) for subtle sectioning.
     - **Grid Lines**: 1px stroke in Slate-200 for technical boundaries.
 *   **Typography**:
@@ -60,7 +60,7 @@ When the system is asked to "Build a PTM PDF", it must follow these logic gates:
 1.  **Validation**: Ensure all mandatory fields (BUA, Project Name, Status) are fetched from the Convex backend.
 2.  **RTL Normalization**: If the language is Arabic, ensure the document root is `dir="rtl"` and that numeric percentage symbols (`%`) and units (`sq.m`) are correctly placed.
 3.  **Dynamic Rendering**: If specific sections (e.g., Legal Specs) are missing in the database, the system should NOT leave empty spaces but instead reflow the Bento-grid to maintain a premium look.
-4.  **Security**: Every PTM should include a subtle QR code in the footer that links back to the live unit in the Zane-AI workspace for verification.
+4.  **Security**: Every PTM should include a subtle QR code in the footer that links back to the live unit in the Zane-ai workspace for verification.
 
 ---
-*Created by Zane-AI Intelligence Unit*
+*Created by Zane-ai Intelligence Unit*

@@ -41,7 +41,7 @@ export function Navbar({ className }: NavbarProps) {
     <header className={cn("relative z-20 border-b border-black/5 bg-white/70 backdrop-blur dark:border-white/10 dark:bg-black/60", className)}>
       <Section className="flex h-16 items-center justify-between">
         <Link href="/" className="text-xs font-black uppercase tracking-[0.32em]">
-          Zane-AI
+          Zane-ai
         </Link>
         <Link href="/signin" className="text-sm font-semibold text-[var(--zane-ai-text-muted)]">
           Sign in
@@ -60,7 +60,7 @@ export function Footer({ locale, className }: FooterProps) {
   return (
     <footer className={cn("border-t border-black/5 py-8 text-center text-xs font-medium text-[var(--zane-ai-text-muted)] dark:border-white/10", className)}>
       <Section>
-        <p>{locale === "ar" ? "Zane-AI" : "Zane-AI"} · Built for modern workspace flows.</p>
+        <p>{locale === "ar" ? "Zane-ai" : "Zane-ai"} · Built for modern workspace flows.</p>
       </Section>
     </footer>
   );

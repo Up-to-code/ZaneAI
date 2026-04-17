@@ -1,59 +1,107 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { ensureProfile } from "./auth/profile";
-import { requireAuthUser } from "./auth/requireAuth";
-import { buildStarterProperties, getAudienceFromOrganizationType, getVisibleZoneKeys, normalizeEmail, slugifyOrganizationName } from "./partnerWorkspace/lib";
+import {
+  assertWorkspaceRole,
+  canManageOrganization,
+  getDefaultMembership,
+  getProfileByAuthUserId,
+  normalizeEmail,
+  requireProfile,
+  requireWorkspace,
+  sha256Hex,
+} from "./core/lib";
+import {
+  getAudienceFromOrganizationType,
+  getVisibleZoneKeys,
+  slugifyOrganizationName,
+  starterProjectSeed,
+} from "./partnerWorkspace/lib";
 
-const organizationTypeValidator = v.union(v.literal("broker"), v.literal("red"));
-const membershipRoleValidator = v.union(v.literal("manager"), v.literal("member"), v.literal("viewer"));
+const organizationTypeValidator = v.union(
+  v.literal("brokerage"),
+  v.literal("developer"),
+  v.literal("zane_ai"),
+  v.literal("broker"),
+  v.literal("red"),
+);
+const membershipRoleValidator = v.union(
+  v.literal("owner"),
+  v.literal("manager"),
+  v.literal("editor"),
+  v.literal("viewer"),
+);
 
-async function getProfileByAuthUserId(ctx: any, authUserId: string) {
-  return await ctx.db
-    .query("profiles")
-    .withIndex("by_authUserId", (q: any) => q.eq("authUserId", authUserId))
-    .unique();
+function normalizeOrganizationType(type: "brokerage" | "developer" | "zane_ai" | "broker" | "red") {
+  if (type === "broker") return "brokerage";
+  if (type === "red") return "developer";
+  return type;
 }
 
-async function getCurrentMembership(ctx: any, profileId: any) {
-  const memberships = await ctx.db
-    .query("organizationMembers")
-    .withIndex("by_profileId", (q: any) => q.eq("profileId", profileId))
-    .collect();
-  return memberships.find((membership: any) => membership.isDefault) ?? memberships[0] ?? null;
-}
-
-async function getUniqueOrganizationSlug(ctx: any, name: string) {
+async function getUniqueOrganizationSlug(ctx: Parameters<typeof getProfileByAuthUserId>[0], name: string) {
   const baseSlug = slugifyOrganizationName(name);
   let candidate = baseSlug;
   let suffix = 2;
-  while (await ctx.db.query("organizations").withIndex("by_slug", (q: any) => q.eq("slug", candidate)).unique()) {
+  while (await ctx.db.query("organizations").withIndex("by_slug", (q) => q.eq("slug", candidate)).unique()) {
     candidate = `${baseSlug}-${suffix}`;
     suffix += 1;
   }
   return candidate;
 }
 
+async function readInviteFromToken(ctx: Parameters<typeof getProfileByAuthUserId>[0], token: string) {
+  const tokenHash = await sha256Hex(token);
+  const invite = await ctx.db
+    .query("organizationInvites")
+    .withIndex("by_tokenHash", (q) => q.eq("tokenHash", tokenHash))
+    .unique();
+  if (invite) return invite;
+
+  const legacyInvite = await ctx.db
+    .query("organizationInvites")
+    .withIndex("by_token", (q) => q.eq("token", token))
+    .unique();
+  if (legacyInvite) return legacyInvite;
+
+  try {
+    return await ctx.db.get(token as Id<"organizationInvites">);
+  } catch {
+    return null;
+  }
+}
+
 export const getWorkspaceState = query({
   args: {},
   handler: async (ctx) => {
-    const authUser = await requireAuthUser(ctx);
-    const profile = await getProfileByAuthUserId(ctx, authUser._id);
-    const membership = profile ? await getCurrentMembership(ctx, profile._id) : null;
-    const organization = membership ? (await ctx.db.get(membership.organizationId)) as any : null;
-    const properties = organization
+    const { authUser, profile } = await requireProfile(ctx);
+    const membership = await getDefaultMembership(ctx, profile._id);
+    const organization = membership ? await ctx.db.get(membership.organizationId) : null;
+    const projects = organization
       ? await ctx.db
-          .query("workspaceProperties")
-          .withIndex("by_organizationId", (q) => q.eq("organizationId", organization._id))
-          .collect()
+          .query("projects")
+          .withIndex("by_organizationId_and_publicationState", (q) => q.eq("organizationId", organization._id))
+          .take(100)
       : [];
     const pendingInvites = authUser.email
       ? await ctx.db
           .query("organizationInvites")
-          .withIndex("by_email", (q) => q.eq("email", normalizeEmail(authUser.email)))
-          .collect()
+          .withIndex("by_email_and_status", (q) =>
+            q.eq("email", normalizeEmail(authUser.email)).eq("status", "pending"),
+          )
+          .take(20)
       : [];
-    const visibleZoneKeys = organization ? [...getVisibleZoneKeys()] : ["overview", "settings"];
-    const publishedCount = properties.filter((property) => property.publicationState === "published").length;
+    const activePendingInvites = pendingInvites.filter((invite) => invite.expiresAt > Date.now());
+    const inviteCount = organization
+      ? (
+          await ctx.db
+            .query("organizationInvites")
+            .withIndex("by_organizationId_and_status", (q) =>
+              q.eq("organizationId", organization._id).eq("status", "pending"),
+            )
+            .take(100)
+        ).length
+      : 0;
 
     return {
       user: {
@@ -63,23 +111,25 @@ export const getWorkspaceState = query({
         image: null,
         username: null,
         organizationId: organization?._id ?? null,
-            organizationSlug: organization?.slug ?? null,
+        organizationSlug: organization?.slug ?? null,
         organizationRole: membership?.role ?? null,
         organizationPermissions:
-          membership?.role === "manager"
+          membership?.role === "owner" || membership?.role === "manager"
             ? ["properties:write", "offers:write", "members:write"]
-            : membership?.role === "member"
+            : membership?.role === "editor"
               ? ["properties:write", "offers:write"]
               : [],
         isActive: true,
       },
       audience: organization ? getAudienceFromOrganizationType(organization.type) : null,
-      visibleZoneKeys,
+      visibleZoneKeys: organization ? [...getVisibleZoneKeys()] : ["overview", "settings"],
       needsOrganization: !organization,
       suggestedOrganizationType:
-        pendingInvites[0]?.organizationId
-          ? (((await ctx.db.get(pendingInvites[0].organizationId)) as any)?.type ?? "broker")
-          : "broker",
+        activePendingInvites[0]?.organizationId
+          ? (((await ctx.db.get(activePendingInvites[0].organizationId))?.type ?? "brokerage") as
+              | "brokerage"
+              | "developer")
+          : "brokerage",
       membershipRole: membership?.role ?? null,
       organization: organization
         ? {
@@ -95,60 +145,46 @@ export const getWorkspaceState = query({
           }
         : null,
       metrics: {
-        propertyCount: properties.length,
-        publishedPropertyCount: publishedCount,
-        draftPropertyCount: properties.filter((property) => property.publicationState === "draft").length,
-        inviteCount: organization
-          ? (
-              await ctx.db
-                .query("organizationInvites")
-                .withIndex("by_organizationId", (q) => q.eq("organizationId", organization._id))
-                .collect()
-            ).filter((invite) => invite.status === "pending").length
-          : 0,
+        propertyCount: projects.length,
+        publishedPropertyCount: projects.filter((project) => project.publicationState === "published").length,
+        draftPropertyCount: projects.filter((project) => project.publicationState === "draft").length,
+        inviteCount,
       },
       pendingInvites: await Promise.all(
-        pendingInvites
-          .filter((invite) => invite.status === "pending" && invite.expiresAt > Date.now())
-          .map(async (invite) => {
-            const inviteOrganization = await ctx.db.get(invite.organizationId);
-            const inviter = await ctx.db.get(invite.inviterProfileId);
-            return {
-              id: invite._id,
-              token: invite.token,
-              email: invite.email,
-              role: invite.role,
-              organizationName: (inviteOrganization as any)?.name ?? "Workspace",
-              organizationType: (inviteOrganization as any)?.type === "red" ? "developer" : "broker",
-              inviterName: inviter?.name ?? "Workspace owner",
-              expiresAt: invite.expiresAt,
-            };
-          }),
+        activePendingInvites.map(async (invite) => {
+          const inviteOrganization = await ctx.db.get(invite.organizationId);
+          const inviter = await ctx.db.get(invite.inviterProfileId);
+          return {
+            id: invite._id,
+            token: invite._id,
+            email: invite.email,
+            role: invite.role,
+            organizationName: inviteOrganization?.name ?? "Workspace",
+            organizationType: inviteOrganization?.type === "developer" ? "developer" : "broker",
+            inviterName: inviter?.name ?? "Workspace owner",
+            expiresAt: invite.expiresAt,
+          };
+        }),
       ),
     };
   },
 });
 
 export const getInvitePreview = query({
-  args: {
-    token: v.string(),
-  },
+  args: { token: v.string() },
   handler: async (ctx, args) => {
-    const invite = await ctx.db
-      .query("organizationInvites")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .unique();
+    const invite = await readInviteFromToken(ctx, args.token);
     if (!invite || invite.status !== "pending" || invite.expiresAt <= Date.now()) {
       return null;
     }
-    const organization = (await ctx.db.get(invite.organizationId)) as any;
+    const organization = await ctx.db.get(invite.organizationId);
     const inviter = await ctx.db.get(invite.inviterProfileId);
     return {
-      token: invite.token,
+      token: args.token,
       email: invite.email,
       role: invite.role,
       organizationName: organization?.name ?? "Workspace",
-      organizationType: organization?.type === "red" ? "developer" : "broker",
+      organizationType: organization?.type === "developer" ? "developer" : "broker",
       inviterName: inviter?.name ?? "Workspace owner",
       expiresAt: invite.expiresAt,
     };
@@ -161,23 +197,24 @@ export const createOrganization = mutation({
     type: organizationTypeValidator,
   },
   handler: async (ctx, args) => {
-    const authUser = await requireAuthUser(ctx);
+    const { authUser } = await requireProfile(ctx);
     const profile = await ensureProfile(ctx, {
       _id: authUser._id,
       email: authUser.email ?? "",
-      name: authUser.name ?? authUser.email ?? "Workspace user",
+      name: authUser.name ?? authUser.email ?? "Zane-ai user",
+      kind: "professional",
     });
-    const existingMembership = await getCurrentMembership(ctx, profile._id);
+    const existingMembership = await getDefaultMembership(ctx, profile._id);
     if (existingMembership) {
       throw new Error("You already belong to a workspace organization.");
     }
     const now = Date.now();
-    const slug = await getUniqueOrganizationSlug(ctx, args.name);
+    const type = normalizeOrganizationType(args.type);
     const organizationId = await ctx.db.insert("organizations", {
       name: args.name.trim(),
-      slug,
+      slug: await getUniqueOrganizationSlug(ctx, args.name),
       ownerProfileId: profile._id,
-      type: args.type,
+      type,
       status: "active",
       defaultKnowledgeScope: "workspace",
       createdAt: now,
@@ -186,39 +223,35 @@ export const createOrganization = mutation({
     await ctx.db.insert("organizationMembers", {
       organizationId,
       profileId: profile._id,
-      role: "manager",
+      role: "owner",
       isDefault: true,
       status: "active",
       createdAt: now,
       updatedAt: now,
     });
     await ctx.db.patch(profile._id, {
+      kind: "professional",
       primaryOrganizationId: organizationId,
       updatedAt: now,
     });
-    for (const property of buildStarterProperties({
-      organizationId,
-      createdByProfileId: profile._id,
-      organizationName: args.name.trim(),
-      organizationType: args.type,
-      now,
-    })) {
-      await ctx.db.insert("workspaceProperties", property);
-    }
+    await ctx.db.insert(
+      "projects",
+      starterProjectSeed({
+        organizationId,
+        createdByProfileId: profile._id,
+        organizationType: type,
+        now,
+      }),
+    );
     return { organizationId };
   },
 });
 
 export const acceptInvite = mutation({
-  args: {
-    token: v.string(),
-  },
+  args: { token: v.string() },
   handler: async (ctx, args) => {
-    const authUser = await requireAuthUser(ctx);
-    const invite = await ctx.db
-      .query("organizationInvites")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .unique();
+    const { authUser } = await requireProfile(ctx);
+    const invite = await readInviteFromToken(ctx, args.token);
     if (!invite || invite.status !== "pending" || invite.expiresAt <= Date.now()) {
       throw new Error("This invite is no longer available.");
     }
@@ -229,6 +262,7 @@ export const acceptInvite = mutation({
       _id: authUser._id,
       email: authUser.email ?? invite.email,
       name: authUser.name ?? invite.email,
+      kind: "professional",
     });
     const existing = await ctx.db
       .query("organizationMembers")
@@ -254,6 +288,7 @@ export const acceptInvite = mutation({
       updatedAt: now,
     });
     await ctx.db.patch(profile._id, {
+      kind: "professional",
       primaryOrganizationId: invite.organizationId,
       updatedAt: now,
     });
@@ -264,27 +299,19 @@ export const acceptInvite = mutation({
 export const getOrganizationSettingsState = query({
   args: {},
   handler: async (ctx) => {
-    const authUser = await requireAuthUser(ctx);
-    const profile = await getProfileByAuthUserId(ctx, authUser._id);
-    if (!profile) {
-      return null;
-    }
-    const membership = await getCurrentMembership(ctx, profile._id);
-    if (!membership) {
-      return null;
-    }
-    const organization = (await ctx.db.get(membership.organizationId)) as any;
-    if (!organization) {
-      return null;
-    }
+    const { membership, organization } = await requireWorkspace(ctx);
     const members = await ctx.db
       .query("organizationMembers")
-      .withIndex("by_organizationId", (q) => q.eq("organizationId", organization._id))
-      .collect();
+      .withIndex("by_organizationId_and_status", (q) =>
+        q.eq("organizationId", organization._id).eq("status", "active"),
+      )
+      .take(100);
     const invites = await ctx.db
       .query("organizationInvites")
-      .withIndex("by_organizationId", (q) => q.eq("organizationId", organization._id))
-      .collect();
+      .withIndex("by_organizationId_and_status", (q) =>
+        q.eq("organizationId", organization._id).eq("status", "pending"),
+      )
+      .take(100);
 
     return {
       organization: {
@@ -317,7 +344,7 @@ export const getOrganizationSettingsState = query({
         email: invite.email,
         role: invite.role,
         status: invite.status,
-        token: invite.token,
+        token: invite._id,
         expiresAt: invite.expiresAt,
       })),
     };
@@ -330,41 +357,33 @@ export const createOrganizationInvite = mutation({
     role: membershipRoleValidator,
   },
   handler: async (ctx, args) => {
-    const authUser = await requireAuthUser(ctx);
-    const profile = await ensureProfile(ctx, {
-      _id: authUser._id,
-      email: authUser.email ?? "",
-      name: authUser.name ?? authUser.email ?? "Workspace user",
-    });
-    const membership = await getCurrentMembership(ctx, profile._id);
-    if (!membership || membership.role !== "manager") {
-      throw new Error("Only organization managers can invite new members.");
+    const { profile, membership } = await requireWorkspace(ctx);
+    if (!canManageOrganization(membership.role)) {
+      throw new Error("Only organization owners and managers can invite new members.");
+    }
+    const normalizedEmail = normalizeEmail(args.email);
+    const duplicate = await ctx.db
+      .query("organizationInvites")
+      .withIndex("by_email_and_status", (q) => q.eq("email", normalizedEmail).eq("status", "pending"))
+      .take(20);
+    const existing = duplicate.find((invite) => invite.organizationId === membership.organizationId);
+    if (existing) {
+      return { inviteId: existing._id, token: existing._id };
     }
     const now = Date.now();
-    const existing = await ctx.db
-      .query("organizationInvites")
-      .withIndex("by_organizationId", (q) => q.eq("organizationId", membership.organizationId))
-      .collect();
-    const normalizedEmail = normalizeEmail(args.email);
-    const duplicate = existing.find(
-      (invite) => invite.status === "pending" && normalizeEmail(invite.email) === normalizedEmail,
-    );
-    if (duplicate) {
-      return { inviteId: duplicate._id, token: duplicate.token };
-    }
+    const token = crypto.randomUUID();
     const inviteId = await ctx.db.insert("organizationInvites", {
       organizationId: membership.organizationId,
       inviterProfileId: profile._id,
       email: normalizedEmail,
       role: args.role,
-      token: crypto.randomUUID(),
+      tokenHash: await sha256Hex(token),
       status: "pending",
       expiresAt: now + 1000 * 60 * 60 * 24 * 7,
       createdAt: now,
       updatedAt: now,
     });
-    const invite = await ctx.db.get(inviteId);
-    return { inviteId, token: invite?.token ?? "" };
+    return { inviteId, token };
   },
 });
 
@@ -377,16 +396,8 @@ export const updateOrganizationProfile = mutation({
     phone: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const authUser = await requireAuthUser(ctx);
-    const profile = await ensureProfile(ctx, {
-      _id: authUser._id,
-      email: authUser.email ?? "",
-      name: authUser.name ?? authUser.email ?? "Workspace user",
-    });
-    const membership = await getCurrentMembership(ctx, profile._id);
-    if (!membership || membership.role !== "manager") {
-      throw new Error("Only organization managers can update organization settings.");
-    }
+    const { membership } = await requireWorkspace(ctx);
+    assertWorkspaceRole(membership.role, ["owner", "manager"]);
     await ctx.db.patch(membership.organizationId, {
       name: args.name.trim(),
       description: args.description?.trim() || undefined,

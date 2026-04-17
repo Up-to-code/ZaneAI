@@ -6,7 +6,13 @@ export const organizationTables = {
     name: v.string(),
     slug: v.string(),
     ownerProfileId: v.id("profiles"),
-    type: v.union(v.literal("broker"), v.literal("red")),
+    type: v.union(
+      v.literal("brokerage"),
+      v.literal("developer"),
+      v.literal("zane_ai"),
+      v.literal("broker"),
+      v.literal("red"),
+    ),
     status: v.union(v.literal("active"), v.literal("pending")),
     description: v.optional(v.string()),
     website: v.optional(v.string()),
@@ -21,7 +27,13 @@ export const organizationTables = {
   organizationMembers: defineTable({
     organizationId: v.id("organizations"),
     profileId: v.id("profiles"),
-    role: v.union(v.literal("manager"), v.literal("member"), v.literal("viewer")),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("manager"),
+      v.literal("editor"),
+      v.literal("viewer"),
+      v.literal("member"),
+    ),
     isDefault: v.boolean(),
     status: v.union(v.literal("active"), v.literal("inactive")),
     createdAt: v.number(),
@@ -29,21 +41,33 @@ export const organizationTables = {
   })
     .index("by_organizationId", ["organizationId"])
     .index("by_profileId", ["profileId"])
+    .index("by_profileId_and_status", ["profileId", "status"])
+    .index("by_organizationId_and_status", ["organizationId", "status"])
     .index("by_organizationId_and_profileId", ["organizationId", "profileId"]),
   organizationInvites: defineTable({
     organizationId: v.id("organizations"),
     inviterProfileId: v.id("profiles"),
     email: v.string(),
-    role: v.union(v.literal("manager"), v.literal("member"), v.literal("viewer")),
-    token: v.string(),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("manager"),
+      v.literal("editor"),
+      v.literal("viewer"),
+      v.literal("member"),
+    ),
+    tokenHash: v.optional(v.string()),
+    token: v.optional(v.string()),
     status: v.union(v.literal("pending"), v.literal("accepted"), v.literal("canceled")),
     expiresAt: v.number(),
     acceptedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
+    .index("by_tokenHash", ["tokenHash"])
     .index("by_token", ["token"])
     .index("by_email", ["email"])
+    .index("by_email_and_status", ["email", "status"])
     .index("by_organizationId", ["organizationId"])
+    .index("by_organizationId_and_status", ["organizationId", "status"])
     .index("by_inviterProfileId", ["inviterProfileId"]),
 };

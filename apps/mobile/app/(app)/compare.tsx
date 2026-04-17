@@ -30,12 +30,12 @@ export default function CompareScreen() {
   const comparePropertyIds = useAppStore((state) => state.comparePropertyIds);
   const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
   const toggleGuestMirrorSavedProperty = useAppStore((state) => state.toggleGuestMirrorSavedProperty);
-  const savedProperties = useSavedProperties();
-  const toggleSavedProperty = useMutation(api.property.public.toggleSavedProperty.toggleSavedProperty);
+  const savedListings = useSavedProperties();
+  const toggleSavedListing = useMutation(api.listings.toggleSavedListing);
   const compareProperties = usePropertiesByIds(comparePropertyIds);
   const savedPropertyIds = useMemo(
-    () => savedProperties.map((item: { propertyExternalId: string }) => item.propertyExternalId),
-    [savedProperties],
+    () => savedListings.map((item: { listingId: string }) => item.listingId),
+    [savedListings],
   );
 
   return (
@@ -135,7 +135,7 @@ export default function CompareScreen() {
                             if (e2eQaMode) {
                               toggleE2ESavedProperty(property.id);
                             } else if (isAuthenticated) {
-                              void toggleSavedProperty({ propertyExternalId: property.id });
+                              void toggleSavedListing({ listingId: property.id });
                             } else {
                               toggleGuestMirrorSavedProperty(property.id);
                             }

@@ -16,7 +16,7 @@ export default async function DownloadPage() {
                     <span className="text-primary italic">the Move.</span>
                 </h1>
                 <p className="text-xl md:text-2xl font-bold text-muted-foreground border-l-2 border-primary/20 pl-8 italic">
-                   Take the entire power of Zane-AI with you. Infrastructure in your pocket.
+                   Take the entire power of Zane-ai with you. Infrastructure in your pocket.
                 </p>
             </div>
         </div>

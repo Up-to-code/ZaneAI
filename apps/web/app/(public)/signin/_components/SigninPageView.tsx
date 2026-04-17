@@ -238,7 +238,7 @@ export default function SigninPageView({
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
             className="text-3xl font-black uppercase tracking-[0.28em] text-[var(--zane-ai-deep)] dark:text-white select-none"
           >
-            Zane-AI
+            Zane-ai
           </motion.span>
 
           {/* Shimmer bar */}
@@ -279,7 +279,7 @@ export default function SigninPageView({
               <Eye className="h-10 w-10 text-white dark:text-black" />
             </div>
             <h1 className="mb-0 text-5xl font-black uppercase tracking-[0.24em] text-[var(--zane-ai-deep)] dark:text-white lg:text-7xl">
-              Zane-AI
+              Zane-ai
             </h1>
           </div>
           <TypewriterText

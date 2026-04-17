@@ -152,7 +152,7 @@ export default async function HomePage() {
         
         <div className="mx-auto max-w-4xl px-8 text-center space-y-20">
             <p className="text-2xl md:text-4xl font-bold leading-tight italic text-foreground text-center border-l-4 border-primary/20 md:border-l-0 pl-8 md:pl-0 mx-auto">
-                "Zane AI is the connective layer real estate has never had — where buyer demand, team operations, and market intelligence act as one."
+                "Zane-ai is the connective layer real estate has never had — where buyer demand, team operations, and market intelligence act as one."
             </p>
             <div className="space-y-10">
                 <div className="h-1.5 w-24 bg-primary mx-auto" />

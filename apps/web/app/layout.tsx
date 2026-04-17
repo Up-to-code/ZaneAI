@@ -9,7 +9,7 @@ import WebAuthProvider from "./_components/WebAuthProvider";
 import ThemeProvider from "./theme-provider";
 
 export const metadata: Metadata = {
-  title: "Zane-AI - Coming Soon",
+  title: "Zane-ai - Coming Soon",
   description: "Advanced Institutional Real Estate Intelligence",
 };
 

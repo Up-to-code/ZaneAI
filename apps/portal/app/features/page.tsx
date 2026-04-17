@@ -21,7 +21,7 @@ export default async function FeaturesPage() {
               <span className="text-primary">Capabilities.</span>
             </h1>
             <p className="text-xl font-bold leading-relaxed text-muted-foreground max-w-2xl italic">
-              From predictive analytics to seamless broker-developer coordination, Zane-AI provides the high-fidelity infrastructure required for modern institutional real estate.
+              From predictive analytics to seamless broker-developer coordination, Zane-ai provides the high-fidelity infrastructure required for modern institutional real estate.
             </p>
           </div>
         </div>

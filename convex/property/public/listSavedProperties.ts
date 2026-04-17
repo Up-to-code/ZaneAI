@@ -1,22 +1,25 @@
 import { query } from "../../_generated/server";
-import { requireAuthUserId } from "../../auth/requireAuth";
-import { listPropertiesByExternalIds } from "../lib/search";
+import { requireProfile } from "../../core/lib";
+import { toPropertyCompat } from "../lib/catalog";
 
 export const listSavedProperties = query({
   args: {},
   handler: async (ctx) => {
-    const authUserId = await requireAuthUserId(ctx);
-    const saved = await ctx.db
-      .query("savedProperties")
-      .withIndex("by_authUserId", (q) => q.eq("authUserId", authUserId))
-      .take(50);
-    const properties = await listPropertiesByExternalIds(
-      ctx,
-      saved.map((item) => item.propertyExternalId),
+    const { profile } = await requireProfile(ctx);
+    const rows = await ctx.db
+      .query("savedListings")
+      .withIndex("by_profileId", (q) => q.eq("profileId", profile._id))
+      .order("desc")
+      .take(100);
+    return await Promise.all(
+      rows.map(async (row) => {
+        const listing = await ctx.db.get(row.listingId);
+        return {
+          ...row,
+          propertyExternalId: row.listingId,
+          property: listing ? toPropertyCompat(listing) : null,
+        };
+      }),
     );
-    return saved.map((item) => ({
-      ...item,
-      property: properties.find((property) => property.externalId === item.propertyExternalId) ?? null,
-    }));
   },
 });

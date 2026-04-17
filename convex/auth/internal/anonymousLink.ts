@@ -11,7 +11,9 @@ import { profileOwnerKey } from "../../shared/namespaces";
 const ROLE_PRIORITY = {
   viewer: 0,
   member: 1,
+  editor: 1,
   manager: 2,
+  owner: 3,
 } as const;
 
 function mergeRole(
@@ -84,6 +86,7 @@ export const linkAnonymousAccount = internalMutation({
         authUserId: args.newAuthUserId,
         email: args.newUserEmail,
         name: args.newUserName,
+        kind: "buyer",
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
@@ -138,10 +141,10 @@ export const linkAnonymousAccount = internalMutation({
         });
       }
 
-      for await (const workspaceProperty of ctx.db
-        .query("workspaceProperties")
+      for await (const project of ctx.db
+        .query("projects")
         .withIndex("by_createdByProfileId", (q) => q.eq("createdByProfileId", anonymousProfile._id))) {
-        await ctx.db.patch(workspaceProperty._id, {
+        await ctx.db.patch(project._id, {
           createdByProfileId: currentProfile._id,
           updatedAt: Date.now(),
         });
@@ -159,6 +162,7 @@ export const linkAnonymousAccount = internalMutation({
         authUserId: args.newAuthUserId,
         email: args.newUserEmail,
         name: args.newUserName,
+        kind: anonymousProfile.kind === "buyer" ? "buyer" : anonymousProfile.kind,
         updatedAt: Date.now(),
       });
       targetProfileId = anonymousProfile._id;
@@ -171,25 +175,27 @@ export const linkAnonymousAccount = internalMutation({
       targetProfileId = currentProfile._id;
     }
 
-    for await (const savedProperty of ctx.db
-      .query("savedProperties")
-      .withIndex("by_authUserId", (q) => q.eq("authUserId", args.anonymousAuthUserId))) {
-      const existingSavedProperty = await ctx.db
-        .query("savedProperties")
-        .withIndex("by_authUserId_and_propertyExternalId", (q) =>
-          q.eq("authUserId", args.newAuthUserId).eq("propertyExternalId", savedProperty.propertyExternalId),
-        )
-        .unique();
+    if (anonymousProfile && currentProfile) {
+      for await (const savedListing of ctx.db
+        .query("savedListings")
+        .withIndex("by_profileId", (q) => q.eq("profileId", anonymousProfile._id))) {
+        const existingSavedListing = await ctx.db
+          .query("savedListings")
+          .withIndex("by_profileId_and_listingId", (q) =>
+            q.eq("profileId", currentProfile._id).eq("listingId", savedListing.listingId),
+          )
+          .unique();
 
-      if (existingSavedProperty) {
-        if (savedProperty.savedAt < existingSavedProperty.savedAt) {
-          await ctx.db.patch(existingSavedProperty._id, { savedAt: savedProperty.savedAt });
+        if (existingSavedListing) {
+          if (savedListing.savedAt < existingSavedListing.savedAt) {
+            await ctx.db.patch(existingSavedListing._id, { savedAt: savedListing.savedAt });
+          }
+          await ctx.db.delete(savedListing._id);
+          continue;
         }
-        await ctx.db.delete(savedProperty._id);
-        continue;
-      }
 
-      await ctx.db.patch(savedProperty._id, { authUserId: args.newAuthUserId });
+        await ctx.db.patch(savedListing._id, { profileId: currentProfile._id });
+      }
     }
 
     for await (const run of ctx.db

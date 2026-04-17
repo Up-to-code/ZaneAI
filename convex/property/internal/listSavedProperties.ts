@@ -1,29 +1,28 @@
 import { v } from "convex/values";
 
 import { internalQuery } from "../../_generated/server";
-import { listPropertiesByExternalIds } from "../lib/search";
 
 export const listSavedProperties = internalQuery({
-  args: { authUserId: v.string() },
+  args: { profileId: v.id("profiles") },
   handler: async (ctx, args) => {
     const saved = await ctx.db
-      .query("savedProperties")
-      .withIndex("by_authUserId", (q) => q.eq("authUserId", args.authUserId))
-      .take(10);
-    const catalog = await listPropertiesByExternalIds(
-      ctx,
-      saved.map((item) => item.propertyExternalId),
+      .query("savedListings")
+      .withIndex("by_profileId", (q) => q.eq("profileId", args.profileId))
+      .order("desc")
+      .take(20);
+    return await Promise.all(
+      saved.map(async (row) => {
+        const listing = await ctx.db.get(row.listingId);
+        return {
+          listingId: row.listingId,
+          propertyExternalId: row.listingId,
+          title: listing?.title ?? row.listingId,
+          location: listing?.location,
+          priceLabel: listing?.priceLabel,
+          heroUrl: listing?.heroUrl,
+          savedAt: row.savedAt,
+        };
+      }),
     );
-    return saved.map((item) => {
-      const property = catalog.find((row) => row.externalId === item.propertyExternalId);
-      return {
-        externalId: item.propertyExternalId,
-        title: property?.title ?? item.propertyExternalId,
-        location: property?.location ?? "Unknown",
-        priceLabel: property?.priceLabel ?? "Unknown",
-        heroUrl: property?.heroUrl ?? "",
-        savedAt: item.savedAt,
-      };
-    });
   },
 });

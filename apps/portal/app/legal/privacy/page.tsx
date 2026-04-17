@@ -21,7 +21,7 @@ export default async function PrivacyPage() {
           <div className="space-y-16 pt-12">
             <LegalArticle title="1. Data Sovereignty" titleClassName="text-2xl font-black mb-4">
               <p className="text-lg font-medium text-muted-foreground leading-relaxed">
-                We utilize institutional-grade encryption for all data residing in the Zane-AI ecosystem. Your projects, communications, and client data are stored with absolute security at the core.
+                We utilize institutional-grade encryption for all data residing in the Zane-ai ecosystem. Your projects, communications, and client data are stored with absolute security at the core.
               </p>
             </LegalArticle>
 

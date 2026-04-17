@@ -21,19 +21,19 @@ export default async function TermsPage() {
           <div className="space-y-16 pt-12">
             <LegalArticle title="1. Agreement to Terms" titleClassName="text-2xl font-black mb-4">
               <p className="text-lg font-medium text-muted-foreground leading-relaxed">
-                By accessing or using the Zane-AI portal and Zane-AI workspace, you agree to be bound by these legal terms. These terms govern your institutional access to our real estate intelligence platform.
+                By accessing or using the Zane-ai portal and Zane-ai workspace, you agree to be bound by these legal terms. These terms govern your institutional access to our real estate intelligence platform.
               </p>
             </LegalArticle>
 
             <LegalArticle title="2. Intellectual Property" titleClassName="text-2xl font-black mb-4">
               <p className="text-lg font-medium text-muted-foreground leading-relaxed">
-                The "Pure Canvas" design system, brand graphics, and proprietary intelligence models are the exclusive property of Zane-AI Digital Solutions. Unauthorized reproduction is strictly prohibited.
+                The "Pure Canvas" design system, brand graphics, and proprietary intelligence models are the exclusive property of Zane-ai Digital Solutions. Unauthorized reproduction is strictly prohibited.
               </p>
             </LegalArticle>
 
             <LegalArticle title="3. Institutional Usage" titleClassName="text-2xl font-black mb-4">
               <p className="text-lg font-medium text-muted-foreground leading-relaxed">
-                Access to the workspace is strictly for certified real estate developers and licensed brokers. Zane-AI reserves the right to revoke access for non-compliance with regional regulatory standards.
+                Access to the workspace is strictly for certified real estate developers and licensed brokers. Zane-ai reserves the right to revoke access for non-compliance with regional regulatory standards.
               </p>
             </LegalArticle>
           </div>

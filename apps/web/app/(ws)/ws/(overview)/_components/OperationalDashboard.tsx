@@ -90,7 +90,7 @@ export default function OperationalDashboard({ workspaceState }: { workspaceStat
              Verified {workspaceState.audience}
            </div>
            <p className="mt-8 text-[11px] font-medium leading-relaxed tracking-widest text-[var(--zane-ai-text-muted)] dark:text-white/40">
-             Your workspace is authenticated within the Zane-AI partner network. All communications and property updates are encrypted and recorded.
+             Your workspace is authenticated within the Zane-ai partner network. All communications and property updates are encrypted and recorded.
            </p>
            <div className="mt-auto pt-12">
              <Link
@@ -125,7 +125,7 @@ export default function OperationalDashboard({ workspaceState }: { workspaceStat
           {
             title: "Support",
             id: "HELP-X",
-            desc: "Zane-AI partner support and technical documentation access.",
+            desc: "Zane-ai partner support and technical documentation access.",
             href: "/ws/help",
             icon: LifeBuoy,
             isComingSoon: true,

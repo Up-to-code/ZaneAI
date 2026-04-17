@@ -1,18 +1,16 @@
 import { agentTables } from "./agent";
+import { buyerTables } from "./buyer";
 import { knowledgeTables } from "./knowledge";
 import { organizationTables } from "./organizations";
 import { profileTables } from "./profile";
-import { propertyTables } from "./properties";
+import { realEstateTables } from "./realEstate";
 import { usageTables } from "./usage";
-import { workspacePropertyTables } from "./workspaceProperties";
-import { workspaceUnitTables } from "./workspaceUnits";
 
 export const appTables = {
   ...profileTables,
   ...organizationTables,
-  ...propertyTables,
-  ...workspacePropertyTables,
-  ...workspaceUnitTables,
+  ...realEstateTables,
+  ...buyerTables,
   ...agentTables,
   ...knowledgeTables,
   ...usageTables,

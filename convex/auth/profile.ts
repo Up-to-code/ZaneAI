@@ -5,6 +5,7 @@ export async function ensureProfile(ctx: MutationCtx, authUser: {
   _id: string;
   email: string;
   name: string;
+  kind?: Doc<"profiles">["kind"];
 }) {
   const existing = await ctx.db
     .query("profiles")
@@ -15,6 +16,7 @@ export async function ensureProfile(ctx: MutationCtx, authUser: {
     authUserId: authUser._id,
     email: authUser.email,
     name: authUser.name,
+    kind: authUser.kind ?? "buyer",
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });

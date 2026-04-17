@@ -67,7 +67,7 @@ export function useConversationController() {
   const startThreadMutation = useMutation(api.agent.public.startThread.startThread);
   const sendUserMessageMutation = useMutation(api.agent.public.sendUserMessage.sendUserMessage);
   const stopRunMutation = useMutation(api.agent.public.stopRun.stopRun);
-  const toggleSavedPropertyMutation = useMutation(api.property.public.toggleSavedProperty.toggleSavedProperty);
+  const toggleSavedListingMutation = useMutation(api.listings.toggleSavedListing);
   const runtimeHealth = useAgentRuntimeHealth();
   const resolvedThreadId = resolveActiveConversationThreadId({
     activeThreadId,
@@ -381,7 +381,7 @@ export function useConversationController() {
 
     if (action.name === "save_property") {
       if (isAuthenticated) {
-        await toggleSavedPropertyMutation({ propertyExternalId: action.payload.propertyId });
+        await toggleSavedListingMutation({ listingId: action.payload.propertyId });
       } else if (isGuest) {
         toggleGuestMirrorSavedProperty(action.payload.propertyId);
       }

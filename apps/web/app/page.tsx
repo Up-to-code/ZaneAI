@@ -123,7 +123,7 @@ export default async function LandingPage() {
           {/* Subtle Glow */}
           <div className="absolute -top-24 left-1/2 -z-10 h-[300px] w-full -translate-x-1/2 rounded-full bg-primary/5 blur-[100px]" />
           
-          <SectionLabel icon={BarChart3}>Scale with Zane-AI</SectionLabel>
+          <SectionLabel icon={BarChart3}>Scale with Zane-ai</SectionLabel>
           <h2 className="text-6xl font-black uppercase tracking-tighter sm:text-8xl lg:text-9xl leading-[0.8]">
             {dictionary.cta.title}
           </h2>

@@ -4,7 +4,7 @@ import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@anan/ag-ui/
 import { Users, Linkedin, Mail, Twitter } from "lucide-react";
 
 const TEAM_MEMBERS = [
-  { name: "Ahmed Mansour", role: "CEO & Founder", bio: "Leading the architectural vision of Zane-AI and institutional real estate intelligence.", image: null },
+  { name: "Ahmed Mansour", role: "CEO & Founder", bio: "Leading the architectural vision of Zane-ai and institutional real estate intelligence.", image: null },
   { name: "Sarah Chen", role: "Head of AI", bio: "Architecting the predictive models and intelligence layers powering the portal.", image: null },
   { name: "Marcus Stone", role: "Director of Operations", bio: "Ensuring seamless coordination between developers and brokers globally.", image: null },
   { name: "Elena Rossi", role: "Chief Design Officer", bio: "The visionary behind the Pure Canvas aesthetic and institutional UI.", image: null },

@@ -8,8 +8,8 @@ import { WebLocaleProvider, Navbar, Footer } from "@/components/ui/portal";
 import ThemeProvider from "./theme-provider";
 
 export const metadata: Metadata = {
-  title: "Zane-AI | Real Estate Intelligence",
-  description: "The main portal for Zane-AI - Advanced Institutional Real Estate Intelligence",
+  title: "Zane-ai | Real Estate Intelligence",
+  description: "The main portal for Zane-ai - Advanced Institutional Real Estate Intelligence",
 };
 
 export default async function RootLayout({

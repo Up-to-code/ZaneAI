@@ -85,7 +85,7 @@ function WorkspaceOnboarding({
         {/* Brand & Content Section */}
         <section className="flex flex-col justify-center text-center lg:text-left" dir="ltr">
           <h1 className="mb-12 text-6xl font-black uppercase tracking-[0.3em] text-[var(--zane-ai-deep)] dark:text-white lg:text-8xl">
-            Zane-AI
+            Zane-ai
           </h1>
           <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-[var(--zane-ai-line)] bg-[var(--zane-ai-deep)]/[0.03] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] backdrop-blur-md dark:border-white/10 dark:bg-white/[0.03] dark:text-white/50">
             Workspace Protocol

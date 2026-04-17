@@ -27,7 +27,7 @@ export default async function LegalPage() {
                 Transparency by <span className="text-primary">Design.</span>
              </h1>
              <p className="text-lg md:text-xl font-bold text-muted-foreground leading-relaxed max-w-2xl">
-                We believe in clear, institutional-grade standards for every interaction in the Zane-AI ecosystem.
+                We believe in clear, institutional-grade standards for every interaction in the Zane-ai ecosystem.
              </p>
           </div>
 

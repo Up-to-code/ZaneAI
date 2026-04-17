@@ -1,151 +1,130 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireAuthUser } from "./auth/requireAuth";
-import { ensureProfile } from "./auth/profile";
+import { canManageInventory, requireWorkspace } from "./core/lib";
 
-async function getCurrentMembership(ctx: any, profileId: any) {
-  const memberships = await ctx.db
-    .query("organizationMembers")
-    .withIndex("by_profileId", (q: any) => q.eq("profileId", profileId))
-    .collect();
-  return memberships.find((m: any) => m.isDefault) ?? memberships[0] ?? null;
+const unitTypeValidator = v.union(
+  v.literal("apartment"),
+  v.literal("villa"),
+  v.literal("duplex"),
+  v.literal("studio"),
+  v.literal("penthouse"),
+  v.literal("townhouse"),
+  v.literal("commercial"),
+);
+
+const unitStatusValidator = v.union(
+  v.literal("available"),
+  v.literal("reserved"),
+  v.literal("sold"),
+);
+
+function toClientUnit<T extends { availability: string }>(unit: T) {
+  return { ...unit, status: unit.availability };
 }
-
-async function requireWorkspaceContext(ctx: any) {
-  const authUser = await requireAuthUser(ctx);
-  const profile = await ensureProfile(ctx, {
-    _id: authUser._id,
-    email: authUser.email ?? "",
-    name: authUser.name ?? authUser.email ?? "Workspace user",
-  });
-  const membership = await getCurrentMembership(ctx, profile._id);
-  if (!membership) {
-    throw new Error("Create or join an organization before managing units.");
-  }
-  return { authUser, profile, membership };
-}
-
-// ── Queries ─────────────────────────────────────────────
 
 export const listProjectUnits = query({
-  args: {
-    projectId: v.id("workspaceProperties"),
-  },
+  args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspaceContext(ctx);
+    const { membership } = await requireWorkspace(ctx);
     const project = await ctx.db.get(args.projectId);
     if (!project || project.organizationId !== membership.organizationId) {
       return [];
     }
     const rows = await ctx.db
-      .query("workspaceUnits")
-      .withIndex("by_projectId", (q) => q.eq("projectId", args.projectId))
-      .collect();
-    return rows.sort((a, b) => b.updatedAt - a.updatedAt);
+      .query("units")
+      .withIndex("by_projectId_and_publicationState", (q) => q.eq("projectId", args.projectId))
+      .order("desc")
+      .take(100);
+    return rows.map(toClientUnit);
   },
 });
 
 export const listWorkspaceUnits = query({
   args: {},
   handler: async (ctx) => {
-    const { membership } = await requireWorkspaceContext(ctx);
+    const { membership } = await requireWorkspace(ctx);
     const rows = await ctx.db
-      .query("workspaceUnits")
-      .withIndex("by_organizationId", (q) => q.eq("organizationId", membership.organizationId))
-      .collect();
-    return rows.sort((a, b) => b.updatedAt - a.updatedAt);
+      .query("units")
+      .withIndex("by_organizationId_and_publicationState", (q) => q.eq("organizationId", membership.organizationId))
+      .order("desc")
+      .take(100);
+    return rows.map(toClientUnit);
   },
 });
 
 export const getUnit = query({
-  args: {
-    unitId: v.id("workspaceUnits"),
-  },
+  args: { unitId: v.id("units") },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspaceContext(ctx);
+    const { membership } = await requireWorkspace(ctx);
     const unit = await ctx.db.get(args.unitId);
     if (!unit || unit.organizationId !== membership.organizationId) {
       return null;
     }
-    return unit;
+    return toClientUnit(unit);
   },
 });
 
 export const getProjectUnitCounts = query({
-  args: {
-    projectId: v.id("workspaceProperties"),
-  },
+  args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspaceContext(ctx);
+    const { membership } = await requireWorkspace(ctx);
     const project = await ctx.db.get(args.projectId);
     if (!project || project.organizationId !== membership.organizationId) {
       return { total: 0, available: 0, reserved: 0, sold: 0 };
     }
     const units = await ctx.db
-      .query("workspaceUnits")
-      .withIndex("by_projectId", (q) => q.eq("projectId", args.projectId))
-      .collect();
+      .query("units")
+      .withIndex("by_projectId_and_publicationState", (q) => q.eq("projectId", args.projectId))
+      .take(100);
     return {
       total: units.length,
-      available: units.filter((u) => u.status === "available").length,
-      reserved: units.filter((u) => u.status === "reserved").length,
-      sold: units.filter((u) => u.status === "sold").length,
+      available: units.filter((unit) => unit.availability === "available").length,
+      reserved: units.filter((unit) => unit.availability === "reserved").length,
+      sold: units.filter((unit) => unit.availability === "sold").length,
     };
   },
 });
 
-// ── Mutations ───────────────────────────────────────────
-
 export const createUnit = mutation({
   args: {
-    projectId: v.id("workspaceProperties"),
+    projectId: v.id("projects"),
     label: v.string(),
-    unitType: v.union(
-      v.literal("apartment"),
-      v.literal("villa"),
-      v.literal("duplex"),
-      v.literal("studio"),
-      v.literal("penthouse"),
-      v.literal("townhouse"),
-      v.literal("commercial"),
-    ),
+    unitType: unitTypeValidator,
     floor: v.optional(v.string()),
     bedrooms: v.optional(v.number()),
     bathrooms: v.optional(v.number()),
     area: v.optional(v.string()),
     priceLabel: v.optional(v.string()),
-    status: v.union(
-      v.literal("available"),
-      v.literal("reserved"),
-      v.literal("sold"),
-    ),
+    status: unitStatusValidator,
     description: v.optional(v.string()),
     image: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { profile, membership } = await requireWorkspaceContext(ctx);
-
-    // Verify project belongs to this organization
+    const { profile, membership } = await requireWorkspace(ctx);
+    if (!canManageInventory(membership.role)) {
+      throw new Error("You do not have permission to create unit drafts.");
+    }
     const project = await ctx.db.get(args.projectId);
     if (!project || project.organizationId !== membership.organizationId) {
       throw new Error("Project not found.");
     }
 
     const now = Date.now();
-    const unitId = await ctx.db.insert("workspaceUnits", {
+    const unitId = await ctx.db.insert("units", {
       organizationId: membership.organizationId,
       projectId: args.projectId,
       createdByProfileId: profile._id,
       label: args.label.trim(),
       unitType: args.unitType,
+      listingType: "sale",
       floor: args.floor?.trim() || undefined,
       bedrooms: args.bedrooms,
       bathrooms: args.bathrooms,
       area: args.area?.trim() || undefined,
       priceLabel: args.priceLabel?.trim() || undefined,
-      status: args.status,
+      availability: args.status,
+      publicationState: "draft",
       description: args.description?.trim() || undefined,
-      image: args.image || undefined,
       createdAt: now,
       updatedAt: now,
     });
@@ -155,34 +134,25 @@ export const createUnit = mutation({
 
 export const updateUnit = mutation({
   args: {
-    unitId: v.id("workspaceUnits"),
+    unitId: v.id("units"),
     data: v.object({
       label: v.string(),
-      unitType: v.union(
-        v.literal("apartment"),
-        v.literal("villa"),
-        v.literal("duplex"),
-        v.literal("studio"),
-        v.literal("penthouse"),
-        v.literal("townhouse"),
-        v.literal("commercial"),
-      ),
+      unitType: unitTypeValidator,
       floor: v.optional(v.string()),
       bedrooms: v.optional(v.number()),
       bathrooms: v.optional(v.number()),
       area: v.optional(v.string()),
       priceLabel: v.optional(v.string()),
-      status: v.union(
-        v.literal("available"),
-        v.literal("reserved"),
-        v.literal("sold"),
-      ),
+      status: unitStatusValidator,
       description: v.optional(v.string()),
       image: v.optional(v.string()),
     }),
   },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspaceContext(ctx);
+    const { membership } = await requireWorkspace(ctx);
+    if (!canManageInventory(membership.role)) {
+      throw new Error("You do not have permission to update units.");
+    }
     const unit = await ctx.db.get(args.unitId);
     if (!unit || unit.organizationId !== membership.organizationId) {
       throw new Error("Unit not found.");
@@ -195,9 +165,9 @@ export const updateUnit = mutation({
       bathrooms: args.data.bathrooms,
       area: args.data.area?.trim() || undefined,
       priceLabel: args.data.priceLabel?.trim() || undefined,
-      status: args.data.status,
+      availability: args.data.status,
+      publicationState: unit.publicationState === "published" ? "ready" : unit.publicationState,
       description: args.data.description?.trim() || undefined,
-      image: args.data.image || undefined,
       updatedAt: Date.now(),
     });
     return { ok: true };
@@ -205,16 +175,24 @@ export const updateUnit = mutation({
 });
 
 export const deleteUnit = mutation({
-  args: {
-    unitId: v.id("workspaceUnits"),
-  },
+  args: { unitId: v.id("units") },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspaceContext(ctx);
+    const { membership } = await requireWorkspace(ctx);
+    if (!canManageInventory(membership.role)) {
+      throw new Error("You do not have permission to delete units.");
+    }
     const unit = await ctx.db.get(args.unitId);
     if (!unit || unit.organizationId !== membership.organizationId) {
       throw new Error("Unit not found.");
     }
-    await ctx.db.delete(args.unitId);
+    if (unit.publishedListingId) {
+      await ctx.db.patch(unit.publishedListingId, { status: "archived", updatedAt: Date.now() });
+    }
+    await ctx.db.patch(args.unitId, {
+      publicationState: "archived",
+      availability: "hidden",
+      updatedAt: Date.now(),
+    });
     return { ok: true };
   },
 });

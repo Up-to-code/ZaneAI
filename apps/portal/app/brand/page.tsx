@@ -39,7 +39,7 @@ export default function BrandIdentityPage() {
               <span className="text-primary italic">Identity Framework.</span>
             </h1>
             <p className="text-xl font-bold leading-relaxed text-muted-foreground max-w-2xl italic">
-              Explore the design language and technical foundations that power the Zane-AI operating layer—built for high-precision institutional property tech.
+              Explore the design language and technical foundations that power the Zane-ai operating layer—built for high-precision institutional property tech.
             </p>
           </div>
         </div>

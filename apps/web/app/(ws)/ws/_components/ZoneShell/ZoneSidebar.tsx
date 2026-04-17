@@ -31,7 +31,7 @@ export default function ZoneSidebar({
       {/* Brand Header */}
       <div className="flex h-14 shrink-0 items-center border-b border-white/[0.06] px-5">
         <span className="text-lg font-black tracking-tight text-[var(--zane-ai-accent)]">
-          Zane-AI
+          Zane-ai
         </span>
       </div>
 
