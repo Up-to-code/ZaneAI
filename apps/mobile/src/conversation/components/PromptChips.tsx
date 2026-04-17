@@ -42,7 +42,7 @@ export function PromptChips({
       horizontal
       showsHorizontalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
-      style={[styles.container, containerStyle]}
+      style={[styles.container, containerStyle, isAr && { alignSelf: "flex-end" }]}
       contentContainerStyle={[
         styles.scrollContent, 
         isAr && { flexDirection: "row-reverse" }, 

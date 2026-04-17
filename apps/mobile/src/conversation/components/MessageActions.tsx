@@ -52,8 +52,6 @@ export function MessageActions({ text, isArabic }: MessageActionsProps) {
         )}
       </Pressable>
 
-      <View style={styles.spacer} />
-
       <Pressable onPress={onAction} style={styles.actionButton}>
         <ThumbsUp size={iconSize} color={iconColor} />
       </Pressable>
@@ -70,7 +68,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 2, // Further reduced from 4 for "tight" layout
-    gap: 12,
+    gap: 8,
   },
   containerRtl: {
     flexDirection: "row-reverse",
@@ -78,8 +76,5 @@ const styles = StyleSheet.create({
   actionButton: {
     padding: 4,
     borderRadius: 6,
-  },
-  spacer: {
-    width: 2,
   },
 });

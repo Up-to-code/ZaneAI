@@ -265,14 +265,19 @@ export function AssistantTurnRenderer({
   const fullText = useMemo(() => {
     return turn.blocks
       .map((b) => {
-        if ("body" in b) return b.body || "";
-        if ("summary" in b) return b.summary || "";
-        if ("prompt" in b) return b.prompt || "";
-        return "";
+        let text = "";
+        if ("body" in b) text += (b.body || "");
+        if ("summary" in b) text += (b.summary || "");
+        if ("prompt" in b) text += (b.prompt || "");
+        if ("title" in b) text += (b.title || "");
+        if ("points" in b) text += (b.points?.join(" ") || "");
+        if ("bullets" in b) text += (b.bullets?.join(" ") || "");
+        if ("options" in b) text += (b.options?.join(" ") || "");
+        return text;
       })
       .filter(Boolean)
-      .join("\n\n");
-  }, [turn.blocks]);
+      .join("\n\n") + " " + (turn.assistantText || "");
+  }, [turn.blocks, turn.assistantText]);
 
   const isAr = isArabic(fullText);
 
@@ -311,8 +316,9 @@ function renderBlockSuggestions(
     // Localize common system prompts
     let label = s;
     if (isAr) {
-      if (s.toLowerCase() === "continue") label = "استمرار";
-      if (s.toLowerCase() === "stop") label = "توقف";
+      const normalized = s.toLowerCase().replace(/[.!?]/g, "").trim();
+      if (normalized === "continue") label = "استمرار";
+      if (normalized === "stop") label = "توقف";
     }
 
     return {

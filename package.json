@@ -18,7 +18,10 @@
     "maestro:smoke": "npm --workspace apps/mobile run maestro:smoke",
     "agent:smoke": "tsx scripts/agent-smoke.ts",
     "convex:dev": "npm --workspace apps/mobile run convex:dev",
-    "convex:codegen": "npm --workspace apps/mobile run convex:codegen"
+    "convex:codegen": "npm --workspace apps/mobile run convex:codegen",
+    "portal:dev": "npm --workspace @anan/portal run dev",
+    "portal:build": "npm --workspace @anan/portal run build",
+    "portal:lint": "npm --workspace @anan/portal run lint"
   },
   "devDependencies": {
     "@types/node": "^20.17.15",
