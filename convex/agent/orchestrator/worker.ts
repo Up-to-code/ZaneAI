@@ -18,6 +18,9 @@ import type {
   AssistantTurn,
 } from "../../../packages/zayon-assistant-protocol/src";
 import { assistantAgents } from "./registry";
+import { logAgentEvent } from "../lib/debugLog";
+
+const WORKER_HEARTBEAT_INTERVAL_MS = 10_000;
 
 type WorkerRunInput = {
   runId: string;
@@ -668,10 +671,17 @@ async function getRunState(client: ConvexClient, runId: string) {
   });
 }
 
+class RunCancelledError extends Error {
+  constructor() {
+    super("Run cancelled before workflow step completed.");
+    this.name = "RunCancelledError";
+  }
+}
+
 async function ensureRunActive(client: ConvexClient, runId: string) {
   const run = await getRunState(client, runId);
   if (!run || run.stopRequestedAt || run.status === "cancelled") {
-    throw new Error("Run cancelled before workflow step completed.");
+    throw new RunCancelledError();
   }
 
   return run;
@@ -699,9 +709,31 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
   const client = new ConvexClient(process.env.CONVEX_URL!);
 
   try {
-    await client.mutation(api.agent.orchestrator.runtime.markRunRunning, {
+    logAgentEvent("info", {
+      scope: "agent_worker",
+      event: "workflow_started",
+      runId: input.runId,
+      threadId: input.threadId,
+      authUserId: input.authUserId,
+      promptLength: input.prompt.length,
+    });
+    const markedRunning = await client.mutation(api.agent.orchestrator.runtime.markRunRunning, {
       runId: input.runId as never,
     });
+    if (!markedRunning) {
+      logAgentEvent("warn", {
+        scope: "agent_worker",
+        event: "workflow_skipped_cancelled",
+        runId: input.runId,
+        threadId: input.threadId,
+        authUserId: input.authUserId,
+        reasonCode: "workflow_cancelled",
+      });
+      return {
+        runId: input.runId,
+        status: "cancelled" as const,
+      };
+    }
 
     await emitStage(client, {
       runId: input.runId,
@@ -713,6 +745,15 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
     });
 
     const routing = await ctx.step("classify-turn", async () => routePrompt(input.prompt));
+    logAgentEvent("info", {
+      scope: "agent_worker",
+      event: "worker_route",
+      runId: input.runId,
+      threadId: input.threadId,
+      route: routing.route,
+      specialists: routing.specialists,
+      motionPreset: routing.motionPreset,
+    });
 
     await client.mutation(api.agent.orchestrator.runtime.setRunRoute, {
       runId: input.runId as never,
@@ -737,6 +778,14 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
     const specialistResults: WorkflowSpecialistResult = {};
 
     for (const [index, specialist] of routing.specialists.entries()) {
+      const specialistStartedAt = Date.now();
+      logAgentEvent("info", {
+        scope: "agent_worker",
+        event: "specialist_started",
+        runId: input.runId,
+        threadId: input.threadId,
+        specialist,
+      });
       await emitStage(client, {
         runId: input.runId,
         seq: 200 + index * 20,
@@ -770,6 +819,14 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
         route: routing.route,
         specialist,
         motionPreset: assistantAgents.find((agent) => agent.id === specialist)?.motionPreset ?? routing.motionPreset,
+      });
+      logAgentEvent("info", {
+        scope: "agent_worker",
+        event: "specialist_done",
+        runId: input.runId,
+        threadId: input.threadId,
+        specialist,
+        durationMs: Date.now() - specialistStartedAt,
       });
     }
 
@@ -830,10 +887,17 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
         turnStatus: turn.status,
         turnJson: JSON.stringify(turn),
         metaJson: JSON.stringify({
-          workflowId: input.runId,
           diagnostics: [],
         }),
         diagnostics: [],
+      });
+      logAgentEvent("info", {
+        scope: "agent_worker",
+        event: "persist_done",
+        runId: input.runId,
+        threadId: input.threadId,
+        turnStatus: turn.status,
+        propertyIdsCount: extractTurnPropertyIds(turn).length,
       });
 
       return { persisted: true };
@@ -857,6 +921,30 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (error instanceof RunCancelledError) {
+      logAgentEvent("warn", {
+        scope: "agent_worker",
+        event: "run_cancelled",
+        runId: input.runId,
+        threadId: input.threadId,
+        authUserId: input.authUserId,
+        reasonCode: "workflow_cancelled",
+        error: message,
+      });
+      return {
+        runId: input.runId,
+        status: "cancelled" as const,
+      };
+    }
+    logAgentEvent("error", {
+      scope: "agent_worker",
+      event: "run_failed",
+      runId: input.runId,
+      threadId: input.threadId,
+      authUserId: input.authUserId,
+      reasonCode: message.toLowerCase().includes("cancel") ? "workflow_cancelled" : "workflow_failed",
+      error: message,
+    });
 
     await client.mutation(api.agent.orchestrator.runtime.failRun, {
       runId: input.runId as never,
@@ -872,14 +960,91 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
 export async function startAgentWorker() {
   const convexUrl = process.env.CONVEX_URL;
   if (!convexUrl) {
+    logAgentEvent("error", {
+      scope: "agent_worker",
+      event: "worker_start_failed",
+      reasonCode: "workflow_failed",
+      error: "Missing CONVEX_URL for agent worker.",
+    });
     throw new Error("Missing CONVEX_URL for agent worker.");
   }
 
   const client = new ConvexClient(convexUrl);
+  const workerId = `agent-worker:${process.pid}`;
   const worker = createWorker(client, api.agent.orchestrator.api, {
     workflows: [agentTurnWorkflow],
     maxConcurrentWorkflows: 2,
   });
+  logAgentEvent("info", {
+    scope: "agent_worker",
+    event: "worker_starting",
+    workerId,
+    maxConcurrentWorkflows: 2,
+  });
 
-  await worker.start();
+  await client.mutation(api.agent.orchestrator.runtime.heartbeatWorker, {
+    workerId,
+    version: "agent-worker.v1",
+  });
+  logAgentEvent("info", {
+    scope: "agent_worker",
+    event: "worker_heartbeat_sent",
+    workerId,
+  });
+
+  const heartbeatTimer = setInterval(() => {
+    void client.mutation(api.agent.orchestrator.runtime.heartbeatWorker, {
+      workerId,
+      version: "agent-worker.v1",
+    }).catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      logAgentEvent("error", {
+        scope: "agent_worker",
+        event: "worker_heartbeat_failed",
+        workerId,
+        reasonCode: "worker_offline",
+        error: message,
+      });
+    });
+  }, WORKER_HEARTBEAT_INTERVAL_MS);
+
+  let shutdownRequested = false;
+  const shutdownListeners: Array<() => void> = [];
+  const waitForShutdownSignal = () =>
+    new Promise<void>((resolve) => {
+      const onSignal = () => {
+        if (shutdownRequested) {
+          return;
+        }
+        shutdownRequested = true;
+        resolve();
+      };
+      process.once("SIGINT", onSignal);
+      process.once("SIGTERM", onSignal);
+      shutdownListeners.push(() => {
+        process.off("SIGINT", onSignal);
+        process.off("SIGTERM", onSignal);
+      });
+    });
+
+  try {
+    await worker.start();
+    logAgentEvent("info", {
+      scope: "agent_worker",
+      event: "worker_started",
+      workerId,
+    });
+    await waitForShutdownSignal();
+  } finally {
+    for (const dispose of shutdownListeners) {
+      dispose();
+    }
+    clearInterval(heartbeatTimer);
+    logAgentEvent("warn", {
+      scope: "agent_worker",
+      event: "worker_stopped",
+      workerId,
+    });
+    client.close();
+  }
 }

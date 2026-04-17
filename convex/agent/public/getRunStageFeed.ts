@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { internal } from "../../_generated/api";
 import { query } from "../../_generated/server";
 import { requireAuthUserId } from "../../auth/requireAuth";
+import { logAgentEvent } from "../lib/debugLog";
 import { findThreadAccess } from "../lib/threadAccess";
 
 const assistantStagePhases = new Set([
@@ -38,11 +39,41 @@ export const getRunStageFeed = query({
     const authUserId = await requireAuthUserId(ctx);
     const thread = await findThreadAccess(ctx, args.threadId, authUserId);
     if (!thread) {
+      logAgentEvent("warn", {
+        scope: "stage_feed",
+        event: "run_stage_feed_thread_access_missing",
+        reasonCode: "thread_not_found",
+        authUserId,
+        threadId: args.threadId,
+        runId: String(args.runId),
+      });
       return [];
     }
 
     const run = await ctx.runQuery(internal.agent.internal.runs.getRun, { runId: args.runId });
-    if (!run || run.threadId !== args.threadId || run.authUserId !== authUserId) {
+    if (!run) {
+      logAgentEvent("warn", {
+        scope: "stage_feed",
+        event: "run_stage_feed_missing",
+        reasonCode: "run_not_found",
+        authUserId,
+        threadId: args.threadId,
+        runId: String(args.runId),
+      });
+      return [];
+    }
+
+    if (run.threadId !== args.threadId || run.authUserId !== authUserId) {
+      logAgentEvent("warn", {
+        scope: "stage_feed",
+        event: "run_stage_feed_access_mismatch",
+        reasonCode: "run_access_mismatch",
+        authUserId,
+        threadId: args.threadId,
+        runId: String(args.runId),
+        runThreadId: run.threadId,
+        runAuthUserId: run.authUserId,
+      });
       return [];
     }
 
@@ -51,6 +82,18 @@ export const getRunStageFeed = query({
       .withIndex("by_runId_and_seq", (q) => q.eq("runId", args.runId))
       .order("asc")
       .take(40);
+
+    if (rows.length === 0 && (run.status === "queued" || run.status === "running")) {
+      logAgentEvent("warn", {
+        scope: "stage_feed",
+        event: "run_stage_feed_empty",
+        authUserId,
+        threadId: args.threadId,
+        runId: String(args.runId),
+        workflowId: run.workflowId,
+        runStatus: run.status,
+      });
+    }
 
     return rows
       .filter((row) => row.eventType === "stage" && isAssistantStagePhase(row.phase))

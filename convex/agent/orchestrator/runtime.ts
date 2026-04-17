@@ -3,6 +3,7 @@ import { v } from "convex/values";
 
 import { mutation, query } from "../../_generated/server";
 import { agentComponent } from "../lib/component";
+import { logAgentEvent } from "../lib/debugLog";
 
 const routeValidator = v.union(
   v.literal("advisor"),
@@ -73,11 +74,69 @@ export const getRunForWorker = query({
   },
 });
 
+export const heartbeatWorker = mutation({
+  args: {
+    workerId: v.string(),
+    version: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const existing = await ctx.db
+      .query("agentWorkers")
+      .withIndex("by_workerId", (q) => q.eq("workerId", args.workerId))
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        status: "online",
+        version: args.version ?? existing.version,
+        lastHeartbeatAt: now,
+        updatedAt: now,
+      });
+      logAgentEvent("info", {
+        scope: "orchestrator_runtime",
+        event: "worker_heartbeat_recorded",
+        workerId: args.workerId,
+        workerRecordId: String(existing._id),
+        lastHeartbeatAt: now,
+        version: args.version ?? existing.version ?? null,
+      });
+      return existing._id;
+    }
+
+    const workerRecordId = await ctx.db.insert("agentWorkers", {
+      workerId: args.workerId,
+      status: "online",
+      version: args.version,
+      startedAt: now,
+      lastHeartbeatAt: now,
+      updatedAt: now,
+    });
+    logAgentEvent("info", {
+      scope: "orchestrator_runtime",
+      event: "worker_registered",
+      workerId: args.workerId,
+      workerRecordId: String(workerRecordId),
+      lastHeartbeatAt: now,
+      version: args.version ?? null,
+    });
+    return workerRecordId;
+  },
+});
+
 export const markRunRunning = mutation({
   args: { runId: v.id("agentRuns") },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
     if (!run || run.stopRequestedAt) {
+      logAgentEvent("warn", {
+        scope: "orchestrator_runtime",
+        event: "run_mark_running_skipped",
+        reasonCode: run?.stopRequestedAt ? "workflow_cancelled" : "run_not_found",
+        runId: String(args.runId),
+        threadId: run?.threadId,
+        workflowId: run?.workflowId,
+      });
       return false;
     }
 
@@ -85,6 +144,14 @@ export const markRunRunning = mutation({
       status: "running",
       startedAt: run.startedAt ?? Date.now(),
       updatedAt: Date.now(),
+    });
+    logAgentEvent("info", {
+      scope: "orchestrator_runtime",
+      event: "run_marked_running",
+      runId: String(args.runId),
+      threadId: run.threadId,
+      authUserId: run.authUserId,
+      workflowId: run.workflowId,
     });
     return true;
   },
@@ -100,6 +167,14 @@ export const setRunRoute = mutation({
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
     if (!run || run.stopRequestedAt) {
+      logAgentEvent("warn", {
+        scope: "orchestrator_runtime",
+        event: "set_run_route_skipped",
+        reasonCode: run?.stopRequestedAt ? "workflow_cancelled" : "run_not_found",
+        runId: String(args.runId),
+        threadId: run?.threadId,
+        workflowId: run?.workflowId,
+      });
       return false;
     }
 
@@ -236,6 +311,16 @@ export const completeRun = mutation({
       completedAt: Date.now(),
       updatedAt: Date.now(),
     });
+    logAgentEvent("info", {
+      scope: "orchestrator_runtime",
+      event: "run_completed",
+      runId: String(args.runId),
+      threadId: run.threadId,
+      authUserId: run.authUserId,
+      workflowId: run.workflowId,
+      messageId,
+      diagnosticsCount: args.diagnostics.length,
+    });
 
     return true;
   },
@@ -249,6 +334,14 @@ export const failRun = mutation({
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
     if (!run || run.stopRequestedAt) {
+      logAgentEvent("warn", {
+        scope: "orchestrator_runtime",
+        event: "fail_run_skipped",
+        reasonCode: run?.stopRequestedAt ? "workflow_cancelled" : "run_not_found",
+        runId: String(args.runId),
+        threadId: run?.threadId,
+        workflowId: run?.workflowId,
+      });
       return false;
     }
 
@@ -257,6 +350,16 @@ export const failRun = mutation({
       diagnostics: args.diagnostics,
       completedAt: Date.now(),
       updatedAt: Date.now(),
+    });
+    logAgentEvent("error", {
+      scope: "orchestrator_runtime",
+      event: "run_failed_persisted",
+      reasonCode: "workflow_failed",
+      runId: String(args.runId),
+      threadId: run.threadId,
+      authUserId: run.authUserId,
+      workflowId: run.workflowId,
+      diagnostics: args.diagnostics,
     });
     return true;
   },

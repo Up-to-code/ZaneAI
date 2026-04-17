@@ -84,24 +84,27 @@ export function ConversationStatusBanner({
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
     marginHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
     marginBottom: theme.spacing.xs,
     padding: theme.spacing.md,
     borderRadius: theme.radii.md,
-    backgroundColor: `${colors.surface}F2`, // Slightly more opaque translucent
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.divider,
     gap: theme.spacing.xs,
-    // Soft, airy shadow for definition without borders
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
     elevation: 4,
   },
   warning: {
-    backgroundColor: `${colors.accent}12`,
+    backgroundColor: "#FFF6E8",
+    borderColor: "#F59E0B33",
   },
   error: {
-    backgroundColor: "#EF444412",
+    backgroundColor: "#FEF2F2",
+    borderColor: "#FCA5A5",
   },
   headerRow: {
     flexDirection: "row",
@@ -122,7 +125,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   body: {
     fontSize: 13,
     lineHeight: 18,
-    color: colors.textSecondary,
+    color: colors.textPrimary,
   },
   actionRow: {
     marginTop: theme.spacing.xs,
@@ -153,5 +156,4 @@ const createStyles = (colors: any) => StyleSheet.create({
     padding: 4,
   },
 });
-
 

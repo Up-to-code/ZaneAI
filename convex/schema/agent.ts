@@ -32,6 +32,16 @@ const motionPreset = v.union(
 );
 
 export const agentTables = {
+  agentWorkers: defineTable({
+    workerId: v.string(),
+    status: v.union(v.literal("online"), v.literal("stopped")),
+    version: v.optional(v.string()),
+    startedAt: v.number(),
+    lastHeartbeatAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_workerId", ["workerId"])
+    .index("by_lastHeartbeatAt", ["lastHeartbeatAt"]),
   agentRuns: defineTable({
     authUserId: v.string(),
     threadId: v.string(),

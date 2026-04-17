@@ -1,13 +1,12 @@
-import { startTransition, useEffect, useRef } from "react";
+import { startTransition, useEffect, useMemo, useRef } from "react";
 import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 
 import type { AssistantAction } from "@/conversation/assistantProtocol";
 import {
-  ASSISTANT_PENDING_TIMEOUT_MS,
-  hasPendingRunTimedOut,
   shouldResolveCompletedRunWithoutAssistant,
 } from "@/conversation/lib/pendingRun";
+import { getPendingRunTimeoutSnapshot } from "@/conversation/lib/runProgress";
 import { useAuthSession } from "@/auth/useAuthSession";
 import {
   canQueryConversationThread,
@@ -27,11 +26,35 @@ import {
   useThreadMessages,
   useThreadsState,
 } from "@/persistence/convex/useConversationData";
+import { getConvexUrl } from "@/runtime/expoRuntime";
 import { useAppStore } from "@/store";
 import type { ConversationMessage } from "@/types/domain";
 
 function isThreadNotFoundError(error: unknown) {
   return error instanceof Error && /Thread not found/i.test(error.message);
+}
+
+function logMobileControllerEvent(
+  event: string,
+  payload: Record<string, unknown>,
+  level: "info" | "warn" | "error" = "info",
+) {
+  const line = JSON.stringify({
+    at: new Date().toISOString(),
+    scope: "mobile_controller",
+    event,
+    level,
+    ...payload,
+  });
+  if (level === "error") {
+    console.error(line);
+    return;
+  }
+  console.info(line);
+}
+
+function isLiveRunStatus(status: string | null | undefined) {
+  return status === "queued" || status === "running";
 }
 
 export function useConversationController() {
@@ -82,16 +105,53 @@ export function useConversationController() {
     threadsLoaded: serverLoaded,
   });
   const messages = useThreadMessages(activeThreadId, pendingPrompt, canQueryActiveThread);
+  const runThreadId = canQueryActiveThread ? activeThreadId : null;
   const runStageFeed = useRunStageFeed(
-    canQueryActiveThread ? activeThreadId : null,
+    runThreadId,
     activeRunId,
-    runtimeHealth.status === "ready" && Boolean(runtimeHealth.capabilities?.stageFeed),
+    runtimeHealth.capabilities?.stageFeed ?? true,
   );
   const runStatus = useRunStatus(
-    canQueryActiveThread ? activeThreadId : null,
+    runThreadId,
     activeRunId,
-    runtimeHealth.status === "ready" && Boolean(runtimeHealth.capabilities?.runStatus),
+    runtimeHealth.capabilities?.runStatus ?? true,
   );
+  const hasCompletedAssistant = useMemo(() => messages.some(
+    (message) =>
+      message.role === "assistant"
+      && message.id !== "pending-assistant"
+      && (!pendingStartedAt || message.createdAt >= pendingStartedAt),
+  ), [messages, pendingStartedAt]);
+  const lastAssistantMessageAt = useMemo(() => {
+    const assistantMessages = messages
+      .filter(
+        (message) =>
+          message.role === "assistant"
+          && message.id !== "pending-assistant"
+          && (!pendingStartedAt || message.createdAt >= pendingStartedAt),
+      )
+      .map((message) => message.createdAt);
+
+    return assistantMessages.length > 0 ? Math.max(...assistantMessages) : null;
+  }, [messages, pendingStartedAt]);
+  const lastStageAt = useMemo(() => (
+    runStageFeed.length > 0 ? runStageFeed[runStageFeed.length - 1]?.timestamp ?? null : null
+  ), [runStageFeed]);
+  const lastStageSeq = runStageFeed.length > 0 ? runStageFeed[runStageFeed.length - 1]?.seq ?? null : null;
+  const pendingTimeout = useMemo(() => getPendingRunTimeoutSnapshot({
+    pendingStartedAt,
+    runStatusUpdatedAt: runStatus?.updatedAt,
+    lastStageAt,
+    lastAssistantMessageAt,
+    workerLastHeartbeatAt: runtimeHealth.worker?.available ? runtimeHealth.worker.lastHeartbeatAt ?? null : null,
+  }), [
+    lastAssistantMessageAt,
+    lastStageAt,
+    pendingStartedAt,
+    runStatus?.updatedAt,
+    runtimeHealth.worker?.available,
+    runtimeHealth.worker?.lastHeartbeatAt,
+  ]);
 
   useEffect(() => {
     if (!threadsLoaded || isCreatingThread || resolvedThreadId === activeThreadId) {
@@ -108,13 +168,18 @@ export function useConversationController() {
   }, []);
 
   useEffect(() => {
-    const hasCompletedAssistant = messages.some(
-      (message) =>
-        message.role === "assistant"
-        && message.id !== "pending-assistant"
-        && (!pendingStartedAt || message.createdAt >= pendingStartedAt),
-    );
-    if (pendingPrompt && hasCompletedAssistant) {
+    if (!hasCompletedAssistant || (!pendingPrompt && !runFailureMessage)) {
+      return;
+    }
+
+    logMobileControllerEvent("assistant_message_arrived", {
+      threadId: activeThreadId ?? null,
+      runId: activeRunId ?? null,
+      pendingPrompt: Boolean(pendingPrompt),
+      hadFailureBanner: Boolean(runFailureMessage),
+      lastAssistantMessageAt,
+    });
+    if (pendingPrompt) {
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -124,23 +189,24 @@ export function useConversationController() {
       });
       setPendingPrompt(null);
       setActiveRunId(null);
-      setRunFailureMessage(null);
     }
-  }, [activeThreadId, currentRoute, messages, pendingPrompt, pendingStartedAt, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
+    setRunFailureMessage(null);
+  }, [activeRunId, activeThreadId, currentRoute, hasCompletedAssistant, lastAssistantMessageAt, pendingPrompt, runFailureMessage, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
 
   useEffect(() => {
-    const hasCompletedAssistant = messages.some(
-      (message) =>
-        message.role === "assistant"
-        && message.id !== "pending-assistant"
-        && (!pendingStartedAt || message.createdAt >= pendingStartedAt),
-    );
-
     if (!pendingPrompt || !runStatus) {
       return;
     }
 
     if (runStatus.status === "failed" || runStatus.status === "cancelled") {
+      logMobileControllerEvent("run_status_terminal", {
+        threadId: activeThreadId ?? null,
+        runId: activeRunId ?? null,
+        workflowId: runStatus.workflowId ?? null,
+        status: runStatus.status,
+        reasonCode: runStatus.status === "cancelled" ? "workflow_cancelled" : "workflow_failed",
+        diagnostics: runStatus.diagnostics,
+      }, runStatus.status === "failed" ? "error" : "warn");
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -158,6 +224,12 @@ export function useConversationController() {
     }
 
     if (shouldResolveCompletedRunWithoutAssistant(pendingPrompt, hasCompletedAssistant, runStatus.status)) {
+      logMobileControllerEvent("run_completed_without_assistant", {
+        threadId: activeThreadId ?? null,
+        runId: activeRunId ?? null,
+        workflowId: runStatus.workflowId ?? null,
+        status: runStatus.status,
+      }, "warn");
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -174,14 +246,50 @@ export function useConversationController() {
     if (runStatus.status === "completed" && hasCompletedAssistant) {
       setRunFailureMessage(null);
     }
-  }, [activeThreadId, currentRoute, messages, pendingPrompt, pendingStartedAt, runStatus, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
+  }, [activeRunId, activeThreadId, currentRoute, messages, pendingPrompt, pendingStartedAt, runStatus, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
 
   useEffect(() => {
     if (!pendingPrompt || !pendingStartedAt) {
       return;
     }
 
+    if (hasCompletedAssistant || (runStatus && !isLiveRunStatus(runStatus.status))) {
+      return;
+    }
+
     const endStreamAsTimedOut = () => {
+      const timeoutState = getPendingRunTimeoutSnapshot({
+        pendingStartedAt,
+        runStatusUpdatedAt: runStatus?.updatedAt,
+        lastStageAt,
+        lastAssistantMessageAt,
+        workerLastHeartbeatAt: runtimeHealth.worker?.available ? runtimeHealth.worker.lastHeartbeatAt ?? null : null,
+        now: Date.now(),
+      });
+      if (!timeoutState.hasTimedOut) {
+        return;
+      }
+
+      const timeoutMessage = runtimeHealth.worker?.available === false
+        ? runtimeHealth.message ?? "AI worker offline. Start `npm run convex` so runs can complete."
+        : "Assistant is taking too long. Please try again.";
+      logMobileControllerEvent("run_timeout_decision", {
+        threadId: activeThreadId ?? null,
+        runId: activeRunId ?? null,
+        workflowId: runStatus?.workflowId ?? null,
+        reasonCode: runtimeHealth.worker?.available === false ? "worker_offline" : "timeout",
+        runtimeStatus: runtimeHealth.status,
+        lastRunStatusUpdatedAt: runStatus?.updatedAt ?? null,
+        lastStageAt,
+        lastStageSeq,
+        lastAssistantMessageAt,
+        lastProgressAt: timeoutState.lastProgressAt,
+        timeoutAt: timeoutState.timeoutAt,
+        timeoutKind: timeoutState.timedOutBy,
+        convexUrl: getConvexUrl() || null,
+        featureVersion: runtimeHealth.featureVersion ?? null,
+        workerAvailable: runtimeHealth.worker?.available ?? null,
+      }, "warn");
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -191,23 +299,48 @@ export function useConversationController() {
       });
       setPendingPrompt(null);
       setActiveRunId(null);
-      setRunFailureMessage("Assistant is taking too long. Please try again.");
+      setRunFailureMessage(timeoutMessage);
     };
 
-    if (hasPendingRunTimedOut(pendingStartedAt)) {
+    if (pendingTimeout.hasTimedOut) {
       endStreamAsTimedOut();
       return;
     }
 
-    const timer = setTimeout(
-      endStreamAsTimedOut,
-      ASSISTANT_PENDING_TIMEOUT_MS - (Date.now() - pendingStartedAt),
-    );
+    if (pendingTimeout.msUntilTimeout == null) {
+      return;
+    }
+
+    const timer = setTimeout(endStreamAsTimedOut, pendingTimeout.msUntilTimeout);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [activeThreadId, currentRoute, pendingPrompt, pendingStartedAt, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
+  }, [
+    activeRunId,
+    activeThreadId,
+    currentRoute,
+    hasCompletedAssistant,
+    lastAssistantMessageAt,
+    lastStageAt,
+    lastStageSeq,
+    pendingPrompt,
+    pendingStartedAt,
+    pendingTimeout.hasTimedOut,
+    pendingTimeout.msUntilTimeout,
+    runStatus?.status,
+    runStatus?.updatedAt,
+    runStatus?.workflowId,
+    runtimeHealth.message,
+    runtimeHealth.status,
+    runtimeHealth.featureVersion,
+    runtimeHealth.worker?.available,
+    runtimeHealth.worker?.lastHeartbeatAt,
+    sessionId,
+    setActiveRunId,
+    setPendingPrompt,
+    setRunFailureMessage,
+  ]);
 
   const isStreaming = Boolean(pendingPrompt);
 
@@ -239,8 +372,21 @@ export function useConversationController() {
     if (!prompt) {
       return;
     }
+    logMobileControllerEvent("send_start", {
+      threadId: activeThreadId ?? null,
+      runId: activeRunId ?? null,
+      runtimeStatus: runtimeHealth.status,
+      workerAvailable: runtimeHealth.worker?.available ?? null,
+      featureVersion: runtimeHealth.featureVersion ?? null,
+      webSearchConfigured: runtimeHealth.webSearch?.configured ?? null,
+      promptLength: prompt.length,
+    });
 
     if (!isAuthenticated) {
+      logMobileControllerEvent("send_blocked", {
+        reasonCode: "auth_required",
+        isGuest,
+      }, "warn");
       setRunFailureMessage(
         isGuest
           ? "Restoring your guest session. Try again in a moment."
@@ -250,12 +396,20 @@ export function useConversationController() {
     }
 
     if (runtimeHealth.status !== "ready") {
-      setRunFailureMessage(runtimeHealth.message ?? "AI runtime unavailable.");
+      logMobileControllerEvent("send_blocked", {
+        reasonCode: runtimeHealth.worker?.available === false ? "worker_offline" : "runtime_unavailable",
+        runtimeStatus: runtimeHealth.status,
+        featureVersion: runtimeHealth.featureVersion ?? null,
+      }, "warn");
+      setRunFailureMessage(runtimeHealth.message ?? "Checking AI runtime. Try again in a moment.");
       return;
     }
 
     const threadId = await ensureActiveThread();
     if (!threadId) {
+      logMobileControllerEvent("send_blocked", {
+        reasonCode: "thread_unavailable",
+      }, "warn");
       setRunFailureMessage("Syncing your conversation threads. Try again in a moment.");
       return;
     }
@@ -284,14 +438,31 @@ export function useConversationController() {
 
     try {
       const result = await sendUserMessageMutation({ threadId, prompt });
+      logMobileControllerEvent("send_mutation_success", {
+        threadId,
+        runId: String(result.runId),
+        serverThreadId: result.threadId,
+        threadReconciled: Boolean(result.threadId && result.threadId !== threadId),
+      });
       if (result.threadId && result.threadId !== threadId) {
         setActiveThreadId(result.threadId);
       }
       setActiveRunId(String(result.runId));
     } catch (error) {
+      logMobileControllerEvent("send_mutation_failed", {
+        threadId,
+        runId: activeRunId ?? null,
+        reasonCode: isThreadNotFoundError(error) ? "thread_not_found" : "send_failed",
+        error: error instanceof Error ? error.message : String(error),
+      }, "error");
       if (isThreadNotFoundError(error)) {
         try {
           const replacementThreadId = await startThreadMutation({});
+          logMobileControllerEvent("thread_recovered", {
+            reasonCode: "thread_recovered",
+            oldThreadId: threadId,
+            replacementThreadId,
+          }, "warn");
           setActiveThreadId(replacementThreadId);
           track("ai_prompt_sent", {
             sessionId,
@@ -307,12 +478,23 @@ export function useConversationController() {
             source: "assistant",
           });
           const retry = await sendUserMessageMutation({ threadId: replacementThreadId, prompt });
+          logMobileControllerEvent("send_retry_success", {
+            threadId: replacementThreadId,
+            runId: String(retry.runId),
+            serverThreadId: retry.threadId,
+            threadReconciled: Boolean(retry.threadId && retry.threadId !== replacementThreadId),
+          });
           if (retry.threadId && retry.threadId !== replacementThreadId) {
             setActiveThreadId(retry.threadId);
           }
           setActiveRunId(String(retry.runId));
           return;
         } catch (retryError) {
+          logMobileControllerEvent("send_retry_failed", {
+            threadId,
+            reasonCode: "thread_not_found",
+            error: retryError instanceof Error ? retryError.message : String(retryError),
+          }, "error");
           setPendingPrompt(null);
           setRunFailureMessage(retryError instanceof Error ? retryError.message : "Unable to send prompt.");
           return;

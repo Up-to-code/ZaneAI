@@ -90,6 +90,9 @@ export type AgentRuntimeHealth = {
   };
   worker?: {
     configured: boolean;
+    available?: boolean;
+    lastHeartbeatAt?: number;
+    staleAfterMs?: number;
   };
   message?: string;
 };

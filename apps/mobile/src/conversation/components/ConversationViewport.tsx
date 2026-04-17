@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { ConversationFeed } from "@/conversation/components/ConversationFeed";
 import { ConversationStatusBanner } from "@/conversation/components/ConversationStatusBanner";
@@ -8,11 +8,22 @@ import { ZaneAiComposerDock } from "@/conversation/components/ZaneAiComposerDock
 import { useConversationController } from "@/conversation/hooks/useConversationController";
 import { useKeyboardDock } from "@/conversation/hooks/useKeyboardDock";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { getRuntimeDisabledReason } from "@/persistence/convex/runtimeHealth";
 import { useAppStore } from "@/store";
+
+function logViewportEvent(event: string, payload: Record<string, unknown>) {
+  console.info(JSON.stringify({
+    at: new Date().toISOString(),
+    scope: "mobile_viewport",
+    event,
+    ...payload,
+  }));
+}
 
 export function ConversationViewport() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const lastBannerSignatureRef = useRef<string | null>(null);
   const composerDockHeight = useAppStore((state) => state.composerDockHeight);
   const keyboardHeight = useAppStore((state) => state.keyboardHeight);
   const {
@@ -35,29 +46,48 @@ export function ConversationViewport() {
     dockHeight: composerDockHeight,
     keyboardHeight,
   });
+  const runtimeUnavailable = runtimeHealth.status === "unavailable";
+  const composerDisabledReason = getRuntimeDisabledReason(runtimeHealth);
+
+  useEffect(() => {
+    const payload = {
+      runtimeUnavailable,
+      runtimeMessage: composerDisabledReason ?? null,
+      hasRunFailure: Boolean(runFailureMessage),
+      runFailureMessage: runFailureMessage ?? null,
+    };
+    const signature = JSON.stringify(payload);
+    if (lastBannerSignatureRef.current === signature) {
+      return;
+    }
+
+    lastBannerSignatureRef.current = signature;
+    logViewportEvent("banner_state_changed", payload);
+  }, [composerDisabledReason, runFailureMessage, runtimeUnavailable]);
 
   return (
     <View style={styles.container}>
       <View style={[styles.feedWrap, { paddingBottom: listBottomPadding }]}>
-        {runtimeHealth.status === "unavailable" ? (
-          <ConversationStatusBanner
-            title="AI unavailable"
-            body={runtimeHealth.message ?? "Convex runtime missing deploy or model config."}
-            tone="error"
-          />
+        {(runtimeUnavailable || runFailureMessage) ? (
+          <View style={[styles.bannerStack, { paddingTop: insets.top + 64 }]}>
+            {runtimeUnavailable ? (
+              <ConversationStatusBanner
+                title="AI unavailable"
+                body={runtimeHealth.message ?? "Convex runtime missing deploy or model config."}
+                tone="error"
+              />
+            ) : null}
+
+            {runFailureMessage ? (
+              <ConversationStatusBanner
+                title="Run failed"
+                body={runFailureMessage}
+                tone="warning"
+                onDismiss={clearRunFailureMessage}
+              />
+            ) : null}
+          </View>
         ) : null}
-
-        {runFailureMessage ? (
-          <ConversationStatusBanner
-            title="Run failed"
-            body={runFailureMessage}
-            tone="warning"
-            onDismiss={clearRunFailureMessage}
-          />
-        ) : null}
-
-
-
         <ConversationFeed
           messages={messages}
           runStageFeed={runStageFeed}
@@ -69,8 +99,8 @@ export function ConversationViewport() {
           onSend={sendPrompt}
           onStop={stop}
           isStreaming={isStreaming}
-          disabled={runtimeHealth.status === "unavailable"}
-          disabledReason={runtimeHealth.message}
+          disabled={runtimeUnavailable}
+          disabledReason={composerDisabledReason}
           canUpgrade={canUpgrade}
           onUpgrade={openUpgrade}
           keyboardVisible={keyboardVisible}
@@ -89,6 +119,9 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   feedWrap: {
     flex: 1,
+  },
+  bannerStack: {
+    zIndex: 2,
   },
   dockWrap: {
     position: "absolute",

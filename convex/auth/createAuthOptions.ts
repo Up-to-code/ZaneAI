@@ -8,6 +8,7 @@ import authConfig from "../auth.config";
 
 const appScheme = "zane-ai://";
 const localWebOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+const localExpoOrigins = ["exp://*", "exps://*"];
 
 function normalizeWebOrigin(value: string | undefined) {
   const trimmed = value?.trim();
@@ -37,8 +38,17 @@ function getTrustedWebOrigins() {
   return Array.from(new Set([...readWebOriginsFromEnv(), ...localWebOrigins]));
 }
 
+function getTrustedNativeOrigins() {
+  if (process.env.NODE_ENV !== "development") {
+    return [appScheme];
+  }
+
+  return [appScheme, ...localExpoOrigins];
+}
+
 export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } | any) {
   const webOrigins = getTrustedWebOrigins();
+  const nativeOrigins = getTrustedNativeOrigins();
   const siteUrl = webOrigins[0];
   const socialProviders = {
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -62,7 +72,7 @@ export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } |
   return {
     baseURL: process.env.BETTER_AUTH_URL || process.env.CONVEX_SITE_URL,
     basePath: "/api/auth",
-    trustedOrigins: [appScheme, ...webOrigins],
+    trustedOrigins: [...nativeOrigins, ...webOrigins],
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,

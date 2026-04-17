@@ -4,6 +4,7 @@ import { internal } from "../../_generated/api";
 import type { Doc } from "../../_generated/dataModel";
 import { query } from "../../_generated/server";
 import { requireAuthUserId } from "../../auth/requireAuth";
+import { logAgentEvent } from "../lib/debugLog";
 import { findThreadAccess } from "../lib/threadAccess";
 
 export const getRunStatus = query({
@@ -25,6 +26,14 @@ export const getRunStatus = query({
     const authUserId = await requireAuthUserId(ctx);
     const thread = await findThreadAccess(ctx, args.threadId, authUserId);
     if (!thread) {
+      logAgentEvent("warn", {
+        scope: "run_status",
+        event: "run_status_thread_access_missing",
+        reasonCode: "thread_not_found",
+        authUserId,
+        threadId: args.threadId,
+        runId: String(args.runId),
+      });
       return null;
     }
 
@@ -32,7 +41,29 @@ export const getRunStatus = query({
       runId: args.runId,
     });
 
-    if (!run || run.threadId !== args.threadId || run.authUserId !== authUserId) {
+    if (!run) {
+      logAgentEvent("warn", {
+        scope: "run_status",
+        event: "run_status_missing",
+        reasonCode: "run_not_found",
+        authUserId,
+        threadId: args.threadId,
+        runId: String(args.runId),
+      });
+      return null;
+    }
+
+    if (run.threadId !== args.threadId || run.authUserId !== authUserId) {
+      logAgentEvent("warn", {
+        scope: "run_status",
+        event: "run_status_access_mismatch",
+        reasonCode: "run_access_mismatch",
+        authUserId,
+        threadId: args.threadId,
+        runId: String(args.runId),
+        runThreadId: run.threadId,
+        runAuthUserId: run.authUserId,
+      });
       return null;
     }
 
