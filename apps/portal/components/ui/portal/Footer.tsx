@@ -34,8 +34,24 @@ export default function Footer({ locale = "ar" }: { locale?: AppLocale }) {
                         </p>
                     </div>
 
-                    {/* Minimal empty space where links used to be */}
-                    <div className="hidden md:block"></div>
+                    {/* Resources & Brand Links */}
+                    <div className="flex gap-16 lg:gap-32">
+                        <div className="space-y-6">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-white">Resources</h4>
+                            <div className="flex flex-col gap-4">
+                                <a href="/brand" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Brand Identity</a>
+                                <a href="/features" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Platform Features</a>
+                                <a href="/download" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Downloads</a>
+                            </div>
+                        </div>
+                        <div className="space-y-6">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-white">Legal</h4>
+                            <div className="flex flex-col gap-4">
+                                <a href="/legal/terms" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Terms of Service</a>
+                                <a href="/legal/privacy" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Bottom Section: Tagline (Left) | Copyright (Right) */}
