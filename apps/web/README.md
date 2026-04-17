@@ -62,6 +62,7 @@ To make `/ws/projects/create` uploads work end-to-end in dev:
 
 1. Set web env vars (`apps/web/.env.local`):
    - `NEXT_PUBLIC_CONVEX_URL=https://<deployment>.convex.cloud`
+   - `NEXT_PUBLIC_AUTH_URL=https://<deployment>.convex.site`
    - `UPLOADTHING_TOKEN=<your-uploadthing-token>`
    - `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<your-posthog-project-token>`
    - `NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com`

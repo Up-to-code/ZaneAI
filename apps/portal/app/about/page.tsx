@@ -1,125 +1,107 @@
 import { Section, SectionLabel } from "@/components/ui/portal";
-import { cookies } from "next/headers";
-import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@anan/ag-ui/anan";
-import { Activity, Globe, Heart, ShieldCheck, Zap, Eye, Target, Sparkles, Building, Briefcase } from "lucide-react";
+import { Shield, Zap, Target, ArrowRightCircle, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default async function AboutPage() {
-  const cookieStore = await cookies();
-  const locale = resolveLocale(cookieStore.get(WEB_LOCALE_COOKIE)?.value);
-  const dictionary = getWebDictionary(locale);
-
   return (
-    <main className="bg-background pt-24 md:pt-32 font-sans selection:bg-primary selection:text-white">
-      {/* Institutional About Hero */}
-      <Section className="py-24 relative overflow-hidden">
-        {/* Cinematic Flourish */}
-        <div className="absolute top-0 left-1/2 -z-10 h-full w-full -translate-x-1/2 overflow-hidden">
-          <div className="absolute top-0 right-1/4 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
-          <div className="absolute bottom-0 left-1/4 h-[400px] w-[400px] rounded-full bg-primary/10 blur-[100px]" />
-        </div>
-
-        <div className="mx-auto max-w-[1400px] px-6 text-center space-y-12">
-          <SectionLabel icon={Eye} className="mx-auto bg-primary/5 text-primary border-primary/10">
-            Institutional Identity
-          </SectionLabel>
-          <h1 className="font-brand-sans text-5xl font-black leading-[0.9] text-foreground sm:text-7xl lg:text-[10rem] tracking-tight uppercase">
-             One Mission. <br />
-             <span className="text-primary italic lg:font-brand-serif lg:capitalize lg:tracking-tighter lg:font-bold">Total Connectivity.</span>
-          </h1>
-          <p className="mx-auto max-w-3xl text-xl font-bold leading-relaxed text-muted-foreground md:text-2xl px-4">
-             Zane-AI exists to bridge the gap between physical real estate and high-precision digital intelligence. We provide the infrastructure that turns fragmented markets into unified ecosystems.
-          </p>
-        </div>
-      </Section>
-
-      {/* The Manifesto Narrative */}
-      <Section className="py-32 md:py-64 bg-[#FAFAF8] dark:bg-white/[0.01] border-y border-border/10">
-        <div className="mx-auto max-w-[1000px] px-6">
-          <div className="flex flex-col md:flex-row gap-16 md:gap-32 items-start">
-            <div className="md:sticky md:top-32 w-full md:w-1/3">
-               <SectionLabel icon={Target} className="text-primary border-none p-0 mb-6">Our Core Purpose</SectionLabel>
-               <h2 className="font-brand-sans text-4xl font-black uppercase tracking-tight leading-none">
-                  Defeating <br />
-                  <span className="text-primary italic">Fragmentation.</span>
-               </h2>
+    <main className="min-h-screen bg-white dark:bg-black pt-24 transition-all selection:bg-primary selection:text-white">
+      {/* Short Pitch Section */}
+      <Section className="py-24 border-b border-border">
+        <div className="mx-auto max-w-4xl px-6 space-y-12">
+            <div className="space-y-6">
+                <SectionLabel icon={Shield} className="bg-primary/5 text-primary border-primary/10 px-4 py-2">
+                    Institutional Identity
+                </SectionLabel>
+                <h1 className="text-4xl md:text-7xl font-black tracking-tight text-foreground leading-[0.95] uppercase">
+                    Intelligent <br />
+                    <span className="text-primary italic">Infrastructure.</span>
+                </h1>
+                <p className="text-xl md:text-2xl font-bold text-muted-foreground border-l-2 border-primary/20 pl-8 italic">
+                   Unifying the people, properties, and data powering modern real estate.
+                </p>
             </div>
             
-            <div className="w-full md:w-2/3 space-y-12">
-               <div className="p-10 md:p-14 bg-white dark:bg-black border border-border/10 rounded-[48px] shadow-sm">
-                  <p className="font-brand-serif text-3xl md:text-5xl leading-tight italic text-foreground tracking-tight">
-                    "Every handoff is a loss of intelligence. We build the substrate where and Deal data carries forward automatically."
-                  </p>
-               </div>
-               <p className="text-xl md:text-2xl font-medium leading-relaxed text-muted-foreground border-l-2 border-primary/10 pl-8">
-                  We started with a simple observation: real estate is the largest asset class in the world, yet it is managed through the most fragmented tools. Our mission is to build the first universal operating layer that connects every stakeholder — from the first query to the final signature.
-               </p>
+            <div className="p-10 rounded-[40px] border border-border bg-slate-50 dark:bg-zinc-950/20 shadow-sm relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 h-full w-1.5 bg-primary/20 group-hover:bg-primary transition-all" />
+                 <p className="text-xl md:text-2xl font-bold leading-relaxed text-foreground tracking-tight">
+                    "Zane AI is the intelligent infrastructure that unifies the real estate market. By automating communication and workflows at the core, we replace fragmented tools with one smart, unified system."
+                 </p>
             </div>
-          </div>
         </div>
       </Section>
 
-      {/* The Operating Pillars */}
-      <Section className="py-48">
-        <div className="mx-auto max-w-7xl px-6 space-y-32">
-           <div className="text-center space-y-8 max-w-4xl mx-auto">
-              <SectionLabel icon={Sparkles} className="mx-auto">The Framework</SectionLabel>
-              <h2 className="font-brand-sans text-5xl font-black md:text-8xl tracking-tighter uppercase leading-[0.9]">
-                 The Substrate for <br />
-                 <span className="text-primary italic lg:font-brand-serif lg:lowercase lg:tracking-tighter lg:font-bold">Deal Flow.</span>
-              </h2>
-           </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-              {[
-                { 
-                  title: "Regional Intelligence", 
-                  icon: Globe, 
-                  desc: "Built to handle the specific complexities of the MENA real estate market with global institutional standards.",
-                  color: "bg-blue-500/10 text-blue-600"
-                },
-                { 
-                  title: "Unified Inventory", 
-                  icon: Building, 
-                  desc: "A single, high-fidelity ledger for developers to manage units and for brokers to discover inventory.",
-                  color: "bg-primary/10 text-primary" 
-                },
-                { 
-                  title: "Persistent Context", 
-                  icon: Briefcase, 
-                  desc: "No context is ever lost. Buyer intent carries from the first AI interaction into the broker workspace.",
-                  color: "bg-emerald-500/10 text-emerald-600"
-                }
-              ].map((item, i) => (
-                <div key={i} className="group rounded-[48px] border border-border p-12 space-y-10 transition-all hover:bg-slate-50 dark:hover:bg-slate-900 overflow-hidden relative">
-                   <div className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl ${item.color} transition-all group-hover:scale-110 group-hover:rotate-3`}>
-                      <item.icon className="h-8 w-8" />
-                   </div>
-                   <div className="space-y-6">
-                      <h3 className="font-brand-sans text-3xl font-black uppercase tracking-tight">{item.title}</h3>
-                      <p className="text-lg font-bold text-muted-foreground leading-relaxed italic border-l-2 border-border/10 pl-6 group-hover:border-primary transition-colors">
-                        {item.desc}
-                      </p>
-                   </div>
-                   <Activity className="absolute -bottom-12 -right-12 h-48 w-48 text-primary opacity-[0.03] group-hover:opacity-[0.08] transition-opacity" />
+      {/* Conflict vs Resolution Framework */}
+      <Section className="py-32 bg-slate-50 dark:bg-zinc-950/20">
+        <div className="mx-auto max-w-5xl px-6 space-y-20">
+            <div className="space-y-6 text-center">
+                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight">The Problem → The Solution</h2>
+                <div className="h-1 w-24 bg-primary mx-auto" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border border border-border rounded-[48px] overflow-hidden">
+                {/* Conflict Column */}
+                <div className="bg-white dark:bg-black p-12 md:p-16 space-y-10 border-r border-border">
+                    <div className="flex items-center gap-3 text-muted-foreground font-black uppercase text-[10px] tracking-widest bg-muted h-10 px-6 rounded-full w-fit">
+                        <AlertCircle className="h-4 w-4" />
+                        The Conflict
+                    </div>
+                    <div className="space-y-6">
+                        <h3 className="text-3xl font-black uppercase tracking-tight">Deep Fragmentation.</h3>
+                        <p className="text-lg font-bold text-muted-foreground leading-relaxed italic border-l-2 border-border pl-6 opacity-60">
+                            Real estate is currently a series of disconnected islands. Tools don't talk, communication leaks through the cracks, and market signals are delayed by manual friction.
+                        </p>
+                    </div>
                 </div>
-              ))}
-           </div>
+
+                {/* Resolution Column */}
+                <div className="bg-white dark:bg-black p-12 md:p-16 space-y-10 relative">
+                    <div className="absolute top-0 right-0 p-8">
+                        <ArrowRightCircle className="h-8 w-8 text-primary/20" />
+                    </div>
+                    <div className="flex items-center gap-3 text-primary font-black uppercase text-[10px] tracking-widest bg-primary/5 h-10 px-6 rounded-full w-fit">
+                        <CheckCircle2 className="h-4 w-4" />
+                        The Resolution
+                    </div>
+                    <div className="space-y-6">
+                        <h3 className="text-3xl font-black uppercase tracking-tight">Zane AI Infrastructure.</h3>
+                        <div className="space-y-6">
+                            {[
+                                { title: "Connected Data", text: "One source of truth for properties and people." },
+                                { title: "Automated Orchestration", text: "AI agents that handle leads, follow-ups, and workflows." },
+                                { title: "Real-Time Intelligence", text: "Turning raw information into institutional-grade insights." }
+                            ].map((item, i) => (
+                                <div key={i} className="space-y-2">
+                                    <h4 className="text-sm font-black uppercase tracking-widest text-primary">— {item.title}</h4>
+                                    <p className="text-base font-bold text-foreground leading-relaxed italic">{item.text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
       </Section>
 
-      {/* Institutional Banner */}
-      <Section bg="dark" className="bg-black py-48 border-t border-white/5 relative overflow-hidden">
-        <div className="absolute top-0 right-0 h-full w-1/3 bg-primary/10 blur-[150px] -z-10" />
-        <div className="mx-auto max-w-5xl px-6 text-center space-y-12">
-            <p className="font-brand-sans text-xs font-black uppercase tracking-[0.5em] text-white/40">Zane-AI Strategy</p>
-            <h2 className="font-brand-sans text-5xl md:text-8xl font-black text-white leading-none uppercase tracking-[-0.04em]">
-                Scale with <br />
-                <span className="text-primary italic">Precision.</span>
-            </h2>
-            <div className="pt-10">
-                <a href="/reading" className="inline-flex h-20 px-16 items-center justify-center rounded-3xl bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/90 active:scale-95 transition-all shadow-2xl shadow-white/10">
-                   Explore Manifesto
-                </a>
+      {/* Positioning Section */}
+      <Section className="py-48 pb-64">
+        <div className="mx-auto max-w-4xl px-6">
+            <div className="group rounded-[48px] border-2 border-primary/20 bg-white dark:bg-zinc-950 p-12 md:p-20 relative overflow-hidden text-center space-y-12">
+                <div className="absolute top-0 left-0 h-full w-1 border-primary bg-primary" />
+                <div className="space-y-8">
+                    <SectionLabel icon={Zap} className="mx-auto">Creative Positioning</SectionLabel>
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight leading-tight">
+                        Powering the modern <br />
+                        <span className="text-primary italic">real estate lifecycle.</span>
+                    </h2>
+                    <p className="text-lg md:text-xl font-bold text-muted-foreground leading-relaxed italic max-w-2xl mx-auto">
+                        "We are building a hyper-connected network where every property transaction is linked, and AI is the engine that runs at the core."
+                    </p>
+                </div>
+                <div className="pt-8">
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/40 mb-10">Premium One-Liner</p>
+                    <div className="p-10 rounded-3xl border border-border bg-slate-50 dark:bg-black font-sans text-xl md:text-2xl font-black leading-relaxed tracking-tight border-b-4 border-b-primary shadow-xl">
+                        Zane AI is the intelligent infrastructure for real estate — connecting people, properties, and data into one unified system.
+                    </div>
+                </div>
             </div>
         </div>
       </Section>

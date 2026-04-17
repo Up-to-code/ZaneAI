@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 import { readFileSync } from "node:fs";
 
@@ -40,6 +40,25 @@ function parseEnvFile(filePath) {
   return env;
 }
 
+function getConvexEnvValue(name) {
+  const result = spawnSync("npx", ["convex", "env", "get", name], {
+    cwd: workspaceRoot,
+    encoding: "utf8",
+    shell: process.platform === "win32",
+    env: {
+      ...process.env,
+      CI: process.env.CI ?? "1",
+    },
+  });
+
+  if (result.status !== 0) {
+    return null;
+  }
+
+  const value = result.stdout.trim();
+  return value.length > 0 ? value : null;
+}
+
 const syncProcess = spawn("node", ["apps/mobile/scripts/syncConvexGenerated.mjs", "--watch"], {
   cwd: workspaceRoot,
   stdio: "inherit",
@@ -62,6 +81,23 @@ if (envFile) {
 
 const envFromFile = envFile ? parseEnvFile(envFile) : {};
 const workerConvexUrl = process.env.CONVEX_URL ?? envFromFile.CONVEX_URL ?? envFromFile.EXPO_PUBLIC_CONVEX_URL;
+const workerRuntimeEnv = { ...envFromFile };
+
+for (const key of [
+  "OPENROUTER_API_KEY",
+  "OPENAI_API_KEY",
+  "OPENROUTER_BASE_URL",
+  "OPENROUTER_MODEL",
+  "OPENAI_MODEL",
+  "TAVILY_API_KEY",
+]) {
+  if (!process.env[key] && !workerRuntimeEnv[key]) {
+    const value = getConvexEnvValue(key);
+    if (value) {
+      workerRuntimeEnv[key] = value;
+    }
+  }
+}
 
 if (typecheckMode) {
   convexArgs.push("--typecheck", typecheckMode);
@@ -89,6 +125,7 @@ if (workerConvexUrl) {
     shell: process.platform === "win32",
     env: {
       ...process.env,
+      ...workerRuntimeEnv,
       CONVEX_URL: workerConvexUrl,
     },
   });

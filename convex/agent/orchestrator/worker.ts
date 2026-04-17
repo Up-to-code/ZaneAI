@@ -80,11 +80,11 @@ type WorkflowSpecialistResult = {
 };
 
 const propertyFiltersSchema = z.object({
-  query: z.string().min(1).optional(),
-  location: z.string().min(1).optional(),
-  minPrice: z.number().positive().optional(),
-  maxPrice: z.number().positive().optional(),
-  minBeds: z.number().int().positive().optional(),
+  query: z.string().min(1).nullable(),
+  location: z.string().min(1).nullable(),
+  minPrice: z.number().positive().nullable(),
+  maxPrice: z.number().positive().nullable(),
+  minBeds: z.number().int().positive().nullable(),
 });
 
 const propertyResultSchema = z.object({
@@ -92,8 +92,8 @@ const propertyResultSchema = z.object({
   propertyIds: z.array(z.string().min(1)).max(4),
   highlights: z.array(z.string().min(1)).min(1).max(5),
   comparisonPoints: z.array(z.string().min(1)).max(4),
-  followupQuestion: z.string().min(1).optional(),
-  querySummary: z.string().min(1).optional(),
+  followupQuestion: z.string().min(1).nullable(),
+  querySummary: z.string().min(1).nullable(),
 });
 
 const fundingResultSchema = z.object({
@@ -101,7 +101,7 @@ const fundingResultSchema = z.object({
   summary: z.string().min(1),
   options: z.array(z.string().min(1)).min(1).max(5),
   disclaimers: z.array(z.string().min(1)).max(4),
-  followupQuestion: z.string().min(1).optional(),
+  followupQuestion: z.string().min(1).nullable(),
 });
 
 const advisorResultSchema = z.object({
@@ -109,7 +109,7 @@ const advisorResultSchema = z.object({
   title: z.string().min(1),
   body: z.string().min(1),
   bullets: z.array(z.string().min(1)).max(5),
-  followupQuestion: z.string().min(1).optional(),
+  followupQuestion: z.string().min(1).nullable(),
 });
 
 const propertyKeywords = [
@@ -291,12 +291,27 @@ function buildPropertySearchPrompt(prompt: string, filters: PropertySearchFilter
   ].join("\n");
 }
 
+function toOptionalString(value: string | null | undefined) {
+  return value ?? undefined;
+}
+
+function toOptionalNumber(value: number | null | undefined) {
+  return value ?? undefined;
+}
+
 async function runPropertySpecialist(client: ConvexClient, prompt: string): Promise<PropertySpecialistResult> {
-  const extractedFilters = await generateStructuredObject({
+  const extractedFiltersRaw = await generateStructuredObject({
     schema: propertyFiltersSchema,
     system: "Extract property search filters from the user request. Only return fields that are explicitly or strongly implied.",
     prompt,
   });
+  const extractedFilters: PropertySearchFilters = {
+    ...(toOptionalString(extractedFiltersRaw.query) ? { query: toOptionalString(extractedFiltersRaw.query) } : {}),
+    ...(toOptionalString(extractedFiltersRaw.location) ? { location: toOptionalString(extractedFiltersRaw.location) } : {}),
+    ...(toOptionalNumber(extractedFiltersRaw.minPrice) ? { minPrice: toOptionalNumber(extractedFiltersRaw.minPrice) } : {}),
+    ...(toOptionalNumber(extractedFiltersRaw.maxPrice) ? { maxPrice: toOptionalNumber(extractedFiltersRaw.maxPrice) } : {}),
+    ...(toOptionalNumber(extractedFiltersRaw.minBeds) ? { minBeds: toOptionalNumber(extractedFiltersRaw.minBeds) } : {}),
+  };
 
   const candidates = await client.query(api.property.public.searchProperties.searchProperties, {
     ...extractedFilters,
@@ -330,7 +345,11 @@ async function runPropertySpecialist(client: ConvexClient, prompt: string): Prom
   );
 
   return {
-    ...ranked,
+    assistantText: ranked.assistantText,
+    highlights: ranked.highlights,
+    comparisonPoints: ranked.comparisonPoints,
+    followupQuestion: toOptionalString(ranked.followupQuestion),
+    querySummary: toOptionalString(ranked.querySummary),
     propertyIds: validatedPropertyIds.length > 0
       ? validatedPropertyIds
       : candidates.slice(0, 3).map((candidate) => candidate.externalId),
@@ -340,19 +359,29 @@ async function runPropertySpecialist(client: ConvexClient, prompt: string): Prom
 }
 
 async function runFundingSpecialist(prompt: string): Promise<FundingSpecialistResult> {
-  return await generateStructuredObject({
+  const result = await generateStructuredObject({
     schema: fundingResultSchema,
     system: "You are the funding specialist. Give practical, concise guidance, highlight tradeoffs, and avoid pretending to approve a real loan.",
     prompt,
   });
+
+  return {
+    ...result,
+    followupQuestion: toOptionalString(result.followupQuestion),
+  };
 }
 
 async function runAdvisorSpecialist(prompt: string): Promise<AdvisorSpecialistResult> {
-  return await generateStructuredObject({
+  const result = await generateStructuredObject({
     schema: advisorResultSchema,
     system: "You are the advisor specialist. Reply clearly, calmly, and in a way that can power a lightweight assistant UI block.",
     prompt,
   });
+
+  return {
+    ...result,
+    followupQuestion: toOptionalString(result.followupQuestion),
+  };
 }
 
 function buildPropertyActions(result: PropertySpecialistResult): AssistantAction[] {

@@ -4,22 +4,22 @@ import { FileText, Zap, User, ExternalLink } from "lucide-react";
 export default function BrandIdentityPage() {
   const assets = [
     {
-      title: "Brand Document",
-      description: "Comprehensive documentation detailing the core identity, typography, and color systems of Zane-AI.",
+      title: "Identity Layer",
+      description: "Comprehensive documentation detailing the core identity, typography, and color systems.",
       href: "/zane_ai_brand_document.html",
       icon: FileText,
       tag: "CORE IDENTITY",
     },
     {
-      title: "Bold Brand Document",
-      description: "The high-impact variation of the Zane-AI brand, designed for premium institutional presentation.",
+      title: "Bold Framework",
+      description: "High-impact variation designed for premium institutional presentation.",
       href: "/zane_ai_bold_brand.html",
       icon: Zap,
       tag: "HIGH IMPACT",
     },
     {
       title: "Operational Profile",
-      description: "The standalone profile highlighting the future of property technology and intelligent orchestration.",
+      description: "The standalone profile highlighting the future of intelligent property orchestration.",
       href: "/zane-ai-profile.html",
       icon: User,
       tag: "PROFILE",
@@ -27,37 +27,42 @@ export default function BrandIdentityPage() {
   ];
 
   return (
-    <main className="bg-background pt-24 md:pt-32">
-      <Section className="py-24">
-        <div className="mx-auto max-w-7xl px-6 space-y-20">
-          <div className="space-y-8 text-center max-w-3xl mx-auto">
-            <SectionLabel icon={Zap} textClassName="text-xs font-black uppercase tracking-widest">
-              Visual Intelligence
-            </SectionLabel>
-            <h1 className="text-5xl font-black md:text-8xl tracking-tighter">
-              Brand <span className="text-primary">Identity.</span>
+    <main className="min-h-screen bg-white dark:bg-black pt-24 transition-all">
+      <Section className="py-20 border-b border-border">
+        <div className="mx-auto max-w-4xl px-6 space-y-10">
+          <SectionLabel icon={Zap} className="bg-primary/5 text-primary border-primary/10 px-4 py-2">
+            Visual Intelligence
+          </SectionLabel>
+          <div className="space-y-6">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground uppercase leading-none">
+              Brand <br />
+              <span className="text-primary italic">Identity Framework.</span>
             </h1>
-            <p className="text-lg md:text-xl font-bold text-muted-foreground leading-relaxed">
+            <p className="text-xl font-bold leading-relaxed text-muted-foreground max-w-2xl italic">
               Explore the design language and technical foundations that power the Zane-AI operating layer—built for high-precision institutional property tech.
             </p>
           </div>
+        </div>
+      </Section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {assets.map((asset) => (
+      <Section className="py-24 bg-slate-50 dark:bg-zinc-950/20 border-b border-border">
+        <div className="mx-auto max-w-[1400px] px-6">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {assets.map((asset, i) => (
               <div 
-                key={asset.title}
-                className="group relative rounded-[48px] border border-border bg-slate-50 dark:bg-slate-900 p-10 overflow-hidden flex flex-col justify-between min-h-[480px] transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+                key={i}
+                className="group relative rounded-[40px] border border-border bg-white dark:bg-zinc-950 p-10 overflow-hidden flex flex-col justify-between min-h-[420px] shadow-sm transition-all hover:scale-[1.02]"
               >
                 <div className="space-y-6">
-                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white">
-                    <asset.icon className="h-6 w-6" />
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted border border-border text-muted-foreground group-hover:text-primary transition-colors">
+                    <asset.icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black tracking-widest uppercase text-primary mb-2">
+                    <p className="text-[10px] font-black tracking-[0.2em] uppercase text-primary mb-2">
                        {asset.tag}
                     </p>
-                    <h2 className="text-3xl font-black mb-4">{asset.title}</h2>
-                    <p className="text-base font-bold text-muted-foreground leading-relaxed">
+                    <h2 className="text-2xl font-black uppercase tracking-tight leading-tighter">{asset.title}</h2>
+                    <p className="text-sm font-bold text-muted-foreground leading-relaxed italic mt-4">
                         {asset.description}
                     </p>
                   </div>
@@ -67,32 +72,28 @@ export default function BrandIdentityPage() {
                     href={asset.href} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-3xl bg-foreground text-background font-black uppercase tracking-widest transition-all hover:opacity-90 active:scale-95 group/btn"
+                    className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-md"
                   >
-                    Open Document
-                    <ExternalLink className="h-4 w-4 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
+                    Launch Document
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </div>
-                <asset.icon 
-                  className="absolute -bottom-16 -right-16 h-64 w-64 text-primary opacity-[0.03] transform rotate-12 transition-all group-hover:scale-110 group-hover:rotate-6" 
-                  strokeWidth={0.5} 
-                />
               </div>
             ))}
           </div>
-
-          <div className="rounded-[40px] border border-border bg-background p-8 md:p-12 text-center">
-            <div className="max-w-2xl mx-auto space-y-6">
-               <h3 className="text-2xl font-black">Need custom assets?</h3>
-               <p className="font-bold text-muted-foreground">
-                  Our branding kit is designed for modular integration. If you require vectorized logos or specific color tokens for institutional use, please contact our implementation team.
-               </p>
-               <a href="/contact" className="inline-flex h-14 items-center justify-center rounded-2xl border border-border px-8 text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                  Contact Support
-               </a>
-            </div>
-          </div>
         </div>
+      </Section>
+
+      <Section className="py-20">
+         <div className="mx-auto max-w-4xl px-8 p-12 rounded-[40px] bg-white dark:bg-zinc-950 border border-border text-center space-y-6">
+            <h3 className="text-xl font-black uppercase tracking-tight">Need technical assets?</h3>
+            <p className="font-bold text-muted-foreground text-sm max-w-lg mx-auto italic">
+              Our branding kit is designed for modular integration. If you require vectorized logos or specific color tokens, please contact our support team.
+            </p>
+            <a href="/contact" className="inline-flex h-14 items-center justify-center rounded-xl border border-border px-10 text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-colors">
+              Contact Support
+            </a>
+         </div>
       </Section>
     </main>
   );

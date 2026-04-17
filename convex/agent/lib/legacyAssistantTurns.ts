@@ -18,14 +18,18 @@ export type AssistantTurnReplacement = {
   updatedAt: number;
 };
 
-export type LegacyAssistantTurnRecord = AssistantTurnReplacement & Record<string, unknown>;
+type LegacyAssistantTurnReplacement = Omit<AssistantTurnReplacement, "route"> & {
+  route?: AssistantTurnRoute;
+};
+
+export type LegacyAssistantTurnRecord = LegacyAssistantTurnReplacement & Record<string, unknown>;
 
 function readOptionalString(record: Record<string, unknown>, key: string) {
   const value = record[key];
   return typeof value === "string" ? value : undefined;
 }
 
-function parseMetaJson(metaJson: string | undefined) {
+function parseMetaJson(metaJson: string | undefined): Record<string, unknown> {
   if (!metaJson) {
     return {};
   }

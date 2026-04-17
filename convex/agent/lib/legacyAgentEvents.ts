@@ -29,7 +29,7 @@ function readOptionalString(record: Record<string, unknown>, key: string) {
   return typeof value === "string" ? value : undefined;
 }
 
-function parseDetailsJson(detailsJson: string | undefined) {
+function parseDetailsJson(detailsJson: string | undefined): Record<string, unknown> {
   if (!detailsJson) {
     return {};
   }

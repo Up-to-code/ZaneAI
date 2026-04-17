@@ -1,73 +1,33 @@
-import { Eye } from "lucide-react";
 import { cn } from "@anan/ag-ui/anan";
 import { getWebDictionary } from "@anan/ag-ui/anan";
 import type { AppLocale } from "@anan/ag-ui/anan";
 
-/**
- * WHY:   Public pages need a consistent footer that stays SSR-only for performance and stability.
- * WHAT:  Renders the brand block, link columns, and legal/copyright line.
- * HOW:   Static markup using Next.js `Link`/`Image` only.
- */
 export default function Footer({ locale = "ar" }: { locale?: AppLocale }) {
     const dictionary = getWebDictionary(locale);
-    return (
-        <footer className="border-t border-border bg-background px-6 pt-32 pb-16 dark:border-white/10 dark:bg-slate-950">
-            <div className="max-w-[1400px] mx-auto space-y-32">
 
-                {/* Top Section: Brand (Left) | Links (Right) */}
-                <div className="flex flex-col lg:flex-row justify-between gap-16">
-                    {/* Brand & Tagline */}
-                    <div className="space-y-6 max-w-sm">
-                        <div className="flex items-center gap-4">
-                            <a href="/" className="inline-block">
-                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 transition-all hover:bg-primary/10 dark:bg-white/5">
-                                    <Eye className="h-8 w-8 text-primary fill-none contrast-125" />
-                                </div>
-                            </a>
-                            <div className="space-y-1">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-primary">Zane-ai</div>
-                                <div className="text-sm font-black text-foreground dark:text-white leading-[1.1]">{dictionary.footer.brandTitle}</div>
-                            </div>
+    return (
+        <footer className={cn(
+            "border-t border-border bg-white dark:bg-black py-12 px-6"
+        )}>
+            <div className="mx-auto max-w-7xl">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                    <div className="space-y-2">
+                        <div className="font-bold text-foreground">Zane Platform</div>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
+                           © 2026 Zane-AI Intelligence Node
                         </div>
-                        <p className="max-w-xs text-sm font-bold leading-relaxed text-muted-foreground dark:text-slate-400">
-                            {dictionary.footer.description}
-                        </p>
                     </div>
 
-                    {/* Resources & Brand Links */}
-                    <div className="flex gap-16 lg:gap-32">
-                        <div className="space-y-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-white">Resources</h4>
-                            <div className="flex flex-col gap-4">
-                                <a href="/brand" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Brand Identity</a>
-                                <a href="/features" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Platform Features</a>
-                                <a href="/download" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Downloads</a>
-                            </div>
-                        </div>
-                        <div className="space-y-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground dark:text-white">Legal</h4>
-                            <div className="flex flex-col gap-4">
-                                <a href="/legal/terms" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Terms of Service</a>
-                                <a href="/legal/privacy" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a>
-                            </div>
-                        </div>
+                    <div className="flex flex-wrap gap-8 text-[11px] font-bold">
+                        <a href="/legal/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms</a>
+                        <a href="/legal/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy</a>
+                        <a href="/brand" className="text-muted-foreground hover:text-foreground transition-colors">Resources</a>
+                        <a href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Support</a>
                     </div>
                 </div>
 
-                {/* Bottom Section: Tagline (Left) | Copyright (Right) */}
-                <div className="flex flex-col items-center justify-between gap-4 border-t border-border pt-8 dark:border-white/10 md:flex-row">
-                    <p className={cn(
-                        "text-[10px] font-black text-muted-foreground",
-                        locale !== "ar" && "uppercase tracking-widest"
-                    )}>
-                        {dictionary.footer.bottomTagline}
-                    </p>
-                    <p className={cn(
-                        "text-[10px] font-black text-muted-foreground opacity-60 transition-opacity hover:opacity-100",
-                        locale !== "ar" && "uppercase tracking-widest"
-                    )}>
-                        {dictionary.footer.copyright}
-                    </p>
+                <div className="mt-12 pt-8 border-t border-border/50 text-[9px] font-mono text-muted-foreground uppercase tracking-widest text-center md:text-left">
+                    Infrastructure Status: Online / Latency: 24ms / Cluster: EU-WEST-1
                 </div>
             </div>
         </footer>

@@ -1,8 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
   "framework": "nextjs",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD .",
-  "outputDirectory": ".next"
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ."
 }

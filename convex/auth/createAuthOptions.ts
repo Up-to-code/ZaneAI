@@ -6,9 +6,40 @@ import { expo } from "@better-auth/expo";
 import { internal } from "../_generated/api";
 import authConfig from "../auth.config";
 
+const appScheme = "zane-ai://";
+const localWebOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+
+function normalizeWebOrigin(value: string | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    return trimmed.replace(/\/+$/, "");
+  }
+}
+
+function readWebOriginsFromEnv() {
+  const rawOrigins = [
+    process.env.SITE_URL,
+    process.env.ANAN_WEB_URL,
+    process.env.WEB_URL,
+    process.env.NEXT_PUBLIC_SITE_URL,
+  ].flatMap((value) => value?.split(",") ?? []);
+
+  return Array.from(new Set(rawOrigins.map(normalizeWebOrigin).filter((origin): origin is string => Boolean(origin))));
+}
+
+function getTrustedWebOrigins() {
+  return Array.from(new Set([...readWebOriginsFromEnv(), ...localWebOrigins]));
+}
+
 export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } | any) {
-  const siteUrl = process.env.SITE_URL || undefined;
-  const appScheme = "zane-ai://";
+  const webOrigins = getTrustedWebOrigins();
+  const siteUrl = webOrigins[0];
   const socialProviders = {
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? {
@@ -31,7 +62,7 @@ export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } |
   return {
     baseURL: process.env.BETTER_AUTH_URL || process.env.CONVEX_SITE_URL,
     basePath: "/api/auth",
-    trustedOrigins: [appScheme, ...(siteUrl ? [siteUrl] : [])],
+    trustedOrigins: [appScheme, ...webOrigins],
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
