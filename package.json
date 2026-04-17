@@ -21,7 +21,9 @@
     "convex:codegen": "npm --workspace apps/mobile run convex:codegen",
     "portal:dev": "npm --workspace @anan/portal run dev",
     "portal:build": "npm --workspace @anan/portal run build",
-    "portal:lint": "npm --workspace @anan/portal run lint"
+    "portal:lint": "npm --workspace @anan/portal run lint",
+    "web:build": "npm --workspace web run build",
+    "web:lint": "npm --workspace web run lint"
   },
   "devDependencies": {
     "@types/node": "^20.17.15",

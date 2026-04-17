@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "framework": "nextjs",
-  "installCommand": "npm install",
-  "buildCommand": "npm run portal:build",
-  "outputDirectory": "apps/portal/.next"
-}

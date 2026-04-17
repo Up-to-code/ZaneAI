@@ -93,7 +93,59 @@ We believe that professional tools should fade into the background. The **Pure C
 | `npm run convex` | Run the Convex dev server and codegen. |
 | `npm run typecheck` | Run TypeScript validation across the monorepo. |
 | `npm run lint` | Execute ESLint checks. |
+| `npm run portal:build` | Build the Portal Next.js app. |
+| `npm run web:build` | Build the Web Next.js app. |
 | `npm run agent:smoke` | Run AI agent smoke tests. |
+
+---
+
+## Vercel Deployment
+
+Deploy `apps/portal` and `apps/web` as two separate Vercel projects from the same repository. Keep Vercel's "Include source files outside of the Root Directory in the Build Step" setting enabled so each app can import shared workspace packages from `packages/`.
+
+### Portal Project
+
+| Setting | Value |
+| :--- | :--- |
+| Framework Preset | `Next.js` |
+| Root Directory | `apps/portal` |
+| Install Command | `cd ../.. && npm install --legacy-peer-deps` |
+| Build Command | `cd ../.. && npm --workspace @anan/portal run build` |
+| Output Directory | `.next` |
+
+Required Vercel environment variable:
+
+- `NEXT_PUBLIC_CONVEX_URL=https://<deployment>.convex.cloud`
+
+### Web Project
+
+| Setting | Value |
+| :--- | :--- |
+| Framework Preset | `Next.js` |
+| Root Directory | `apps/web` |
+| Install Command | `cd ../.. && npm install --legacy-peer-deps` |
+| Build Command | `cd ../.. && npm --workspace web run build` |
+| Output Directory | `.next` |
+
+Required Vercel environment variables:
+
+- `NEXT_PUBLIC_CONVEX_URL=https://<deployment>.convex.cloud`
+- `NEXT_PUBLIC_AUTH_URL=https://<deployment>.convex.site` or `NEXT_PUBLIC_CONVEX_SITE_URL=https://<deployment>.convex.site`
+- `UPLOADTHING_TOKEN=<your-uploadthing-token>`
+
+Optional Vercel environment variables:
+
+- `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=<your-posthog-project-token>`
+- `NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com`
+- `NEXT_PUBLIC_MOCK_DATA_ENABLED=false`
+
+### Convex Deployment Environment
+
+Convex deploys separately from Vercel, so set backend runtime values in the Convex deployment environment rather than in Vercel.
+
+- Set `SITE_URL`, `ANAN_WEB_URL`, or `WEB_URL` to the production web origin so Better Auth trusts the deployed web app.
+- Set `BETTER_AUTH_URL` or `CONVEX_SITE_URL` to the Convex site auth base URL.
+- Set backend-only UploadThing and PostHog values, such as `UPLOADTHING_API_KEY`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, and `NEXT_PUBLIC_POSTHOG_HOST`, in Convex when backend functions need them.
 
 ---
 
