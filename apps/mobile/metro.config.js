@@ -6,6 +6,7 @@ const { withNativeWind } = require("nativewind/metro");
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, "../..");
 const projectNodeModules = path.resolve(projectRoot, "node_modules");
+const workspaceNodeModules = path.resolve(workspaceRoot, "node_modules");
 const packagesRoot = path.resolve(workspaceRoot, "packages");
 const convexRoot = path.resolve(workspaceRoot, "convex");
 const bunStoreRoot = path.resolve(workspaceRoot, "node_modules/.bun");
@@ -43,18 +44,64 @@ function findBunPackageRoot(packageName) {
   return resolved;
 }
 
+function getPackageName(moduleName) {
+  if (moduleName.startsWith("@")) {
+    const [scope, name] = moduleName.split("/");
+    return name ? `${scope}/${name}` : moduleName;
+  }
+
+  return moduleName.split("/")[0];
+}
+
+function resolvePackageRoot(packageName) {
+  const projectCandidate = path.resolve(projectNodeModules, packageName);
+  if (fs.existsSync(projectCandidate)) {
+    return projectCandidate;
+  }
+
+  const workspaceCandidate = path.resolve(workspaceNodeModules, packageName);
+  if (fs.existsSync(workspaceCandidate)) {
+    return workspaceCandidate;
+  }
+
+  return findBunPackageRoot(packageName) ?? undefined;
+}
+
+function resolveSingletonPath(moduleName) {
+  const packageName = getPackageName(moduleName);
+  const packageRoot = resolvePackageRoot(packageName);
+
+  if (packageRoot) {
+    if (moduleName === packageName) {
+      return packageRoot;
+    }
+
+    try {
+      return require.resolve(moduleName, {
+        paths: [projectRoot, workspaceRoot, path.dirname(packageRoot)],
+      });
+    } catch {
+      return path.join(packageRoot, moduleName.slice(packageName.length + 1));
+    }
+  }
+
+  return require.resolve(moduleName, {
+    paths: [projectRoot, workspaceRoot],
+  });
+}
+
 config.watchFolders = [...new Set([...(config.watchFolders ?? []), packagesRoot, convexRoot])];
 config.resolver.alias = {
   ...(config.resolver.alias ?? {}),
   "@": path.resolve(projectRoot, "src"),
   "@convex": path.resolve(workspaceRoot, "convex"),
   "@zayon/assistant-protocol": path.resolve(workspaceRoot, "packages/zayon-assistant-protocol/src/index.ts"),
-  react: path.resolve(projectNodeModules, "react"),
-  "react/jsx-runtime": path.resolve(projectNodeModules, "react/jsx-runtime"),
-  "react/jsx-dev-runtime": path.resolve(projectNodeModules, "react/jsx-dev-runtime"),
-  "react-dom": path.resolve(projectNodeModules, "react-dom"),
-  "react-native": path.resolve(projectNodeModules, "react-native"),
-  scheduler: path.resolve(projectNodeModules, "scheduler"),
+  react: resolveSingletonPath("react"),
+  "react/jsx-runtime": resolveSingletonPath("react/jsx-runtime"),
+  "react/jsx-dev-runtime": resolveSingletonPath("react/jsx-dev-runtime"),
+  "react-dom": resolveSingletonPath("react-dom"),
+  "react-native": resolveSingletonPath("react-native"),
+  scheduler: resolveSingletonPath("scheduler"),
 };
 config.resolver.extraNodeModules = new Proxy(
   {},
@@ -64,7 +111,7 @@ config.resolver.extraNodeModules = new Proxy(
         return undefined;
       }
 
-      return findBunPackageRoot(packageName);
+      return resolvePackageRoot(packageName);
     },
   },
 );
@@ -83,7 +130,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (strictSingletons.includes(moduleName)) {
     return context.resolveRequest(
       context,
-      path.resolve(projectNodeModules, moduleName),
+      resolveSingletonPath(moduleName),
       platform
     );
   }

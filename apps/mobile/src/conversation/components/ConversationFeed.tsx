@@ -5,7 +5,6 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { ArrowDown } from "lucide-react-native";
 
 import { AssistantTurnAdapter } from "@/conversation/adapters/AssistantTurnAdapter";
-import { AssistantStageProgress } from "@/conversation/components/AssistantStageProgress";
 import { MessageBubble } from "@/conversation/components/MessageBubble";
 import { EmptyThreadWelcome } from "@/conversation/components/EmptyThreadWelcome";
 import { IconButton } from "@/foundation/primitives/IconButton";
@@ -162,13 +161,16 @@ export function ConversationFeed({ messages, runStageFeed, onTurnAction }: Conve
       >
         <View style={{ height: insets.top + 70 }} />
         {messages.map((item) => {
+          const isPending = item.id === "pending-assistant";
+          const latestStageEvent = isPending
+            ? [...runStageFeed]
+                .reverse()
+                .find((event) => Boolean(event.route || event.specialist))
+            : undefined;
+
           return (
             <View key={item.id}>
-              {item.id === "pending-assistant" && shouldShowStageProgress ? (
-                <AssistantStageProgress events={runStageFeed} />
-              ) : null}
-
-              <MessageBubble message={item} />
+              <MessageBubble message={item} latestStageEvent={latestStageEvent} />
 
               {item.uiTurn ? (
                 <Animated.View entering={FadeInDown.duration(300)}>

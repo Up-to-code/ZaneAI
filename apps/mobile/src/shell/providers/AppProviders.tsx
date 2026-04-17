@@ -3,7 +3,8 @@ import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useFonts, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold } from "@expo-google-fonts/manrope";
+import { useFonts, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
+import { Cairo_400Regular, Cairo_600SemiBold, Cairo_700Bold } from "@expo-google-fonts/cairo";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AuthProvider } from "@/auth/AuthProvider";
@@ -16,6 +17,10 @@ export function AppProviders({ children }: PropsWithChildren) {
     Manrope_500Medium,
     Manrope_600SemiBold,
     Manrope_700Bold,
+    Manrope_800ExtraBold,
+    Cairo_400Regular,
+    Cairo_600SemiBold,
+    Cairo_700Bold,
   });
 
   if (!fontsLoaded) {

@@ -3,7 +3,9 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import type { AssistantAction, AssistantBlock, AssistantTurn } from "@/conversation/assistantProtocol";
 import { Text } from "@/foundation/primitives/Text";
-import { theme } from "@/foundation/theme/tokens";
+import { MarkdownText } from "@/foundation/primitives/MarkdownText";
+import { isArabic } from "@/foundation/utils/rtl";
+import { theme, radii } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 
 type AssistantTurnRendererProps = {
@@ -15,17 +17,19 @@ type AssistantTurnRendererProps = {
 function Section({
   title,
   tone,
+  cardless,
   children,
 }: {
   title?: string;
   tone: AssistantTurn["motion"]["preset"];
+  cardless?: boolean;
   children: ReactNode;
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
-    <View style={[styles.card, styles[`card_${tone}`]]}>
+    <View style={[!cardless ? styles.card : styles.cardless, !cardless && styles[`card_${tone}`]]}>
       {title ? <Text style={styles.cardTitle}>{title}</Text> : null}
       {children}
     </View>
@@ -67,26 +71,34 @@ function ActionButtons({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const actions = turn.actions.filter((action) => actionIds.includes(action.id));
+  const isArabicTurn = isArabic(turn.assistantText);
 
   if (!actions.length) {
     return null;
   }
 
   return (
-    <View style={styles.actionWrap}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={[styles.actionRow, isArabicTurn ? styles.actionRowRtl : null]}
+    >
       {actions.map((action) => (
         <Pressable
           key={action.id}
           onPress={() => void onAction?.(action, turn)}
+          accessibilityRole="button"
           style={({ pressed }) => [
-            styles.actionButton,
+            styles.actionLinkWrap,
             pressed ? styles.actionButtonPressed : null,
           ]}
         >
-          <Text style={styles.actionText}>{action.title}</Text>
+          <Text style={[styles.actionText, isArabicTurn ? styles.actionTextRtl : null]}>
+            {action.title}
+          </Text>
         </Pressable>
       ))}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -107,8 +119,8 @@ function RenderBlock({
   switch (block.type) {
     case "text":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
-          <Text style={styles.bodyText}>{block.body}</Text>
+        <Section title={block.title} tone={turn.motion.preset} cardless>
+          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} />
         </Section>
       );
     case "property_list":
@@ -142,16 +154,20 @@ function RenderBlock({
       );
     case "followup":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
-          <Text style={styles.bodyText}>{block.prompt}</Text>
+        <Section title={block.title} tone={turn.motion.preset} cardless>
+          <MarkdownText text={block.prompt} tone="secondary" style={styles.bodyText} />
           {block.suggestions?.length ? (
-            <View style={styles.suggestionWrap}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.suggestionRow}
+            >
               {block.suggestions.map((suggestion) => (
                 <View key={suggestion} style={styles.suggestionPill}>
                   <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
               ))}
-            </View>
+            </ScrollView>
           ) : null}
         </Section>
       );
@@ -175,8 +191,8 @@ function RenderBlock({
       );
     case "advisor_note":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
-          <Text style={styles.bodyText}>{block.body}</Text>
+        <Section title={block.title} tone={turn.motion.preset} cardless>
+          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} />
           {block.bullets?.length ? (
             <View style={styles.bulletsWrap}>
               {block.bullets.map((bullet) => (
@@ -188,22 +204,26 @@ function RenderBlock({
       );
     case "actions":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
+        <Section tone={turn.motion.preset} cardless>
           <ActionButtons actionIds={block.actionIds} turn={turn} onAction={onAction} />
         </Section>
       );
     case "empty":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
-          <Text style={styles.bodyText}>{block.body}</Text>
+        <Section title={block.title} tone={turn.motion.preset} cardless>
+          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} />
           {block.suggestions?.length ? (
-            <View style={styles.suggestionWrap}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.suggestionRow}
+            >
               {block.suggestions.map((suggestion) => (
                 <View key={suggestion} style={styles.suggestionPill}>
                   <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
               ))}
-            </View>
+            </ScrollView>
           ) : null}
         </Section>
       );
@@ -222,15 +242,29 @@ export function AssistantTurnRenderer({
 
   return (
     <View style={styles.container}>
-      {turn.blocks.map((block) => (
-        <RenderBlock
-          key={block.id}
-          block={block}
-          turn={turn}
-          renderPropertyPreview={renderPropertyPreview}
-          onAction={onAction}
-        />
-      ))}
+      {turn.blocks.map((block) => {
+        const bodyContent =
+          block.type === "text"
+            ? block.body
+            : block.type === "advisor_note"
+            ? block.body
+            : block.type === "empty"
+            ? block.body
+            : block.type === "followup"
+            ? block.prompt
+            : "";
+        const isAr = isArabic(bodyContent);
+        return (
+          <View key={block.id} style={isAr && { alignItems: "flex-end" }}>
+            <RenderBlock
+              block={block}
+              turn={turn}
+              renderPropertyPreview={renderPropertyPreview}
+              onAction={onAction}
+            />
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -243,10 +277,16 @@ const createStyles = (colors: any) =>
     },
     card: {
       marginHorizontal: theme.spacing.xl,
-      borderRadius: 24,
+      borderRadius: radii.md,
       borderWidth: 1,
       padding: theme.spacing.xl,
       gap: theme.spacing.md,
+    },
+    cardless: {
+      paddingHorizontal: theme.spacing.xl,
+      gap: theme.spacing.sm,
+      borderWidth: 0,
+      backgroundColor: "transparent",
     },
     card_assistant: {
       borderColor: colors.border,
@@ -307,20 +347,22 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
       fontFamily: "Manrope_500Medium",
     },
-    suggestionWrap: {
+    suggestionRow: {
       flexDirection: "row",
-      flexWrap: "wrap",
       gap: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.xl,
     },
     suggestionPill: {
-      borderRadius: 999,
-      backgroundColor: colors.backgroundSoft,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.xs,
+      borderRadius: radii.pill || 999,
+      backgroundColor: colors.surfaceRaised,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     suggestionText: {
-      fontSize: 12,
-      color: colors.textSecondary,
+      fontSize: 13,
+      color: colors.textPrimary,
       fontFamily: "Manrope_600SemiBold",
     },
     disclaimerWrap: {
@@ -333,24 +375,31 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
       fontFamily: "Manrope_500Medium",
     },
-    actionWrap: {
+    actionRow: {
       flexDirection: "row",
-      flexWrap: "wrap",
       gap: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.xl,
+      alignItems: "center",
     },
-    actionButton: {
-      borderRadius: 16,
-      backgroundColor: colors.textPrimary,
-      paddingHorizontal: theme.spacing.lg,
-      paddingVertical: theme.spacing.md,
+    actionRowRtl: {
+      flexDirection: "row-reverse",
+    },
+    actionLinkWrap: {
+      paddingVertical: 2,
+      paddingHorizontal: 2,
     },
     actionButtonPressed: {
-      opacity: 0.82,
+      opacity: 0.65,
     },
     actionText: {
-      color: colors.background,
+      color: colors.accent,
       fontSize: 13,
-      fontFamily: "Manrope_700Bold",
+      fontFamily: "Manrope_600SemiBold",
+      textDecorationLine: "underline",
+    },
+    actionTextRtl: {
+      textAlign: "right",
+      writingDirection: "rtl",
     },
     propertyFallback: {
       minWidth: 160,

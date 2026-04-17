@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@better-auth/expo": "1.5.6",
+    "@expo-google-fonts/cairo": "^0.4.2",
     "@expo-google-fonts/manrope": "^0.4.1",
     "@expo/metro-runtime": "~6.1.2",
     "@google/genai": "^1.48.0",
@@ -27,6 +28,7 @@
     "clsx": "^2.1.1",
     "convex": "^1.35.1",
     "expo": "54.0.33",
+    "expo-clipboard": "^55.0.13",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.11",
     "expo-haptics": "~15.0.8",
