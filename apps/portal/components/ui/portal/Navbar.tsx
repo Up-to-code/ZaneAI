@@ -23,6 +23,7 @@ export default function Navbar({ locale = "ar" }: { locale?: AppLocale }) {
                     </a>
 
                     <div className="hidden lg:flex items-center gap-10">
+                        <a href="/reading" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Manifesto</a>
                         <a href="/features" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Features</a>
                         <a href="/pricing" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Pricing</a>
                         <a href="/team" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Team</a>
