@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "framework": "nextjs",
-  "buildCommand": "cd ../.. && npm run portal:build",
-  "outputDirectory": ".next",
-  "installCommand": "cd ../.. && npm install"
-}
