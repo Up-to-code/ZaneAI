@@ -1,4 +1,4 @@
-# `@anan/ag-ui`
+# `@zaneai/ag-ui`
 
 Reusable AG UI package for rendering structured agent turns as ready-made UI cards.
 
@@ -7,22 +7,22 @@ Reusable AG UI package for rendering structured agent turns as ready-made UI car
 - Protocol types and schemas for `AgUiConversationTurn`
 - Default cards for drafts, updates, missing-data prompts, market insights, and approval flows
 - React renderer with registry overrides and host-owned action callbacks
-- Anan adapter entrypoint for the current property form, rich text editor, and delete confirmation modal
+- ZaneAI adapter entrypoint for the current property form, rich text editor, and delete confirmation modal
 
 ## Entry points
 
 ```ts
-import type { AgUiConversationTurn } from "@anan/ag-ui";
-import { resolveAgUiTurn } from "@anan/ag-ui";
-import { AgUiTurnRenderer } from "@anan/ag-ui/react";
-import { AgPropertyForm } from "@anan/ag-ui/anan";
+import type { AgUiConversationTurn } from "@zaneai/ag-ui";
+import { resolveAgUiTurn } from "@zaneai/ag-ui";
+import { AgUiTurnRenderer } from "@zaneai/ag-ui/react";
+import { AgPropertyForm } from "@zaneai/ag-ui/zaneai";
 ```
 
 ## First render
 
 ```tsx
-import { AgUiTurnRenderer } from "@anan/ag-ui/react";
-import type { AgUiConversationTurn } from "@anan/ag-ui";
+import { AgUiTurnRenderer } from "@zaneai/ag-ui/react";
+import type { AgUiConversationTurn } from "@zaneai/ag-ui";
 
 export function AssistantSurface({ turn }: { turn: AgUiConversationTurn }) {
   return <AgUiTurnRenderer turn={turn} />;
@@ -50,7 +50,7 @@ export function AssistantSurface({ turn }: { turn: AgUiConversationTurn }) {
 ## Registry overrides
 
 ```tsx
-import { AgUiTurnRenderer } from "@anan/ag-ui/react";
+import { AgUiTurnRenderer } from "@zaneai/ag-ui/react";
 
 function CustomLatestUpdateCard(props: Record<string, unknown>) {
   return <div data-card="custom-latest-update">{String(props["entity"])}</div>;

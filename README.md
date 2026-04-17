@@ -1,8 +1,8 @@
-# Zane AI
+# ZaneAI
 
 ### Intelligent Infrastructure for Real Estate
 
-**Zane AI** is the unified ecosystem connecting people, properties, and data. We are moving beyond the era of fragmented tools to build the **intelligent layer** that powers the future of real estate operations.
+**ZaneAI** is the unified ecosystem connecting people, properties, and data. We are moving beyond the era of fragmented tools to build the **intelligent layer** that powers the future of real estate operations.
 
 > [!IMPORTANT]
 > **Connect. Automate. Scale.**
@@ -32,7 +32,7 @@ This is a high-performance monorepo managed with **npm workspaces**, designed fo
 
 ## ⚡ Tech Stack
 
-Zane AI is built on a modern, reactive stack optimized for developer velocity and institutional-grade performance.
+ZaneAI is built on a modern, reactive stack optimized for developer velocity and institutional-grade performance.
 
 - **Backend**: [Convex](https://convex.dev) (Real-time DB, Auth, Cron, Vector Search)
 - **Frontend**: Next.js 15+ (Web/Portal), Expo 54 (iOS/Android)
@@ -110,7 +110,7 @@ Deploy `apps/portal` and `apps/web` as two separate Vercel projects from the sam
 | Framework Preset | `Next.js` |
 | Root Directory | `apps/portal` |
 | Install Command | `cd ../.. && npm install --legacy-peer-deps` |
-| Build Command | `cd ../.. && npm --workspace @anan/portal run build` |
+| Build Command | `cd ../.. && npm --workspace @zaneai/portal run build` |
 | Output Directory | `.next` |
 
 Required Vercel environment variable:
@@ -143,10 +143,10 @@ Optional Vercel environment variables:
 
 Convex deploys separately from Vercel, so set backend runtime values in the Convex deployment environment rather than in Vercel.
 
-- Set `SITE_URL`, `ANAN_WEB_URL`, or `WEB_URL` to the production web origin so Better Auth trusts the deployed web app.
+- Set `SITE_URL`, `ZANEAI_WEB_URL`, or `WEB_URL` to the production web origin so Better Auth trusts the deployed web app.
 - Set `BETTER_AUTH_URL` or `CONVEX_SITE_URL` to the Convex site auth base URL.
 - Set backend-only UploadThing and PostHog values, such as `UPLOADTHING_API_KEY`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, and `NEXT_PUBLIC_POSTHOG_HOST`, in Convex when backend functions need them.
 
 ---
 
-&copy; 2026 Zane AI. All rights reserved.
+&copy; 2026 ZaneAI. All rights reserved.

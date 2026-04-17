@@ -5,7 +5,7 @@ import { resolveLocale, type AppLocale, WORKSPACE_LOCALE_COOKIE } from "@/lib/lo
 /**
  * WHY:   Workspace routes should not inherit the public site's locale preference unless the user explicitly changes the workspace language.
  * WHAT:  Resolves the locale for `/ws` from its dedicated cookie and defaults safely to Arabic.
- * HOW:   Reads `anan_workspace_locale` from the request cookies and falls back to `ar` when the cookie is missing or unavailable.
+ * HOW:   Reads `zaneai_workspace_locale` from the request cookies and falls back to `ar` when the cookie is missing or unavailable.
  */
 export async function getWorkspaceLocale(): Promise<AppLocale> {
   try {

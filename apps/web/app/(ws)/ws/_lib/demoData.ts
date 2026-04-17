@@ -554,8 +554,8 @@ export const demoProfile: ProfileSummary = {
 export const demoApiKeys: OrganizationApiKeySummary[] = [
   {
     id: "api-key-1",
-    keyId: "key_anan_demo_01",
-    prefix: "anan_demo",
+    keyId: "key_zaneai_demo_01",
+    prefix: "zaneai_demo",
     name: "Demo Workspace Key",
     permissions: [{ resource: "properties", action: "read" }],
     status: "active",

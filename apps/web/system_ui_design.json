@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "system_name": "Anan Web Multi-Surface UI System",
+  "system_name": "ZaneAI Web Multi-Surface UI System",
   "generated_on": "2026-04-04",
   "scope": "apps/web",
   "purpose": "Machine-readable description of the current web UI so future work matches the real front-end in apps/web instead of the older sharp-minimal snapshot.",
@@ -10,7 +10,7 @@
     "important_note": "Do not collapse all apps/web routes into one flat dashboard aesthetic. Shared DNA exists, but each surface family has its own geometry, spacing, and chrome."
   },
   "brand_dna": {
-    "platform_context": "Anan web serves both public institutional storytelling and authenticated real-estate operations for brokers, developers, and assistant-led work.",
+    "platform_context": "ZaneAI web serves both public institutional storytelling and authenticated real-estate operations for brokers, developers, and assistant-led work.",
     "visual_character": [
       "institutional",
       "precise",
@@ -498,6 +498,6 @@
       "apps/web/app/(ws)/ws/_components/Chat/WorkspaceAssistantBadges.tsx",
       "apps/web/app/(ws)/ws/_components/WorkspaceBrand/BrandVectorPanel.tsx"
     ],
-    "related_reference": "docs/handbook/llm/anan-system-ui-design.json"
+    "related_reference": "docs/handbook/llm/zaneai-system-ui-design.json"
   }
 }

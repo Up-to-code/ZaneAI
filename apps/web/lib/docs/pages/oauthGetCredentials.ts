@@ -3,7 +3,7 @@ export const oauthGetCredentialsPage: DocsPageDefinition = {
     key: "oauth-get-credentials",
     href: "/docs/oauth/get-credentials",
     title: "Authentication & Credentials",
-    description: "How to obtain and configure your Anan API Keys and OAuth app credentials.",
+    description: "How to obtain and configure your ZaneAI API Keys and OAuth app credentials.",
     summary:
       "Organization API keys are created by organization owners from workspace settings, while OAuth app credentials remain onboarding-managed for delegated organization app access.",
     sections: [
@@ -25,18 +25,18 @@ export const oauthGetCredentialsPage: DocsPageDefinition = {
               {
                 title: "Call the organization properties API",
                 language: "typescript",
-                code: `const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/org/properties\`, {
+                code: `const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/org/properties\`, {
   headers: {
-    "X-Anan-Api-Key": process.env.ANAN_ORG_API_KEY!
+    "X-ZaneAI-Api-Key": process.env.ZANEAI_ORG_API_KEY!
   }
 });`
               },
               {
                 title: "Call the organization properties API",
                 language: "javascript",
-                code: `const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/org/properties\`, {
+                code: `const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/org/properties\`, {
   headers: {
-    "X-Anan-Api-Key": process.env.ANAN_ORG_API_KEY,
+    "X-ZaneAI-Api-Key": process.env.ZANEAI_ORG_API_KEY,
   },
 });
 
@@ -47,9 +47,9 @@ console.log(data.properties);`,
                 title: "Call the organization properties API",
                 language: "csharp",
                 code: `using var http = new HttpClient();
-http.DefaultRequestHeaders.Add("X-Anan-Api-Key", Environment.GetEnvironmentVariable("ANAN_ORG_API_KEY"));
+http.DefaultRequestHeaders.Add("X-ZaneAI-Api-Key", Environment.GetEnvironmentVariable("ZANEAI_ORG_API_KEY"));
 
-var issuer = Environment.GetEnvironmentVariable("ANAN_ISSUER");
+var issuer = Environment.GetEnvironmentVariable("ZANEAI_ISSUER");
 var response = await http.GetAsync($"{issuer}/api/org/properties");
 response.EnsureSuccessStatusCode();
 
@@ -93,7 +93,7 @@ Console.WriteLine(json);`,
           },
           {
             title: "OAuth Still Uses Onboarding",
-            body: "OAuth client credentials are still provisioned by Anan onboarding. There is no public self-service endpoint for creating external OAuth apps.",
+            body: "OAuth client credentials are still provisioned by ZaneAI onboarding. There is no public self-service endpoint for creating external OAuth apps.",
             tone: "warning",
           },
         ],
@@ -106,11 +106,11 @@ Console.WriteLine(json);`,
           {
             title: "Suggested environment variables",
             language: "bash",
-            code: `export ANAN_ISSUER="https://<your-anan-issuer>"
-export ANAN_ORG_API_KEY="<workspace-generated-api-key>"
-export ANAN_CLIENT_ID="<provided-client-id>"
-export ANAN_CLIENT_SECRET="<provided-client-secret-if-confidential>"
-export ANAN_REDIRECT_URI="https://your-app.example.com/oauth/callback"`,
+            code: `export ZANEAI_ISSUER="https://<your-zaneai-issuer>"
+export ZANEAI_ORG_API_KEY="<workspace-generated-api-key>"
+export ZANEAI_CLIENT_ID="<provided-client-id>"
+export ZANEAI_CLIENT_SECRET="<provided-client-secret-if-confidential>"
+export ZANEAI_REDIRECT_URI="https://your-app.example.com/oauth/callback"`,
           },
         ],
         callouts: [

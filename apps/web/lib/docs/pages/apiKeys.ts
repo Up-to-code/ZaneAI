@@ -16,7 +16,7 @@ export const apiKeysPage: DocsPageDefinition = {
           "Choose a name and granular resource-action permissions for `clients`, `properties`, `deals`, and `brokers`.",
           "Permissions are assigned per action: `read`, `create`, `update`, `delete`.",
           "The `brokers` resource is read-only in this version.",
-          "Copy the secret immediately after creation; Anan stores only a hash and will not show the full value again.",
+          "Copy the secret immediately after creation; ZaneAI stores only a hash and will not show the full value again.",
           "Owners and managers can revoke the key from the same settings tab if it is no longer needed.",
         ],
         callouts: [
@@ -44,7 +44,7 @@ export const apiKeysPage: DocsPageDefinition = {
         title: "Authenticate Requests",
         summary: "TypeScript is the primary example. Use the selector to switch languages without leaving the same code block.",
         paragraphs: [
-          "Send the key in the `X-Anan-Api-Key` header. The key is always scoped to the organization that created it, so callers never provide org ids, broker ids, or developer ids in requests.",
+          "Send the key in the `X-ZaneAI-Api-Key` header. The key is always scoped to the organization that created it, so callers never provide org ids, broker ids, or developer ids in requests.",
         ],
         codeExampleGroups: [
           {
@@ -63,9 +63,9 @@ export const apiKeysPage: DocsPageDefinition = {
   }>;
 };
 
-const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/org/clients\`, {
+const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/org/clients\`, {
   headers: {
-    "X-Anan-Api-Key": process.env.ANAN_ORG_API_KEY!,
+    "X-ZaneAI-Api-Key": process.env.ZANEAI_ORG_API_KEY!,
   },
 });
 
@@ -75,9 +75,9 @@ console.log(data.clients);`,
               {
                 title: "Authenticate a request to the organization clients API",
                 language: "javascript",
-                code: `const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/org/clients\`, {
+                code: `const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/org/clients\`, {
   headers: {
-    "X-Anan-Api-Key": process.env.ANAN_ORG_API_KEY,
+    "X-ZaneAI-Api-Key": process.env.ZANEAI_ORG_API_KEY,
   },
 });
 
@@ -88,9 +88,9 @@ console.log(data.clients);`,
                 title: "Authenticate a request to the organization clients API",
                 language: "csharp",
                 code: `using var http = new HttpClient();
-http.DefaultRequestHeaders.Add("X-Anan-Api-Key", Environment.GetEnvironmentVariable("ANAN_ORG_API_KEY"));
+http.DefaultRequestHeaders.Add("X-ZaneAI-Api-Key", Environment.GetEnvironmentVariable("ZANEAI_ORG_API_KEY"));
 
-var issuer = Environment.GetEnvironmentVariable("ANAN_ISSUER");
+var issuer = Environment.GetEnvironmentVariable("ZANEAI_ISSUER");
 var response = await http.GetAsync($"{issuer}/api/org/clients");
 response.EnsureSuccessStatusCode();
 
@@ -100,7 +100,7 @@ Console.WriteLine(json);`,
               {
                 title: "Authenticate a request to the organization clients API",
                 language: "bash",
-                code: "curl -sS -H \"X-Anan-Api-Key: $ANAN_ORG_API_KEY\" \"$ANAN_ISSUER/api/org/clients\"",
+                code: "curl -sS -H \"X-ZaneAI-Api-Key: $ZANEAI_ORG_API_KEY\" \"$ZANEAI_ISSUER/api/org/clients\"",
               },
             ],
           },
@@ -109,7 +109,7 @@ Console.WriteLine(json);`,
           {
             title: "Environment variable",
             language: "bash",
-            code: "export ANAN_ORG_API_KEY=\"anan_abcd1234.<secret>\"",
+            code: "export ZANEAI_ORG_API_KEY=\"zaneai_abcd1234.<secret>\"",
           },
         ],
       },

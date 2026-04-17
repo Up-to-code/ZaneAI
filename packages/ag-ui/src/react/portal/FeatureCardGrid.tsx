@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { cn } from "../../anan/utils";
+import { cn } from "../../zaneai/utils";
 import Card from "./Card";
 
 interface FeatureCardItem {

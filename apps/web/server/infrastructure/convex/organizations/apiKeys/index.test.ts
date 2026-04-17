@@ -49,11 +49,11 @@ it("omits origin from machine mutation payloads when it is absent", async () => 
 });
 
 it("forwards origin when it is provided", async () => {
-  await convexOrganizationApiKeysRepository.listClientsByApiKey("secret-hash", 123, "https://app.anan.test");
+  await convexOrganizationApiKeysRepository.listClientsByApiKey("secret-hash", 123, "https://app.zaneai.test");
 
   expect(fetchMutation).toHaveBeenCalledWith("listClientsByApiKey", {
     secretHash: "secret-hash",
     now: 123,
-    origin: "https://app.anan.test",
+    origin: "https://app.zaneai.test",
   });
 });

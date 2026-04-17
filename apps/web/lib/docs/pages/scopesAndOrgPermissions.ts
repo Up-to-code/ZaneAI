@@ -23,7 +23,7 @@ export const scopesAndOrgPermissionsPage: DocsPageDefinition = {
         bullets: [
           "Delegated handlers resolve token context from the organization grant before any resource access.",
           "Property and client access both stay inside the connected `tenantOrgId` boundary.",
-          "Broker or developer owner links are still written on records for compatibility with existing Anan workspace flows.",
+          "Broker or developer owner links are still written on records for compatibility with existing ZaneAI workspace flows.",
         ],
       },
       {

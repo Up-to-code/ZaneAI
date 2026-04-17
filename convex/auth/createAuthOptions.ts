@@ -26,7 +26,7 @@ function normalizeWebOrigin(value: string | undefined) {
 function readWebOriginsFromEnv() {
   const rawOrigins = [
     process.env.SITE_URL,
-    process.env.ANAN_WEB_URL,
+    process.env.ZANEAI_WEB_URL,
     process.env.WEB_URL,
     process.env.NEXT_PUBLIC_SITE_URL,
   ].flatMap((value) => value?.split(",") ?? []);

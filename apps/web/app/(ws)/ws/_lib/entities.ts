@@ -72,7 +72,7 @@ export type OfferThreadItem = {
   summary: string;
 };
 
-export type { AgUiActionDefinition, AgUiDraftState, AgUiExecutionState } from "@anan/ag-ui";
+export type { AgUiActionDefinition, AgUiDraftState, AgUiExecutionState } from "@zaneai/ag-ui";
 
 export type MarketAreaInsight = {
   city: string;

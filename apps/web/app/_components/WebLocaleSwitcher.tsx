@@ -27,7 +27,7 @@ export default function WebLocaleSwitcher({
 
   function handleLocaleChange(nextLocale: (typeof WEB_SUPPORTED_LOCALES)[number]) {
     startTransition(async () => {
-      const cookieName = scope === "workspace" ? "anan_workspace_locale" : "anan_web_locale";
+      const cookieName = scope === "workspace" ? "zaneai_workspace_locale" : "zaneai_web_locale";
       document.cookie = `${cookieName}=${nextLocale}; path=/; max-age=31536000; samesite=lax`;
       router.refresh();
     });

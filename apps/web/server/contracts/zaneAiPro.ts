@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { AgUiConversationTurn } from "@anan/ag-ui";
+import type { AgUiConversationTurn } from "@zaneai/ag-ui";
 import { uploadedFileReferenceSchema } from "@/server/contracts/files";
 
 export const zaneAiProInputModeSchema = z.enum(["text", "voice", "attachment"]);

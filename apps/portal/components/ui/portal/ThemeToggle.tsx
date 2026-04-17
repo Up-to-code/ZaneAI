@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
-import { cn } from "@anan/ag-ui/anan";
+import { cn } from "@zaneai/ag-ui/zaneai";
 import { useWebLocale } from "./WebLocaleProvider";
 
 /**

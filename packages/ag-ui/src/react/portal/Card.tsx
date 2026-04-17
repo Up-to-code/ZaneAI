@@ -1,5 +1,5 @@
-import { cn } from "../../anan/utils";
-import type { AppLocale } from "../../anan/locale";
+import { cn } from "../../zaneai/utils";
+import type { AppLocale } from "../../zaneai/locale";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 

@@ -18,7 +18,7 @@ export const oauthAuthorizationCodePkcePage: DocsPageDefinition = {
           {
             title: "Authorize URL example",
             language: "text",
-            code: `$ANAN_ISSUER/authorize?response_type=code&client_id=$ANAN_CLIENT_ID&redirect_uri=$ANAN_REDIRECT_URI&scope=offline_access%20clients:read_own&state=<opaque-state>&code_challenge=<pkce-challenge>&code_challenge_method=S256`,
+            code: `$ZANEAI_ISSUER/authorize?response_type=code&client_id=$ZANEAI_CLIENT_ID&redirect_uri=$ZANEAI_REDIRECT_URI&scope=offline_access%20clients:read_own&state=<opaque-state>&code_challenge=<pkce-challenge>&code_challenge_method=S256`,
           },
         ],
       },
@@ -33,23 +33,23 @@ export const oauthAuthorizationCodePkcePage: DocsPageDefinition = {
           {
             title: "Authorization code grant",
             language: "bash",
-            code: `curl -sS -X POST "$ANAN_ISSUER/token" \\
+            code: `curl -sS -X POST "$ZANEAI_ISSUER/token" \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
-  -u "$ANAN_CLIENT_ID:$ANAN_CLIENT_SECRET" \\
+  -u "$ZANEAI_CLIENT_ID:$ZANEAI_CLIENT_SECRET" \\
   --data-urlencode "grant_type=authorization_code" \\
   --data-urlencode "code=$AUTHORIZATION_CODE" \\
-  --data-urlencode "redirect_uri=$ANAN_REDIRECT_URI" \\
+  --data-urlencode "redirect_uri=$ZANEAI_REDIRECT_URI" \\
   --data-urlencode "code_verifier=$PKCE_CODE_VERIFIER"`,
           },
           {
             title: "Authorization code grant (public client)",
             language: "bash",
-            code: `curl -sS -X POST "$ANAN_ISSUER/token" \\
+            code: `curl -sS -X POST "$ZANEAI_ISSUER/token" \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   --data-urlencode "grant_type=authorization_code" \\
-  --data-urlencode "client_id=$ANAN_CLIENT_ID" \\
+  --data-urlencode "client_id=$ZANEAI_CLIENT_ID" \\
   --data-urlencode "code=$AUTHORIZATION_CODE" \\
-  --data-urlencode "redirect_uri=$ANAN_REDIRECT_URI" \\
+  --data-urlencode "redirect_uri=$ZANEAI_REDIRECT_URI" \\
   --data-urlencode "code_verifier=$PKCE_CODE_VERIFIER"`,
           },
           {
@@ -75,9 +75,9 @@ export const oauthAuthorizationCodePkcePage: DocsPageDefinition = {
           {
             title: "Refresh token grant",
             language: "bash",
-            code: `curl -sS -X POST "$ANAN_ISSUER/token" \\
+            code: `curl -sS -X POST "$ZANEAI_ISSUER/token" \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
-  -u "$ANAN_CLIENT_ID:$ANAN_CLIENT_SECRET" \\
+  -u "$ZANEAI_CLIENT_ID:$ZANEAI_CLIENT_SECRET" \\
   --data-urlencode "grant_type=refresh_token" \\
   --data-urlencode "refresh_token=$REFRESH_TOKEN"`,
           },

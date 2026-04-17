@@ -1,6 +1,6 @@
 import { Section, SectionLabel } from "@/components/ui/portal";
 import { cookies } from "next/headers";
-import { getWebDictionary, resolveLocale, WEB_LOCALE_COOKIE } from "@anan/ag-ui/anan";
+import { getWebDictionary, resolveLocale, WEB_LOCALE_COOKIE } from "@zaneai/ag-ui/zaneai";
 import { 
     LayoutGrid,
     ClipboardList,

@@ -27,9 +27,9 @@ export const errorsAndSecurityPage: DocsPageDefinition = {
           {
             title: "Revoke refresh token",
             language: "bash",
-            code: `curl -sS -X POST "$ANAN_ISSUER/revoke" \\
+            code: `curl -sS -X POST "$ZANEAI_ISSUER/revoke" \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
-  -u "$ANAN_CLIENT_ID:$ANAN_CLIENT_SECRET" \\
+  -u "$ZANEAI_CLIENT_ID:$ZANEAI_CLIENT_SECRET" \\
   --data-urlencode "token=$REFRESH_TOKEN"`,
           },
         ],

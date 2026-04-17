@@ -15,7 +15,7 @@ export const gettingStartedPage: DocsPageDefinition = {
           "Choose your auth model first: organization API keys for backend-to-backend access to the current broker or developer organization, or OAuth for delegated organization app access.",
           "For organization API keys, create the key in Workspace Settings → API Keys as an organization owner and store it securely because the full secret is shown once.",
           "Managers can still view API key metadata and revoke keys, but only owners can create them.",
-          "For OAuth, get your `client_id` and `client_secret` from Anan onboarding, register redirect URIs, and expect the consent screen to target one organization at a time.",
+          "For OAuth, get your `client_id` and `client_secret` from ZaneAI onboarding, register redirect URIs, and expect the consent screen to target one organization at a time.",
           "Store API keys, access tokens, and refresh tokens securely; rotate or revoke them if you suspect exposure.",
           "Use the minimum permission set required for each integration path.",
         ],
@@ -44,7 +44,7 @@ export const gettingStartedPage: DocsPageDefinition = {
         title: "Base Endpoints",
         summary: "The machine API and delegated OAuth API are separate on purpose. Choose one surface per request flow and keep that boundary clear in your integration.",
         paragraphs: [
-          "Anan exposes two integration surfaces. Organization API keys call the workspace machine API under `/api/org/*`, while OAuth delegated integrations use `/authorize`, `/token`, and `/api/oauth/*`.",
+          "ZaneAI exposes two integration surfaces. Organization API keys call the workspace machine API under `/api/org/*`, while OAuth delegated integrations use `/authorize`, `/token`, and `/api/oauth/*`.",
           "Prefer organization API keys for first-party internal tools that should only touch the currently selected organization’s data. The key itself carries the organization binding, so requests never send broker, developer, or org ids for scoping.",
           "The machine API currently covers clients, properties as the project model, deals, and a read-only broker directory.",
         ],
@@ -65,9 +65,9 @@ export const gettingStartedPage: DocsPageDefinition = {
   }>;
 };
 
-const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/org/properties\`, {
+const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/org/properties\`, {
   headers: {
-    "X-Anan-Api-Key": process.env.ANAN_ORG_API_KEY!,
+    "X-ZaneAI-Api-Key": process.env.ZANEAI_ORG_API_KEY!,
   },
 });
 
@@ -77,9 +77,9 @@ console.log(data.properties);`,
               {
                 title: "List organization properties",
                 language: "javascript",
-                code: `const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/org/properties\`, {
+                code: `const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/org/properties\`, {
   headers: {
-    "X-Anan-Api-Key": process.env.ANAN_ORG_API_KEY,
+    "X-ZaneAI-Api-Key": process.env.ZANEAI_ORG_API_KEY,
   },
 });
 
@@ -92,9 +92,9 @@ console.log(data.properties);`,
                 code: `using System.Net.Http.Headers;
 
 using var http = new HttpClient();
-http.DefaultRequestHeaders.Add("X-Anan-Api-Key", Environment.GetEnvironmentVariable("ANAN_ORG_API_KEY"));
+http.DefaultRequestHeaders.Add("X-ZaneAI-Api-Key", Environment.GetEnvironmentVariable("ZANEAI_ORG_API_KEY"));
 
-var issuer = Environment.GetEnvironmentVariable("ANAN_ISSUER");
+var issuer = Environment.GetEnvironmentVariable("ZANEAI_ISSUER");
 var response = await http.GetAsync($"{issuer}/api/org/properties");
 response.EnsureSuccessStatusCode();
 
@@ -104,7 +104,7 @@ Console.WriteLine(json);`,
               {
                 title: "List organization properties",
                 language: "bash",
-                code: "curl -sS -H \"X-Anan-Api-Key: $ANAN_ORG_API_KEY\" \"$ANAN_ISSUER/api/org/properties\"",
+                code: "curl -sS -H \"X-ZaneAI-Api-Key: $ZANEAI_ORG_API_KEY\" \"$ZANEAI_ISSUER/api/org/properties\"",
               },
             ],
           },
@@ -113,18 +113,18 @@ Console.WriteLine(json);`,
           {
             title: "Fetch authorization-server metadata",
             language: "bash",
-            code: "curl -sS \"$ANAN_ISSUER/.well-known/oauth-authorization-server\"",
+            code: "curl -sS \"$ZANEAI_ISSUER/.well-known/oauth-authorization-server\"",
           },
           {
             title: "Expected metadata keys (example)",
             language: "json",
             code: `{
-  "issuer": "https://<anan-issuer>",
-  "authorization_endpoint": "https://<anan-issuer>/authorize",
-  "token_endpoint": "https://<anan-issuer>/token",
-  "userinfo_endpoint": "https://<anan-issuer>/userinfo",
-  "revocation_endpoint": "https://<anan-issuer>/revoke",
-  "jwks_uri": "https://<anan-issuer>/jwks.json"
+  "issuer": "https://<zaneai-issuer>",
+  "authorization_endpoint": "https://<zaneai-issuer>/authorize",
+  "token_endpoint": "https://<zaneai-issuer>/token",
+  "userinfo_endpoint": "https://<zaneai-issuer>/userinfo",
+  "revocation_endpoint": "https://<zaneai-issuer>/revoke",
+  "jwks_uri": "https://<zaneai-issuer>/jwks.json"
 }`,
           },
         ],
@@ -164,7 +164,7 @@ Console.WriteLine(json);`,
   }>;
 };
 
-const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/oauth/clients\`, {
+const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/oauth/clients\`, {
   headers: {
     Authorization: \`Bearer \${process.env.ACCESS_TOKEN!}\`,
   },
@@ -176,7 +176,7 @@ console.log(data.clients);`,
               {
                 title: "List delegated clients",
                 language: "javascript",
-                code: `const response = await fetch(\`\${process.env.ANAN_ISSUER}/api/oauth/clients\`, {
+                code: `const response = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/oauth/clients\`, {
   headers: {
     Authorization: \`Bearer \${process.env.ACCESS_TOKEN}\`,
   },
@@ -196,7 +196,7 @@ http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
     Environment.GetEnvironmentVariable("ACCESS_TOKEN")
 );
 
-var issuer = Environment.GetEnvironmentVariable("ANAN_ISSUER");
+var issuer = Environment.GetEnvironmentVariable("ZANEAI_ISSUER");
 var response = await http.GetAsync($"{issuer}/api/oauth/clients");
 response.EnsureSuccessStatusCode();
 
@@ -206,7 +206,7 @@ Console.WriteLine(json);`,
               {
                 title: "List delegated clients",
                 language: "bash",
-                code: "curl -sS -H \"Authorization: Bearer $ACCESS_TOKEN\" \"$ANAN_ISSUER/api/oauth/clients\"",
+                code: "curl -sS -H \"Authorization: Bearer $ACCESS_TOKEN\" \"$ZANEAI_ISSUER/api/oauth/clients\"",
               },
             ],
           },

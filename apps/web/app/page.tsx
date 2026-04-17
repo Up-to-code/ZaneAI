@@ -14,7 +14,7 @@ import {
   getWebDictionary, 
   resolveLocale, 
   WEB_LOCALE_COOKIE 
-} from "@anan/ag-ui/anan";
+} from "@zaneai/ag-ui/zaneai";
 import { LayoutGrid, Shield, Zap, Globe, Cpu, BarChart3 } from "lucide-react";
 
 export default async function LandingPage() {

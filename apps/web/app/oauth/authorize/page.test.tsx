@@ -33,7 +33,7 @@ vi.mock("./_components/ConsentAutoSubmit", () => ({
   }) => <form><span>{approveLabel}</span>{children}</form>,
 }));
 
-vi.mock("@anan/ag-ui/react", () => ({
+vi.mock("@zaneai/ag-ui/react", () => ({
   PageHero: ({
     title,
     description,

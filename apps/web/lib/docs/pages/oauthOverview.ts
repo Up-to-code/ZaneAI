@@ -5,9 +5,9 @@ export const oauthOverviewPage: DocsPageDefinition = {
     key: "oauth-overview",
     href: "/docs/oauth/overview",
     title: "OAuth Overview",
-    description: "How the Anan authorization server works end-to-end.",
+    description: "How the ZaneAI authorization server works end-to-end.",
     summary:
-      "Anan supports OAuth 2.0 Authorization Code with PKCE, refresh tokens, and manager-approved organization app access with scoped delegated permissions.",
+      "ZaneAI supports OAuth 2.0 Authorization Code with PKCE, refresh tokens, and manager-approved organization app access with scoped delegated permissions.",
     sections: [
       {
         id: "supported-features",
@@ -43,9 +43,9 @@ export const oauthOverviewPage: DocsPageDefinition = {
         id: "high-level-sequence",
         title: "High-Level Sequence",
         bullets: [
-          "Redirect user to Anan `/authorize` with PKCE challenge and requested scopes.",
-          "User signs in (if needed), chooses an organization, and approves requested scopes on Anan consent page.",
-          "Anan redirects back with authorization code and state.",
+          "Redirect user to ZaneAI `/authorize` with PKCE challenge and requested scopes.",
+          "User signs in (if needed), chooses an organization, and approves requested scopes on ZaneAI consent page.",
+          "ZaneAI redirects back with authorization code and state.",
           "Exchange code for access token (and optionally refresh token).",
           "Call delegated APIs with bearer token and keep scopes minimal.",
         ],

@@ -82,12 +82,12 @@ export const apiPropertiesPage: DocsPageDefinition = {
           {
             title: "GET properties",
             language: "bash",
-            code: "curl -sS -H \"Authorization: Bearer $ACCESS_TOKEN\" \"$ANAN_ISSUER/api/oauth/properties\"",
+            code: "curl -sS -H \"Authorization: Bearer $ACCESS_TOKEN\" \"$ZANEAI_ISSUER/api/oauth/properties\"",
           },
           {
             title: "POST property",
             language: "bash",
-            code: `curl -sS -X POST "$ANAN_ISSUER/api/oauth/properties" \\
+            code: `curl -sS -X POST "$ZANEAI_ISSUER/api/oauth/properties" \\
   -H "Authorization: Bearer $ACCESS_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{"title":"Palm Residences Unit 301","address":"Riyadh","price":1250000,"beds":3,"baths":3,"description":"High-floor unit"}'`,

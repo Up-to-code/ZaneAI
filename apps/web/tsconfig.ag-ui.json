@@ -8,7 +8,7 @@
     "app/(ws)/ws/(zones)/projects/create/page.tsx",
     "app/(ws)/ws/(zones)/projects/[projectId]/edit/page.tsx",
     "app/(ws)/ws/(zones)/projects/[projectId]/edit/AgPropertyFormEditView.tsx",
-    "server/contracts/ananPro.ts",
+    "server/contracts/zaneAiPro.ts",
     "../../packages/ag-ui/src/**/*.ts",
     "../../packages/ag-ui/src/**/*.tsx"
   ],

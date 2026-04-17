@@ -4,16 +4,16 @@
 
 Add path or workspace resolution for:
 
-- `@anan/ag-ui`
-- `@anan/ag-ui/react`
-- `@anan/ag-ui/anan`
+- `@zaneai/ag-ui`
+- `@zaneai/ag-ui/react`
+- `@zaneai/ag-ui/zaneai`
 
 In `apps/web`, import the package directly:
 
 ```ts
-import type { AgUiConversationTurn } from "@anan/ag-ui";
-import { AgUiTurnRenderer } from "@anan/ag-ui/react";
-import { AgPropertyForm } from "@anan/ag-ui/anan";
+import type { AgUiConversationTurn } from "@zaneai/ag-ui";
+import { AgUiTurnRenderer } from "@zaneai/ag-ui/react";
+import { AgPropertyForm } from "@zaneai/ag-ui/zaneai";
 ```
 
 ## Use in a fresh Next app
@@ -31,6 +31,6 @@ import { AgPropertyForm } from "@anan/ag-ui/anan";
 - Execute mutations, API requests, or navigation on approve/edit
 - Override cards when your product needs a different visual language
 
-## When to use the Anan adapter
+## When to use the ZaneAI adapter
 
-Use `@anan/ag-ui/anan` only when you need the current Anan workspace-specific adapters. Other projects should stay on the generic entrypoints unless they intentionally mirror the Anan form workflow.
+Use `@zaneai/ag-ui/zaneai` only when you need the current ZaneAI workspace-specific adapters. Other projects should stay on the generic entrypoints unless they intentionally mirror the ZaneAI form workflow.

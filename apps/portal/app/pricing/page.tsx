@@ -1,6 +1,6 @@
 import { Section, SectionLabel } from "@/components/ui/portal";
 import { cookies } from "next/headers";
-import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@anan/ag-ui/anan";
+import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@zaneai/ag-ui/zaneai";
 import { Check, CreditCard, MoveRight } from "lucide-react";
 
 export default async function PricingPage() {

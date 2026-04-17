@@ -86,8 +86,8 @@ function normalizeAgentName(agentName: string, isArabic: boolean) {
     return isArabic ? agentMeta.ar.replace("فريق", "وكيل") : agentMeta.en.replace("Team", "Agent");
   }
 
-  if (normalized.startsWith("anan_workspace_")) {
-    const suffix = normalized.replace("anan_workspace_", "");
+  if (normalized.startsWith("zaneai_workspace_")) {
+    const suffix = normalized.replace("zaneai_workspace_", "");
     const words = suffix.split("_").filter(Boolean);
     const english = words.map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ");
     return isArabic ? `وكيل ${english}` : `${english} Agent`;

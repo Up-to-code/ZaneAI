@@ -1,5 +1,5 @@
 {
-  "name": "@anan/portal",
+  "name": "@zaneai/portal",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@anan/ag-ui": "*",
+    "@zaneai/ag-ui": "*",
     "@base-ui/react": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

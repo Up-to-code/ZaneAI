@@ -1,7 +1,7 @@
 import { Eye } from "lucide-react";
-import { cn } from "../../anan/utils";
-import { getWebDictionary } from "../../anan/i18n";
-import type { AppLocale } from "../../anan/locale";
+import { cn } from "../../zaneai/utils";
+import { getWebDictionary } from "../../zaneai/i18n";
+import type { AppLocale } from "../../zaneai/locale";
 
 /**
  * WHY:   Public pages need a consistent footer that stays SSR-only for performance and stability.

@@ -111,7 +111,7 @@ export interface CreateClientRequest {
             title: "GET clients (TypeScript fetch)",
             language: "typescript",
             code: `async function getClients(): Promise<Client[]> {
-  const res = await fetch(\`\${process.env.ANAN_ISSUER}/api/oauth/clients\`, {
+  const res = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/oauth/clients\`, {
     headers: { Authorization: \`Bearer \${process.env.ACCESS_TOKEN}\` }
   });
   
@@ -125,7 +125,7 @@ export interface CreateClientRequest {
             title: "POST client (JavaScript fetch)",
             language: "javascript",
             code: `async function createClient(clientData) {
-  const res = await fetch(\`\${process.env.ANAN_ISSUER}/api/oauth/clients\`, {
+  const res = await fetch(\`\${process.env.ZANEAI_ISSUER}/api/oauth/clients\`, {
     method: "POST",
     headers: {
       "Authorization": \`Bearer \${process.env.ACCESS_TOKEN}\`,

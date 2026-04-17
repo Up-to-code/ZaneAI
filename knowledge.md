@@ -1,14 +1,14 @@
-# Zane AI Product Knowledge
+# ZaneAI Product Knowledge
 
 ## Who We Are
-Zane AI is the intelligent infrastructure for real estate. We build the high-fidelity systems that power how property work actually happens in a modern, connected world.
+ZaneAI is the intelligent infrastructure for real estate. We build the high-fidelity systems that power how property work actually happens in a modern, connected world.
 
 We are an AI-native company designing a unified intelligence layer for developers, brokers, and buyers.
 
 Our goal is to eliminate the fragmentation of the legacy real estate market by replacing disconnected tools with a single, smart ecosystem that understands intent, automates workflows, and unifies data.
 
 ### Executive Positioning
-Zane AI is the intelligent infrastructure behind modern real estate businesses — a unified system that connects people, properties, and data to unlock real-time intelligence and automated orchestration.
+ZaneAI is the intelligent infrastructure behind modern real estate businesses — a unified system that connects people, properties, and data to unlock real-time intelligence and automated orchestration.
 
 ### Brand Voice & Positioning
 - **The Intelligent Layer**: we are the infrastructure, not just a "platform."
@@ -19,10 +19,10 @@ Zane AI is the intelligent infrastructure behind modern real estate businesses �
 - **Operating Infrastructure**: we are the foundational system that helps real estate move forward.
 
 ## Product Name
-The product name is `Zane AI`.
+The product name is `ZaneAI`.
 
 ### Naming Rules
-- Use `Zane AI` as the only product name in internal and external product writing.
+- Use `ZaneAI` as the only product name in internal and external product writing.
 - Maintain the space between "Zane" and "AI" for premium readability.
 - Keep the name short, consistent, and easy to remember.
 - Treat the name as the brand anchor for product, design, and communication decisions.
@@ -43,7 +43,7 @@ The codebase already shows a real product, not just a concept.
 - A backend that holds property data, agent orchestration, analytics, and persistent state.
 
 ## What We Do
-Zane AI brings the core real estate workflow into one connected system.
+ZaneAI brings the core real estate workflow into one connected system.
 
 ### Core Capabilities
 - Native AI real estate search
@@ -66,7 +66,7 @@ Zane AI brings the core real estate workflow into one connected system.
 - Shared foundations for data, state, analytics, and orchestration.
 
 ## Who It Is For
-Zane AI is designed for real estate buyers and the internal organization that runs the product.
+ZaneAI is designed for real estate buyers and the internal organization that runs the product.
 
 ### Primary Users
 - Buyers and end users
@@ -87,7 +87,7 @@ Zane AI is designed for real estate buyers and the internal organization that ru
 - The sidebar already hints at future scale with disabled or coming-soon affordances such as AI mode and collaboration-oriented workspace modules.
 
 ## Region And Language
-Zane AI is Egyptian-founded, with a vision that can start in Egypt and expand more broadly over time.
+ZaneAI is Egyptian-founded, with a vision that can start in Egypt and expand more broadly over time.
 
 ### Regional Context
 - Egyptian company origin
@@ -113,7 +113,7 @@ The organization also needs a simple MVP base to manage the product without over
 - The organization can overbuild if the MVP boundary is not clear.
 
 ### Our Response
-Zane AI brings AI-led search, matching, and execution into one connected experience so buyers can act with more confidence and less friction.
+ZaneAI brings AI-led search, matching, and execution into one connected experience so buyers can act with more confidence and less friction.
 
 ## Why Now
 The market needs a single intelligence layer now because the cost of fragmentation has become too high.
@@ -138,7 +138,7 @@ Our vision is to build the unified real estate network where every property tran
 ### Long-Term Direction
 - Turn fragmented real estate work into one unified intelligence-driven workflow.
 - Replace scattered tools with one high-fidelity system.
-- Scale Zane AI into the definitive operating infrastructure for global property tech.
+- Scale ZaneAI into the definitive operating infrastructure for global property tech.
 - Move from intents to successful transactions with institutional precision.
 
 ## Product Principles
@@ -156,7 +156,7 @@ These principles should guide design, product decisions, and writing.
 Use language that makes the product feel like a premium, institutional, and intelligent layer.
 
 ### Approved Positioning (Preferred)
-- "Zane AI is the infrastructure behind modern real estate businesses."
+- "ZaneAI is the infrastructure behind modern real estate businesses."
 - "Intelligent infrastructure for real estate."
 - "The intelligent layer powering the future of property discovery."
 - "A unified system connecting people, properties, and data into one system."
@@ -170,7 +170,7 @@ Use language that makes the product feel like a premium, institutional, and inte
 - "Old real estate interfaces."
 
 ### Short Elevator Pitch
-Zane AI is the intelligent infrastructure powering the future of real estate. We connect people, properties, and data into one unified system — enabling businesses to automate workflows, streamline operations, and unlock real-time intelligence at scale.
+ZaneAI is the intelligent infrastructure powering the future of real estate. We connect people, properties, and data into one unified system — enabling businesses to automate workflows, streamline operations, and unlock real-time intelligence at scale.
 
 ## Glossary
 Use these terms consistently across product, design, and content.
@@ -186,7 +186,7 @@ Use these terms consistently across product, design, and content.
 - Mobile experience: the app where users describe what they need and get matched intelligently.
 
 ## Designer Notes
-If you are designing for Zane AI, remember the product should feel like a trusted operating layer, not a noisy feed.
+If you are designing for ZaneAI, remember the product should feel like a trusted operating layer, not a noisy feed.
 
 - Use clear hierarchy and deliberate pacing.
 - Keep interfaces calm, premium, and easy to scan.
@@ -216,11 +216,11 @@ The current product is an MVP. The future should expand only after the foundatio
 - These should never replace the MVP story.
 
 ## Introduction Narrative
-Zane AI is an Egyptian-founded, AI-first real estate product built for the future of property discovery.
+ZaneAI is an Egyptian-founded, AI-first real estate product built for the future of property discovery.
 
 Today, the product is an MVP with a focused worker base for the organization and a buyer-facing mobile experience that understands what a user needs and matches them with better property options.
 
-Instead of a static listing app, Zane AI is designed to understand intent, search intelligently, and recommend the right properties with less friction.
+Instead of a static listing app, ZaneAI is designed to understand intent, search intelligently, and recommend the right properties with less friction.
 
 This narrative can be used in a video, an onboarding page, a pitch deck, or any first-introduction context where we need to explain what the product is and why it matters.
 

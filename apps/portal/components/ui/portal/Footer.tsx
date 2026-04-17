@@ -1,6 +1,6 @@
-import { cn } from "@anan/ag-ui/anan";
-import { getWebDictionary } from "@anan/ag-ui/anan";
-import type { AppLocale } from "@anan/ag-ui/anan";
+import { cn } from "@zaneai/ag-ui/zaneai";
+import { getWebDictionary } from "@zaneai/ag-ui/zaneai";
+import type { AppLocale } from "@zaneai/ag-ui/zaneai";
 
 export default function Footer({ locale = "ar" }: { locale?: AppLocale }) {
     const dictionary = getWebDictionary(locale);

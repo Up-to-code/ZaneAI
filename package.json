@@ -19,9 +19,9 @@
     "agent:smoke": "tsx scripts/agent-smoke.ts",
     "convex:dev": "npm --workspace apps/mobile run convex:dev",
     "convex:codegen": "npm --workspace apps/mobile run convex:codegen",
-    "portal:dev": "npm --workspace @anan/portal run dev",
-    "portal:build": "npm --workspace @anan/portal run build",
-    "portal:lint": "npm --workspace @anan/portal run lint",
+    "portal:dev": "npm --workspace @zaneai/portal run dev",
+    "portal:build": "npm --workspace @zaneai/portal run build",
+    "portal:lint": "npm --workspace @zaneai/portal run lint",
     "web:build": "npm --workspace web run build",
     "web:lint": "npm --workspace web run lint"
   },

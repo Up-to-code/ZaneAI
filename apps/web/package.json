@@ -10,7 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@anan/ag-ui": "*",
+    "@zaneai/ag-ui": "*",
     "@base-ui/react": "^1.2.0",
     "@clerk/nextjs": "^6.31.9",
     "@convex-dev/better-auth": "^0.11.4",

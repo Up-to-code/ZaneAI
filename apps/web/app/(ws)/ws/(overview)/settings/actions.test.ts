@@ -68,16 +68,16 @@ it("returns the updated organization settings payload on success", async () => {
 
 it("creates an api key through the server action", async () => {
   createCurrentOrganizationApiKeyForCurrentUser.mockResolvedValue({
-    apiKey: "anan_123.secret",
-    key: { id: "row-1", keyId: "oak_1", name: "Key", prefix: "anan_123", permissions: [], status: "active", createdBy: "auth-1", createdAt: 1 },
+    apiKey: "zaneai_123.secret",
+    key: { id: "row-1", keyId: "oak_1", name: "Key", prefix: "zaneai_123", permissions: [], status: "active", createdBy: "auth-1", createdAt: 1 },
   });
 
   await expect(createOrganizationApiKeyAction({ name: "Key", permissions: [] })).resolves.toEqual({
     ok: true,
     message: "تم إنشاء المفتاح. احفظ القيمة السرية الآن لأنها لن تظهر مرة أخرى.",
     result: {
-      apiKey: "anan_123.secret",
-      key: { id: "row-1", keyId: "oak_1", name: "Key", prefix: "anan_123", permissions: [], status: "active", createdBy: "auth-1", createdAt: 1 },
+      apiKey: "zaneai_123.secret",
+      key: { id: "row-1", keyId: "oak_1", name: "Key", prefix: "zaneai_123", permissions: [], status: "active", createdBy: "auth-1", createdAt: 1 },
     },
   });
 });

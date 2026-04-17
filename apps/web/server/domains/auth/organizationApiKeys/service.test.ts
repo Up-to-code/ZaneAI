@@ -71,7 +71,7 @@ it("creates a one-time API key secret and persists only hashed metadata", async 
     expect.objectContaining({
       name: "Internal CRM",
       keyId: expect.stringMatching(/^oak_/),
-      prefix: expect.stringMatching(/^anan_/),
+      prefix: expect.stringMatching(/^zaneai_/),
       secretHash: expect.stringMatching(/^[a-f0-9]{64}$/),
       now: new Date("2026-03-20T12:00:00.000Z").getTime(),
       permissions: [
@@ -135,7 +135,7 @@ it("rejects unsupported api key permission pairs at create time", async () => {
 it("lists deals using the normalized api key hash", async () => {
   repository.listDealsByApiKey.mockResolvedValue([{ id: "deal-1", title: "Pipeline Deal", stage: "new" }]);
 
-  const deals = await listOrganizationDealsByApiKey("anan_prefix.secret", undefined, { repository });
+  const deals = await listOrganizationDealsByApiKey("zaneai_prefix.secret", undefined, { repository });
 
   expect(deals).toEqual([{ id: "deal-1", title: "Pipeline Deal", stage: "new" }]);
   expect(repository.listDealsByApiKey).toHaveBeenCalledWith(
@@ -149,7 +149,7 @@ it("creates a deal with external references and relation ids", async () => {
   repository.createDealByApiKey.mockResolvedValue({ id: "deal-1", title: "Pipeline Deal", stage: "contacted" });
 
   const deal = await createOrganizationDealByApiKey(
-    "anan_prefix.secret",
+    "zaneai_prefix.secret",
     {
       title: "Pipeline Deal",
       stage: "contacted",
@@ -187,7 +187,7 @@ it("creates a deal with external references and relation ids", async () => {
 it("gets a broker using the api key header value", async () => {
   repository.getBrokerByApiKey.mockResolvedValue({ id: "broker-1", name: "Broker One" });
 
-  const broker = await getOrganizationBrokerByApiKey("anan_prefix.secret", "broker-1", undefined, { repository });
+  const broker = await getOrganizationBrokerByApiKey("zaneai_prefix.secret", "broker-1", undefined, { repository });
 
   expect(broker).toEqual({ id: "broker-1", name: "Broker One" });
   expect(repository.getBrokerByApiKey).toHaveBeenCalledWith(

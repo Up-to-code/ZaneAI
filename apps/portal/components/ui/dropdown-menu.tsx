@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { CheckIcon, ChevronRightIcon } from "lucide-react";
-import { cn } from "@anan/ag-ui/anan";
+import { cn } from "@zaneai/ag-ui/zaneai";
 
 type DropdownContextValue = {
   open: boolean;

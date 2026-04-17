@@ -47,7 +47,7 @@ function hashOrganizationApiKey(value: string) {
 
 function buildApiKeyMaterial() {
   const keyId = `oak_${randomBytes(8).toString("hex")}`;
-  const prefix = `anan_${randomBytes(4).toString("hex")}`;
+  const prefix = `zaneai_${randomBytes(4).toString("hex")}`;
   const apiKey = `${prefix}.${randomBytes(24).toString("base64url")}`;
   return {
     keyId,
@@ -82,7 +82,7 @@ function requireApiKeyValue(rawKey: string | null | undefined) {
   if (!apiKey) {
     throw new DomainError({
       code: "UNAUTHORIZED",
-      message: "X-Anan-Api-Key header is required",
+      message: "X-ZaneAI-Api-Key header is required",
       status: 401,
     });
   }

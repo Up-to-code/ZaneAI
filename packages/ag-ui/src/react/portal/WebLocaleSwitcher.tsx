@@ -9,8 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { getLocaleLabel, WEB_SUPPORTED_LOCALES } from "../../anan/locale";
-import { cn } from "../../anan/utils";
+import { getLocaleLabel, WEB_SUPPORTED_LOCALES } from "../../zaneai/locale";
+import { cn } from "../../zaneai/utils";
 import { useWebLocale } from "./WebLocaleProvider";
 
 export default function WebLocaleSwitcher({
@@ -24,7 +24,7 @@ export default function WebLocaleSwitcher({
   function handleLocaleChange(nextLocale: (typeof WEB_SUPPORTED_LOCALES)[number]) {
     startTransition(async () => {
       const scope = window.location.pathname.startsWith("/ws") ? "workspace" : "web";
-      const cookieName = scope === "workspace" ? "anan_workspace_locale" : "anan_web_locale";
+      const cookieName = scope === "workspace" ? "zaneai_workspace_locale" : "zaneai_web_locale";
       document.cookie = `${cookieName}=${nextLocale}; path=/; max-age=31536000; samesite=lax`;
       window.location.reload();
     });

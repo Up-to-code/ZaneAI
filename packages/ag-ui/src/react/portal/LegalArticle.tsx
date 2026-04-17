@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "../../anan/utils";
+import { cn } from "../../zaneai/utils";
 
 interface LegalArticleProps {
     title: ReactNode;
