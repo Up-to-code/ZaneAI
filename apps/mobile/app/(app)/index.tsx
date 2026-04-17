@@ -25,19 +25,21 @@ export default function HomeScreen() {
       </View>
 
       {/* Floating Pure Canvas Utilities */}
-      <View style={[styles.floatingHeader, { paddingTop: insets.top + 10, backgroundColor: colors.background + 'D9' }]}>
+      <View style={[styles.floatingHeader, { paddingTop: insets.top + 4, backgroundColor: colors.background + 'D9' }]}>
         <Pressable 
           style={styles.floatingBtn} 
           onPress={() => router.navigate("/(app)/menu")}
           accessibilityLabel="Menu"
+          hitSlop={8}
         >
-          <Menu size={20} color={colors.textPrimary} />
+          <Menu size={18} color={colors.textPrimary} />
         </Pressable>
 
         <Pressable 
           style={styles.floatingBtn} 
           onPress={() => router.navigate("/(app)/profile")}
           accessibilityLabel="Profile"
+          hitSlop={8}
         >
           <View style={[styles.avatarMini, { backgroundColor: colors.accent }]}>
             <Text style={styles.avatarText}>{displayName.toUpperCase()}</Text>
@@ -61,29 +63,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 15,
+    paddingBottom: 8,
     zIndex: 1000,
   },
   floatingBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 0,
-    borderColor: "transparent",
   },
   avatarMini: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
   },
   avatarText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "800",
   },
 });

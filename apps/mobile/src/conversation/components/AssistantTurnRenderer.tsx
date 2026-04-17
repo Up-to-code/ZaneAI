@@ -7,6 +7,7 @@ import { MarkdownText } from "@/foundation/primitives/MarkdownText";
 import { isArabic } from "@/foundation/utils/rtl";
 import { theme, radii } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { MessageActions } from "./MessageActions";
 
 type AssistantTurnRendererProps = {
   turn: AssistantTurn;
@@ -240,31 +241,35 @@ export function AssistantTurnRenderer({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const fullText = useMemo(() => {
+    return turn.blocks
+      .map((b) => {
+        if (b.type === "text" || b.type === "advisor_note" || b.type === "empty") return b.body;
+        if (b.type === "followup") return b.prompt;
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n\n");
+  }, [turn.blocks]);
+
+  const isAr = isArabic(fullText);
+
   return (
     <View style={styles.container}>
-      {turn.blocks.map((block) => {
-        const bodyContent =
-          block.type === "text"
-            ? block.body
-            : block.type === "advisor_note"
-            ? block.body
-            : block.type === "empty"
-            ? block.body
-            : block.type === "followup"
-            ? block.prompt
-            : "";
-        const isAr = isArabic(bodyContent);
-        return (
-          <View key={block.id} style={isAr && { alignItems: "flex-end" }}>
-            <RenderBlock
-              block={block}
-              turn={turn}
-              renderPropertyPreview={renderPropertyPreview}
-              onAction={onAction}
-            />
-          </View>
-        );
-      })}
+      {turn.blocks.map((block) => (
+        <View key={block.id} style={isAr && { alignItems: "flex-end" }}>
+          <RenderBlock
+            block={block}
+            turn={turn}
+            renderPropertyPreview={renderPropertyPreview}
+            onAction={onAction}
+          />
+        </View>
+      ))}
+
+      <View style={[styles.actionsContainer, isAr && { alignItems: "flex-end" }]}>
+        <MessageActions text={fullText} isArabic={isAr} />
+      </View>
     </View>
   );
 }
@@ -272,8 +277,8 @@ export function AssistantTurnRenderer({
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      marginTop: theme.spacing.md,
-      gap: theme.spacing.md,
+      marginTop: 4,
+      gap: 4,
     },
     card: {
       marginHorizontal: theme.spacing.xl,
@@ -284,7 +289,7 @@ const createStyles = (colors: any) =>
     },
     cardless: {
       paddingHorizontal: theme.spacing.xl,
-      gap: theme.spacing.sm,
+      gap: 2,
       borderWidth: 0,
       backgroundColor: "transparent",
     },
@@ -414,5 +419,10 @@ const createStyles = (colors: any) =>
       fontSize: 13,
       fontFamily: "Manrope_600SemiBold",
       color: colors.textPrimary,
+    },
+    actionsContainer: {
+      paddingHorizontal: theme.spacing.xl,
+      paddingTop: 2,
+      paddingBottom: 4,
     },
   });

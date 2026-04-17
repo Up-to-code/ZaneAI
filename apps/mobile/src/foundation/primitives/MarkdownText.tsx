@@ -105,7 +105,7 @@ export function MarkdownText({ text, style, tone = "secondary" }: MarkdownTextPr
  */
 function parseInlineMarkdown(line: string, lineKey: number) {
   // Regex: Bold (** or __), Italic (* or _), Link [t](u), Hashtag #w
-  const regex = /(\*\*.*?\*\*|__.*?__|\*.*?\*|_.*?_|\[.*?\]\(.*?\)|#\w+)/g;
+  const regex = /(\*\*.*?\*\*|__.*?__|\*[^*]+\*|_[^_]+_|\[.*?\]\(.*?\)|#\w+)/g;
   const parts = line.split(regex);
 
   return parts.map((part, i) => {

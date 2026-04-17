@@ -10,7 +10,7 @@ export function useKeyboardDock({
   bottomInset,
   dockHeight,
   keyboardHeight,
-  keyboardGap = 2,
+  keyboardGap = 4,
 }: {
   bottomInset: number;
   dockHeight: number;
@@ -23,13 +23,13 @@ export function useKeyboardDock({
   return {
     dockBottomOffset:
       Platform.OS === "ios" && keyboardVisible
-        ? keyboardHeight + keyboardGap
+        ? keyboardHeight + keyboardGap + 4
         : 0,
     listBottomPadding:
       dockHeight +
       (Platform.OS === "ios" && keyboardVisible
-        ? keyboardHeight + keyboardGap + 12 // tighter buffer
-        : restingGap + 4), // minimal resting room
+        ? keyboardHeight + keyboardGap + 4
+        : restingGap),
     keyboardVisible,
   };
 }

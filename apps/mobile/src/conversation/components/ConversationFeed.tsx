@@ -65,6 +65,11 @@ export function ConversationFeed({ messages, runStageFeed, onTurnAction }: Conve
     [messages],
   );
   const latestAssistantMessage = lastAssistantIndex >= 0 ? messages[lastAssistantIndex] : null;
+
+  const firstAssistantIndex = useMemo(
+    () => messages.findIndex((message) => message.role === "assistant"),
+    [messages],
+  );
   const shouldShowStageProgress = useMemo(
     () => runStageFeed.some((event) => Boolean(event.route || event.specialist)),
     [runStageFeed],
@@ -170,7 +175,11 @@ export function ConversationFeed({ messages, runStageFeed, onTurnAction }: Conve
 
           return (
             <View key={item.id}>
-              <MessageBubble message={item} latestStageEvent={latestStageEvent} />
+              <MessageBubble 
+                message={item} 
+                latestStageEvent={latestStageEvent} 
+                isFirstAssistant={messages.indexOf(item) === firstAssistantIndex}
+              />
 
               {item.uiTurn ? (
                 <Animated.View entering={FadeInDown.duration(300)}>
@@ -201,8 +210,8 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingTop: theme.spacing.lg, // Reduced since spacer handles the header gap
-    paddingBottom: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: 0,
   },
   scrollButtonWrap: {
     position: "absolute",

@@ -333,7 +333,7 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     paddingBottom: Math.max(insets.bottom, theme.spacing.lg),
   },
   keyboardOpen: {
-    paddingBottom: 8,
+    paddingBottom: 0,
   },
   promptsContainer: {
     marginBottom: 12,
@@ -414,13 +414,13 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   },
   input: {
     minHeight: 24,
-    maxHeight: 150,
+    maxHeight: 140,
     color: colors.textPrimary,
     fontFamily: "Manrope_500Medium",
     fontSize: 15,
     lineHeight: 22,
     backgroundColor: "transparent",
-    paddingVertical: 0,
+    paddingVertical: 4,
   },
   visualizerWrap: {
     minHeight: 24,

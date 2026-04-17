@@ -22,6 +22,7 @@ import type { ConversationMessage, ConversationRunStage } from "@/types/domain";
 type MessageBubbleProps = {
   message: ConversationMessage;
   latestStageEvent?: ConversationRunStage;
+  isFirstAssistant?: boolean;
 };
 
 /**
@@ -181,7 +182,7 @@ function StreamingText({
  */
 function parseInlineMarkdown(text: string) {
   // Regex: Bold (** or __), Italic (* or _), Link [t](u), Hashtag #w
-  const regex = /(\*\*.*?\*\*|__.*?__|\*.*?\*|_.*?_|\[.*?\]\(.*?\)|#\w+)/g;
+  const regex = /(\*\*.*?\*\*|__.*?__|\*[^*]+\*|_[^_]+_|\[.*?\]\(.*?\)|#\w+)/g;
   const parts = text.split(regex);
   return parts.map((part, i) => {
     // Bold: **text** or __text__
@@ -225,7 +226,7 @@ function parseInlineMarkdown(text: string) {
   });
 }
 
-export function MessageBubble({ message, latestStageEvent }: MessageBubbleProps) {
+export function MessageBubble({ message, latestStageEvent, isFirstAssistant }: MessageBubbleProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const isUser = message.role === "user";
@@ -252,17 +253,19 @@ export function MessageBubble({ message, latestStageEvent }: MessageBubbleProps)
 
   return (
     <Animated.View entering={FadeIn.duration(250)} style={[styles.row, styles.assistantRow, isAr && { alignItems: "flex-end" }]}>
-      <View style={[styles.brandingWrap, isAr && { alignItems: "flex-end" }]}>
-        <Text variant="label" style={styles.assistantLabel}>
-          ZANE AI
-        </Text>
-        <BreathingText
-          text="INTELLIGENT INFRASTRUCTURE"
-          style={[styles.tagline, isAr && { textAlign: "right" }]}
-          minOpacity={isStreaming ? 0.3 : 0.6}
-          maxOpacity={isStreaming ? 0.8 : 0.6}
-        />
-      </View>
+      {isFirstAssistant && (
+        <View style={[styles.brandingWrap, isAr && { alignItems: "flex-end" }]}>
+          <Text variant="label" style={styles.assistantLabel}>
+            ZANE AI
+          </Text>
+          <BreathingText
+            text="INTELLIGENT INFRASTRUCTURE"
+            style={[styles.tagline, isAr && { textAlign: "right" }]}
+            minOpacity={isStreaming ? 0.3 : 0.6}
+            maxOpacity={isStreaming ? 0.8 : 0.6}
+          />
+        </View>
+      )}
 
       {latestStageEvent && isPending && (
         <View style={styles.statusLine}>
@@ -279,11 +282,13 @@ export function MessageBubble({ message, latestStageEvent }: MessageBubbleProps)
       {isPending ? (
         <ThinkingDots />
       ) : (
-        <StreamingText
-          text={message.text}
-          isStreaming={isStreaming}
-          style={styles.assistantText}
-        />
+        <>
+          <StreamingText
+            text={message.text}
+            isStreaming={isStreaming}
+            style={styles.assistantText}
+          />
+        </>
       )}
     </Animated.View>
   );
@@ -300,6 +305,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   assistantRow: {
     alignItems: "flex-start",
     paddingRight: theme.spacing.xl,
+    marginBottom: 0,
   },
   userBubble: {
     maxWidth: "85%",
