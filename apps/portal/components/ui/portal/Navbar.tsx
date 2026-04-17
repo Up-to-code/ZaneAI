@@ -26,6 +26,7 @@ export default function Navbar({ locale = "ar" }: { locale?: AppLocale }) {
                         <a href="/features" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Features</a>
                         <a href="/pricing" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Pricing</a>
                         <a href="/team" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Team</a>
+                        <a href="/brand" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">Brand</a>
                         <a href="/about" className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground hover:text-primary transition-colors">About</a>
                     </div>
                 </div>

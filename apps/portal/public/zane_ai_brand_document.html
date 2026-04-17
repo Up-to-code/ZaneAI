@@ -1,0 +1,217 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --z-orange:#E8420A;
+    --z-black:#111010;
+    --z-white:#FAFAF8;
+    --z-muted:#6B6B6B;
+    --z-line:rgba(0,0,0,0.1);
+    --serif:'DM Serif Display',serif;
+    --sans:'DM Sans',sans-serif;
+  }
+  body{font-family:var(--sans);background:transparent;color:var(--color-text-primary)}
+  .page{max-width:680px;margin:0 auto;padding:2rem 0 4rem}
+
+  .hero{padding:2.5rem 0 3rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+  .logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+  .logo-z{font-size:32px;font-family:var(--serif);line-height:1;color:var(--color-text-primary)}
+  .logo-z span{color:var(--z-orange)}
+  .logo-label{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--color-text-secondary);font-weight:500}
+  .hero-headline{font-family:var(--serif);font-size:clamp(28px,5vw,42px);line-height:1.15;color:var(--color-text-primary);margin-bottom:1rem}
+  .hero-headline em{font-style:italic;color:var(--z-orange)}
+  .hero-sub{font-size:15px;color:var(--color-text-secondary);line-height:1.7;max-width:520px}
+
+  .section{padding:2.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+  .section-label{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--z-orange);font-weight:500;margin-bottom:1rem}
+  .section-title{font-family:var(--serif);font-size:22px;color:var(--color-text-primary);margin-bottom:0.75rem;line-height:1.3}
+  .section-body{font-size:14px;color:var(--color-text-secondary);line-height:1.8}
+
+  .oneliner{background:var(--color-background-secondary);border-radius:12px;padding:1.5rem 1.75rem;margin:1.25rem 0}
+  .oneliner p{font-family:var(--serif);font-size:18px;line-height:1.5;color:var(--color-text-primary);font-style:italic}
+
+  .problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.25rem}
+  .problem-card{background:var(--color-background-secondary);border-radius:10px;padding:1rem 1.1rem}
+  .problem-card .icon{font-size:16px;margin-bottom:8px;width:16px;height:16px}
+  .problem-card h4{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+  .problem-card p{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+
+  .product-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.25rem}
+  .product-card{border-radius:12px;padding:1.25rem;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+  .product-card.featured{border:1.5px solid var(--z-orange)}
+  .product-card .pill{display:inline-block;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:10px;font-weight:500}
+  .now-pill{background:#E8420A18;color:var(--z-orange)}
+  .later-pill{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+  .product-card h3{font-family:var(--serif);font-size:16px;color:var(--color-text-primary);margin-bottom:8px;line-height:1.3}
+  .product-card ul{list-style:none;padding:0}
+  .product-card ul li{font-size:12px;color:var(--color-text-secondary);padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary);line-height:1.5}
+  .product-card ul li:last-child{border-bottom:none}
+  .product-card ul li::before{content:"→ ";color:var(--z-orange);font-size:11px}
+
+  .flow{margin-top:1.25rem;position:relative}
+  .flow-step{display:flex;gap:16px;align-items:flex-start;padding:1rem 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+  .flow-step:last-child{border-bottom:none}
+  .step-num{min-width:28px;height:28px;border-radius:50%;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-top:1px}
+  .step-num.active{background:#E8420A18;color:var(--z-orange)}
+  .flow-step h4{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px}
+  .flow-step p{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+
+  .audience-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1.25rem}
+  .aud-card{background:var(--color-background-secondary);border-radius:10px;padding:1rem}
+  .aud-card h4{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
+  .aud-card p{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+
+  .strategic-list{margin-top:1.25rem;display:flex;flex-direction:column;gap:10px}
+  .strat-row{display:flex;gap:12px;align-items:flex-start}
+  .strat-dot{min-width:6px;height:6px;border-radius:50%;background:var(--z-orange);margin-top:7px}
+  .strat-row p{font-size:13px;color:var(--color-text-secondary);line-height:1.7}
+  .strat-row strong{color:var(--color-text-primary);font-weight:500}
+
+  .tagline-block{padding:2.5rem 0;text-align:center}
+  .tagline-block p{font-family:var(--serif);font-size:clamp(20px,4vw,30px);color:var(--color-text-primary);line-height:1.4}
+  .tagline-block p em{color:var(--z-orange);font-style:italic}
+  .tagline-sub{font-size:13px;color:var(--color-text-secondary);margin-top:0.75rem;letter-spacing:0.08em;text-transform:uppercase}
+
+  @media(max-width:480px){
+    .problem-grid,.product-split,.audience-grid{grid-template-columns:1fr}
+  }
+</style>
+
+<div class="page">
+
+  <div class="hero">
+    <div class="logo-mark">
+      <div class="logo-z">Z<span>/</span></div>
+      <div class="logo-label">Zane AI — Brand & Product Overview</div>
+    </div>
+    <h1 class="hero-headline">
+      The intelligent layer<br>for <em>real estate</em> discovery.
+    </h1>
+    <p class="hero-sub">Zane AI is an AI-native platform connecting buyers to properties through natural language — and giving developers and brokers the operating system to manage everything that follows.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">What we are</div>
+    <div class="oneliner">
+      <p>Zane AI is the intelligent infrastructure for real estate — connecting people, properties, and data into one unified system.</p>
+    </div>
+    <p class="section-body">We are not a listings site. We are not a chat tool. We are not a CRM. We are the operating layer that lives underneath all of it — where intent becomes matched listings, where financing paths get modeled, where teams coordinate, and where nothing falls through the cracks between tools.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">The problem</div>
+    <h2 class="section-title">Real estate is still deeply fragmented</h2>
+    <p class="section-body">A buyer searches in one place, asks questions in another, reviews financing somewhere else, and then gets handed into a broker workflow where context has to be rebuilt from scratch. Every handoff is a loss.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <h4>Broken buyer journey</h4>
+        <p>Search, compare, finance, and contact live in completely separate tools. No continuity.</p>
+      </div>
+      <div class="problem-card">
+        <h4>Lost financing context</h4>
+        <p>Mortgage estimates and installment comparisons happen outside the property conversation.</p>
+      </div>
+      <div class="problem-card">
+        <h4>Broker drop-off</h4>
+        <p>Brokers lose the thread between a buyer's first question and the actual follow-up.</p>
+      </div>
+      <div class="problem-card">
+        <h4>Scattered operations</h4>
+        <p>Developers manage projects, offers, and CRM across chats, spreadsheets, and disconnected apps.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">What we're building</div>
+    <h2 class="section-title">Two connected product surfaces</h2>
+    <div class="product-split">
+      <div class="product-card featured">
+        <span class="pill now-pill">Live now</span>
+        <h3>The buyer assistant</h3>
+        <ul>
+          <li>Natural language property search</li>
+          <li>AI-powered matching & filtering</li>
+          <li>Side-by-side comparison</li>
+          <li>Financing path modeling</li>
+          <li>Bank offer comparison</li>
+          <li>Mortgage & installment estimates</li>
+          <li>Neighborhood & market context</li>
+          <li>Advisor and broker handoff</li>
+        </ul>
+      </div>
+      <div class="product-card">
+        <span class="pill later-pill">Coming next</span>
+        <h3>The broker & developer workspace</h3>
+        <ul>
+          <li>Project & unit management</li>
+          <li>Offer tracking & approvals</li>
+          <li>CRM and client context</li>
+          <li>Inbox & team collaboration</li>
+          <li>Market activity visibility</li>
+          <li>AI-assisted drafts & follow-ups</li>
+          <li>Demand pipeline view</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">The end-to-end flow</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-num active">1</div>
+        <div><h4>Buyer opens Zane AI</h4><p>Types or speaks a natural language query — "Show me villas in New Cairo under 5M" — and gets precision-matched results, not a scroll of noise.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num active">2</div>
+        <div><h4>AI narrows and compares</h4><p>The assistant surfaces relevant listings, enables side-by-side comparison, and helps model financing paths — all in one conversation thread.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num active">3</div>
+        <div><h4>Buyer signals intent</h4><p>When ready to move forward, the buyer's full context — preferences, budget, financing model — carries into the next step automatically.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div><h4>Broker or developer picks it up</h4><p><em style="color:var(--color-text-secondary);font-style:normal">Coming next —</em> brokers continue the journey inside the workspace with all buyer context intact. No rebuilding from zero.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Who it's for</div>
+    <div class="audience-grid">
+      <div class="aud-card">
+        <h4>Buyers</h4>
+        <p>People searching for property who want a guided, intelligent experience — not a scroll through hundreds of irrelevant listings.</p>
+      </div>
+      <div class="aud-card">
+        <h4>Brokers</h4>
+        <p>Agents who need better coordination, continuity from first contact through close, and less manual context-building.</p>
+      </div>
+      <div class="aud-card">
+        <h4>Developers</h4>
+        <p>Project owners who need one place to manage units, offers, client pipelines, and market visibility.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Strategic position</div>
+    <h2 class="section-title">Why this is more than a search app</h2>
+    <div class="strategic-list">
+      <div class="strat-row"><div class="strat-dot"></div><p><strong>AI as the engine, not the feature.</strong> The assistant is not a chatbot bolted onto a listings feed. It is the entry point, the qualification layer, and the handoff mechanism built into one flow.</p></div>
+      <div class="strat-row"><div class="strat-dot"></div><p><strong>Demand and execution in one system.</strong> When buyer context carries into the broker workspace, every handoff preserves information instead of destroying it.</p></div>
+      <div class="strat-row"><div class="strat-dot"></div><p><strong>Infrastructure, not inventory.</strong> We are not trying to win on the number of listings. We are building the connective layer that makes every listing, every deal, and every relationship work better.</p></div>
+      <div class="strat-row"><div class="strat-dot"></div><p><strong>Starting narrow, building wide.</strong> The mobile buyer app is the focused, disciplined foundation. The workspace for developers and brokers builds on top of the same operating core.</p></div>
+    </div>
+  </div>
+
+  <div class="tagline-block">
+    <p>Connect. <em>Automate.</em> Scale.</p>
+    <div class="tagline-sub">Zane AI — Intelligent infrastructure for real estate</div>
+  </div>
+
+</div>

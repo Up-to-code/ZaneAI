@@ -1,0 +1,249 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --o:#E8420A;
+  --o-dim:#E8420A22;
+  --serif:'Playfair Display',serif;
+  --sans:'Syne',sans-serif;
+}
+.doc{font-family:var(--sans);max-width:700px;margin:0 auto;padding:0 0 5rem}
+
+/* HERO */
+.hero{padding:3rem 0 2.5rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.brand-row{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.z-logo{font-family:var(--serif);font-size:36px;font-weight:900;color:var(--color-text-primary);line-height:1;position:relative;display:inline-block}
+.z-slash{color:var(--o)}
+.brand-name{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--color-text-secondary);font-weight:500}
+.hero-kicker{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--o);font-weight:700;margin-bottom:1rem}
+.hero-h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);font-weight:900;line-height:1.08;color:var(--color-text-primary);margin-bottom:1.25rem}
+.hero-h1 .ital{font-style:italic;color:var(--o)}
+.hero-deck{font-size:15px;color:var(--color-text-secondary);line-height:1.8;max-width:540px}
+
+/* STAT BAR */
+.stat-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--color-border-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden;margin:2rem 0}
+.stat{background:var(--color-background-primary);padding:1.25rem 1rem;text-align:center}
+.stat-num{font-family:var(--serif);font-size:28px;font-weight:900;color:var(--o);line-height:1}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-top:5px;line-height:1.4}
+
+/* SECTION */
+.sec{padding:2.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.sec-tag{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--o);font-weight:700;margin-bottom:1rem}
+.sec-h{font-family:var(--serif);font-size:clamp(22px,4vw,32px);font-weight:900;color:var(--color-text-primary);line-height:1.2;margin-bottom:1rem}
+.sec-h .ital{font-style:italic}
+.sec-body{font-size:14px;color:var(--color-text-secondary);line-height:1.85}
+
+/* PROBLEM ITEMS */
+.problem-list{margin-top:1.5rem;display:flex;flex-direction:column;gap:0}
+.prob-item{display:grid;grid-template-columns:40px 1fr;gap:16px;align-items:start;padding:1.1rem 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.prob-item:last-child{border-bottom:none}
+.prob-num{font-family:var(--serif);font-size:22px;font-weight:900;color:var(--o);opacity:0.35;line-height:1;padding-top:2px}
+.prob-content h4{font-size:14px;font-weight:700;color:var(--color-text-primary);margin-bottom:4px}
+.prob-content p{font-size:13px;color:var(--color-text-secondary);line-height:1.7}
+
+/* MARKET NUMBERS */
+.market-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.5rem}
+.market-card{border-radius:12px;padding:1.25rem 1.4rem;background:var(--color-background-secondary)}
+.market-card.accent{background:var(--o-dim);border:1px solid var(--o)44}
+.market-card .big{font-family:var(--serif);font-size:30px;font-weight:900;color:var(--color-text-primary);line-height:1}
+.market-card.accent .big{color:var(--o)}
+.market-card .label{font-size:12px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5}
+
+/* PRODUCT SPLIT */
+.product-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.5rem}
+.prod-card{border-radius:14px;border:0.5px solid var(--color-border-tertiary);padding:1.4rem;background:var(--color-background-primary)}
+.prod-card.now{border:1.5px solid var(--o)}
+.prod-pill{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:20px;margin-bottom:1rem}
+.pill-now{background:var(--o-dim);color:var(--o)}
+.pill-next{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--o);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.prod-card h3{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--color-text-primary);margin-bottom:10px;line-height:1.3}
+.prod-card ul{list-style:none;padding:0}
+.prod-card ul li{font-size:12px;color:var(--color-text-secondary);padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);line-height:1.5;display:flex;align-items:flex-start;gap:7px}
+.prod-card ul li:last-child{border-bottom:none}
+.prod-card ul li::before{content:"";display:block;min-width:5px;height:5px;border-radius:50%;background:var(--o);margin-top:6px;opacity:0.6}
+
+/* FLOW */
+.flow-track{margin-top:1.5rem;position:relative}
+.flow-track::before{content:"";position:absolute;left:14px;top:0;bottom:0;width:1px;background:var(--color-border-tertiary)}
+.flow-step{display:grid;grid-template-columns:28px 1fr;gap:16px;padding:1rem 0;position:relative}
+.fn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--color-background-secondary);color:var(--color-text-secondary);position:relative;z-index:1;flex-shrink:0}
+.fn.on{background:var(--o);color:white}
+.flow-step h4{font-size:13px;font-weight:700;color:var(--color-text-primary);margin-bottom:3px}
+.flow-step p{font-size:12px;color:var(--color-text-secondary);line-height:1.65}
+
+/* NOT LIST */
+.not-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:1.25rem}
+.not-item{background:var(--color-background-secondary);border-radius:8px;padding:0.75rem 0.9rem;text-align:center}
+.not-item .x{font-size:10px;color:var(--color-text-secondary);opacity:0.5;display:block;margin-bottom:3px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+.not-item span{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+
+/* VISION BLOCK */
+.vision{padding:3rem 0;text-align:center}
+.vision-q{font-family:var(--serif);font-size:clamp(24px,5vw,38px);font-weight:900;color:var(--color-text-primary);line-height:1.2;margin-bottom:1rem}
+.vision-q .ital{font-style:italic;color:var(--o)}
+.vision-body{font-size:14px;color:var(--color-text-secondary);line-height:1.85;max-width:500px;margin:0 auto 2rem}
+.tagline{font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:var(--o);font-weight:700}
+
+@media(max-width:500px){
+  .stat-bar,.market-grid,.product-split,.not-grid{grid-template-columns:1fr}
+}
+</style>
+
+<div class="doc">
+
+  <div class="hero">
+    <div class="brand-row">
+      <div class="z-logo">Z<span class="z-slash">/</span></div>
+      <div class="brand-name">Zane AI</div>
+    </div>
+    <div class="hero-kicker">Redefining real estate from the ground up</div>
+    <h1 class="hero-h1">The market is broken.<br>We're building the <span class="ital">fix.</span></h1>
+    <p class="hero-deck">Zane AI is the intelligent infrastructure that connects buyers, properties, brokers, and developers into one unified system — starting with the most important problem: helping people find the right home, intelligently.</p>
+
+    <div class="stat-bar">
+      <div class="stat">
+        <div class="stat-num">$380B+</div>
+        <div class="stat-label">Egypt real estate market value</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">12+</div>
+        <div class="stat-label">disconnected tools the average buyer touches</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">0</div>
+        <div class="stat-label">AI-native platforms owning this space today</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-tag">The problem</div>
+    <h2 class="sec-h">Real estate is a maze of <span class="ital">broken handoffs</span></h2>
+    <p class="sec-body">The industry hasn't changed the way it operates. Buyers are left navigating tools that don't talk to each other, brokers rebuild context from scratch on every lead, and developers have no real-time view of demand. The result: deals take longer, buyers drop off, and everyone loses money to friction.</p>
+
+    <div class="problem-list">
+      <div class="prob-item">
+        <div class="prob-num">01</div>
+        <div class="prob-content">
+          <h4>The fragmented buyer journey</h4>
+          <p>A buyer searches on one platform, asks questions via WhatsApp, compares financing on a bank app, and then calls a broker who knows nothing about any of it. Context is lost at every step. Frustration compounds. Deals die.</p>
+        </div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-num">02</div>
+        <div class="prob-content">
+          <h4>Financing lives outside the conversation</h4>
+          <p>Mortgage estimates, installment plans, bank comparisons — these happen in isolation from the actual property search. Buyers can't make real decisions without understanding what they can afford, in context, right now.</p>
+        </div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-num">03</div>
+        <div class="prob-content">
+          <h4>Brokers operate blind</h4>
+          <p>Leads arrive with no history. Every client is a cold start. Brokers spend hours rebuilding what a buyer wants, what they've seen, what they can afford — information that was never captured or passed along.</p>
+        </div>
+      </div>
+      <div class="prob-item">
+        <div class="prob-num">04</div>
+        <div class="prob-content">
+          <h4>Developers can't see demand clearly</h4>
+          <p>Project pipelines live in spreadsheets. Offers get tracked in chats. There's no unified view connecting market interest to actual inventory, pricing decisions, or conversion rates.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-tag">Market opportunity</div>
+    <h2 class="sec-h">A massive market with <span class="ital">no intelligent layer</span></h2>
+    <p class="sec-body">Egypt's real estate sector is one of the fastest-growing in the Middle East and Africa. Yet the digital infrastructure running it is a decade behind. No dominant AI-native platform exists. The space is wide open.</p>
+    <div class="market-grid">
+      <div class="market-card accent">
+        <div class="big">$380B+</div>
+        <div class="label">Egypt real estate market — and growing as new cities scale rapidly</div>
+      </div>
+      <div class="market-card">
+        <div class="big">67%</div>
+        <div class="label">of buyers in MENA say property search is stressful and time-consuming</div>
+      </div>
+      <div class="market-card">
+        <div class="big">3–5×</div>
+        <div class="label">longer time-to-close when financing and search are handled separately</div>
+      </div>
+      <div class="market-card accent">
+        <div class="big">Zero</div>
+        <div class="label">AI-native real estate operating systems exist in this market today</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-tag">The solution</div>
+    <h2 class="sec-h">Zane AI: <span class="ital">one system</span>, end to end</h2>
+    <p class="sec-body">We start with the buyer — because that's where the problem is most visible and most painful. The mobile app is live. The workspace for brokers and developers is what we build next, on the same operating core.</p>
+
+    <div class="product-split">
+      <div class="prod-card now">
+        <div class="prod-pill pill-now"><span class="pulse"></span>Live now</div>
+        <h3>The buyer assistant</h3>
+        <ul>
+          <li>Natural language property search</li>
+          <li>AI-powered matching & precision filtering</li>
+          <li>Side-by-side property comparison</li>
+          <li>Mortgage & installment modeling</li>
+          <li>Bank offer comparison</li>
+          <li>Neighborhood & market context</li>
+          <li>Advisor & broker handoff</li>
+        </ul>
+      </div>
+      <div class="prod-card">
+        <div class="prod-pill pill-next">Coming next</div>
+        <h3>The broker & developer workspace</h3>
+        <ul>
+          <li>Project & unit management</li>
+          <li>Offer tracking & approvals</li>
+          <li>CRM with full buyer context</li>
+          <li>Team inbox & collaboration</li>
+          <li>AI-assisted follow-up drafts</li>
+          <li>Real-time demand pipeline</li>
+          <li>Market activity dashboard</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-tag">How it works</div>
+    <h2 class="sec-h">Intent to execution — <span class="ital">nothing lost</span></h2>
+    <div class="flow-track">
+      <div class="flow-step"><div class="fn on">1</div><div><h4>Buyer describes what they want</h4><p>Natural language input — voice or text. "Show me villas in New Cairo, 3 bedrooms, compound, under 4M." No filters. No dropdowns. Just intent.</p></div></div>
+      <div class="flow-step"><div class="fn on">2</div><div><h4>AI matches, explains, and compares</h4><p>Zane surfaces precision results, provides neighborhood context, models financing options, and compares bank offers — all inside one thread.</p></div></div>
+      <div class="flow-step"><div class="fn on">3</div><div><h4>Buyer moves toward a decision</h4><p>Shortlist, analyze, understand what they can actually afford. The assistant moves the buyer from interest to qualified intent — without losing them to friction.</p></div></div>
+      <div class="flow-step"><div class="fn">4</div><div><h4>Context carries into execution</h4><p><em style="color:var(--color-text-secondary)">Coming next —</em> broker picks up a fully-formed lead. Developer sees real demand. No cold starts. No rebuilding. Just work.</p></div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-tag">Positioning</div>
+    <h2 class="sec-h">Not a chatbot. Not a marketplace. <span class="ital">Infrastructure.</span></h2>
+    <div class="not-grid">
+      <div class="not-item"><span class="x">not this</span><span>A chatbot</span></div>
+      <div class="not-item"><span class="x">not this</span><span>A listings site</span></div>
+      <div class="not-item"><span class="x">not this</span><span>A CRM</span></div>
+      <div class="not-item"><span class="x">not this</span><span>A search app</span></div>
+      <div class="not-item"><span class="x">not this</span><span>A marketplace</span></div>
+      <div class="not-item"><span class="x">not this</span><span>A broker tool</span></div>
+    </div>
+    <p class="sec-body" style="margin-top:1.25rem">Zane AI is the layer underneath all of those — where buyer intent, financing context, broker coordination, and developer execution live together in one operating system. That's a different kind of company. That's a platform.</p>
+  </div>
+
+  <div class="vision">
+    <h2 class="vision-q">We're not building<br>another platform.<br>We're building the <span class="ital">infrastructure</span><br>the next era runs on.</h2>
+    <p class="vision-body">Every property transaction in the region will eventually pass through an intelligent layer. We're building that layer — starting with the buyers, growing into the teams, and expanding into the operating system that modern real estate needs.</p>
+    <div class="tagline">Zane AI — Connect. Automate. Scale.</div>
+  </div>
+
+</div>
