@@ -1,6 +1,14 @@
 import type { AppLocale } from "./locale";
 
 export type WebDictionary = {
+  hero: {
+    title: string;
+    subtitle: string;
+  };
+  cta: {
+    title: string;
+    subtitle: string;
+  };
   nav: {
     home: string;
     developer: string;
@@ -554,6 +562,14 @@ export type WebDictionary = {
 
 const dictionaries: Record<AppLocale, WebDictionary> = {
   ar: {
+    hero: {
+      title: "زايون",
+      subtitle: "مساحة عمل عقارية موحدة تجمع المطورين والوسطاء في تجربة أوضح للمتابعة والتنسيق والتنفيذ اليومي.",
+    },
+    cta: {
+      title: "ابدأ من نقطة واحدة واضحة",
+      subtitle: "ادخل إلى مساحة العمل لتتابع المشاريع والمحادثات والعمليات من مكان واحد منظم.",
+    },
     nav: {
       home: "الرئيسية",
       developer: "مساحة المطورين",
@@ -1105,6 +1121,14 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
     },
   },
   en: {
+    hero: {
+      title: "ZAYON",
+      subtitle: "A unified real-estate workspace that brings developers and brokers into one clearer flow for follow-through, coordination, and daily execution.",
+    },
+    cta: {
+      title: "Start from one clear place",
+      subtitle: "Enter the workspace to manage projects, conversations, and operations from a single organized hub.",
+    },
     nav: {
       home: "Home",
       developer: "Developer Space",
@@ -1656,6 +1680,14 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
     },
   },
   fr: {
+    hero: {
+      title: "ZAYON",
+      subtitle: "Un espace de travail immobilier unifié qui réunit promoteurs et courtiers dans un flux plus clair pour le suivi, la coordination et l'exécution quotidienne.",
+    },
+    cta: {
+      title: "Commencez depuis un point clair",
+      subtitle: "Entrez dans l'espace de travail pour gérer projets, conversations et opérations depuis un hub unique et organisé.",
+    },
     nav: {
       home: "Accueil",
       developer: "Espace promoteurs",

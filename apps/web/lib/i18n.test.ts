@@ -6,6 +6,8 @@ describe("web dictionary coverage", () => {
     for (const locale of ["ar", "en", "fr"] as const) {
       const dictionary = getWebDictionary(locale);
 
+      expect(dictionary.hero.title.length).toBeGreaterThan(0);
+      expect(dictionary.cta.title.length).toBeGreaterThan(0);
       expect(dictionary.nav.switchLanguage.length).toBeGreaterThan(0);
       expect(dictionary.nav.recentThreads.length).toBeGreaterThan(0);
       expect(dictionary.footer.brandTitle.length).toBeGreaterThan(0);

@@ -30,6 +30,61 @@ function dedupeStrings(values: string[]) {
   return Array.from(new Set(values));
 }
 
+function areMessageListsEqual(left: ConversationMessage[], right: ConversationMessage[]) {
+  if (left === right) {
+    return true;
+  }
+
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((message, index) => {
+    const other = right[index];
+    if (!other) {
+      return false;
+    }
+
+    return (
+      message.id === other.id
+      && message.sessionId === other.sessionId
+      && message.role === other.role
+      && message.kind === other.kind
+      && message.text === other.text
+      && message.streamState === other.streamState
+      && message.createdAt === other.createdAt
+      && message.runId === other.runId
+      && JSON.stringify(message.relatedPropertyIds) === JSON.stringify(other.relatedPropertyIds)
+      && JSON.stringify(message.sourceMetadata ?? []) === JSON.stringify(other.sourceMetadata ?? [])
+      && JSON.stringify(message.turnMeta ?? null) === JSON.stringify(other.turnMeta ?? null)
+      && JSON.stringify(message.uiTurn ?? null) === JSON.stringify(other.uiTurn ?? null)
+    );
+  });
+}
+
+function areThreadSummariesEqual(
+  left: GuestMirrorThread[],
+  right: Array<Pick<GuestMirrorThread, "_id" | "_creationTime" | "title" | "summary">>,
+) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((thread, index) => {
+    const other = right[index];
+    if (!other) {
+      return false;
+    }
+
+    return (
+      thread._id === other._id
+      && thread._creationTime === other._creationTime
+      && thread.title === other.title
+      && thread.summary === other.summary
+    );
+  });
+}
+
 export const createGuestMirrorSlice: StateCreator<GuestMirrorSlice, [], [], GuestMirrorSlice> = (set) => ({
   guestMirrorThreads: [],
   guestMirrorSavedPropertyIds: [],
@@ -37,14 +92,18 @@ export const createGuestMirrorSlice: StateCreator<GuestMirrorSlice, [], [], Gues
   guestMirrorActiveThreadId: null,
   syncGuestMirrorThreadSummaries: (threads) =>
     set((state) => {
+      const sortedThreads = [...threads].sort((left, right) => right._creationTime - left._creationTime);
+
+      if (areThreadSummariesEqual(state.guestMirrorThreads, sortedThreads)) {
+        return state;
+      }
+
       const previousMessages = new Map(
         state.guestMirrorThreads.map((thread) => [thread._id, thread.messages]),
       );
 
       return {
-        guestMirrorThreads: [...threads]
-          .sort((left, right) => right._creationTime - left._creationTime)
-          .map((thread) => ({
+        guestMirrorThreads: sortedThreads.map((thread) => ({
             ...thread,
             messages: previousMessages.get(thread._id) ?? [],
           })),
@@ -67,6 +126,10 @@ export const createGuestMirrorSlice: StateCreator<GuestMirrorSlice, [], [], Gues
             ...state.guestMirrorThreads,
           ],
         };
+      }
+
+      if (areMessageListsEqual(existing.messages, messages)) {
+        return state;
       }
 
       return {

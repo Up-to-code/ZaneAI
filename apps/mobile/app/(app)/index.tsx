@@ -20,7 +20,12 @@ export default function HomeScreen() {
   return (
     <Screen safe={false}>
       {/* Floating Pure Canvas Utilities */}
-      <View style={[styles.floatingHeader, { top: insets.top + 10 }]}>
+      <View style={styles.flex}>
+        <ConversationViewport />
+      </View>
+
+      {/* Floating Pure Canvas Utilities */}
+      <View style={[styles.floatingHeader, { paddingTop: insets.top + 10, backgroundColor: colors.background + 'D9' }]}>
         <Pressable 
           style={styles.floatingBtn} 
           onPress={() => router.navigate("/(app)/menu")}
@@ -39,10 +44,6 @@ export default function HomeScreen() {
           </View>
         </Pressable>
       </View>
-
-      <View style={styles.flex}>
-        <ConversationViewport />
-      </View>
     </Screen>
   );
 }
@@ -53,22 +54,25 @@ const styles = StyleSheet.create({
   },
   floatingHeader: {
     position: "absolute",
-    left: 20,
-    right: 20,
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 15,
     zIndex: 1000,
   },
   floatingBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderWidth: 0,
+    borderColor: "transparent",
   },
   avatarMini: {
     width: 28,

@@ -22,7 +22,8 @@ export default function MenuScreen() {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const setActiveThreadId = useAppStore((state) => state.setActiveThreadId);
-  const resetConversationState = useAppStore((state) => state.resetConversationState);
+  const beginThreadCreation = useAppStore((state) => state.beginThreadCreation);
+  const cancelThreadCreation = useAppStore((state) => state.cancelThreadCreation);
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const threads = useThreads();
   const startThread = useMutation(api.agent.public.startThread.startThread);
@@ -39,16 +40,24 @@ export default function MenuScreen() {
       router.navigate("/(app)");
       return;
     }
-    resetConversationState();
+    beginThreadCreation();
     if (e2eQaMode) {
       const threadId = createE2EThread();
       setActiveThreadId(threadId);
       router.navigate("/(app)");
       return;
     }
-    const threadId = await startThread({});
-    setActiveThreadId(threadId);
-    router.navigate("/(app)");
+    try {
+      const threadId = await startThread({});
+      setActiveThreadId(threadId);
+      router.navigate("/(app)");
+    } catch (error) {
+      cancelThreadCreation();
+      Alert.alert(
+        "Unable to start conversation",
+        error instanceof Error ? error.message : "Please try again.",
+      );
+    }
   };
 
   const displayName = isGuest ? "Anonymous Session" : user?.name ?? user?.email ?? "Ahmed Mansour";

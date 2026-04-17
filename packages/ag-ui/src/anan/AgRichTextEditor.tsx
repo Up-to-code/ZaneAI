@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Bold, Heading1, Heading2, Italic, List, ListOrdered, Type } from "lucide-react";
-import { cn } from "../../../../apps/web/lib/utils";
+import { cn } from "./utils";
 
 interface AgRichTextEditorProps {
   value: string;

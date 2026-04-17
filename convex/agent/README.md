@@ -1,12 +1,14 @@
 # Agent Zone
 
-This zone owns thread APIs, orchestration actions, run tracking, team config, and agent runtime configs.
+This zone owns thread APIs, workflow orchestration, run tracking, and the worker-facing runtime bridge.
 
-Current real-work team:
-- `agents/search`: property search, Tavily web context, active-thread reads.
-- `agents/decision`: recommendation synthesis and ranking output.
-- `agents/memory`: promoted profile-memory retrieval and updates.
+Current workflow agents:
+- `orchestrator`: routes the active prompt.
+- `property`: handles property search, shortlist, and comparison.
+- `funding`: handles finance and affordability guidance.
+- `advisor`: handles greetings and lightweight advisory turns.
+- `summary`: emits the final assistant turn contract.
 
-Add a new agent by creating `agents/<name>/prompt.ts`, `schema.ts`, `tools.ts`, and `config.ts`, then register it from `team/config.ts`.
+Keep the worker-facing registry lean. Add new specialists only when they produce a distinct product experience.
 
-Keep prompts, output schemas, and allowed tool names inside the agent folder. Shared tool factories, logging, and runtime helpers belong in `lib/`.
+Use `orchestrator/` for workflow code and only persist app-facing state in `agentRuns`, `agentEvents`, and `assistantTurns`.

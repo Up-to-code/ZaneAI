@@ -1,23 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buyerAssistantTurnSchema } from "./schemas";
+import { assistantTurnSchema, extractTurnPropertyIds } from "./schemas";
 
-test("accepts a valid buyer assistant turn", () => {
-  const parsed = buyerAssistantTurnSchema.parse({
-    version: "buyer_turn.v1",
-    intent: "property_search",
-    objective: "Find premium waterfront options",
+test("assistant turn schema accepts a property shortlist response", () => {
+  const parsed = assistantTurnSchema.parse({
+    version: "assistant_turn.v1",
+    route: "property",
     status: "completed",
-    assistantText: "I found strong waterfront matches for your brief.",
-    propertyIds: ["prop-1", "prop-2"],
-    rankingRationale: "These options balance prestige and rental resilience.",
-    cards: [
+    assistantText: "I found the strongest matches for your brief.",
+    blocks: [
       {
-        type: "shortlist",
-        id: "shortlist-1",
+        type: "property_list",
+        id: "shortlist",
         title: "Top matches",
         propertyIds: ["prop-1", "prop-2"],
+      },
+      {
+        type: "actions",
+        id: "actions",
+        actionIds: ["open-1"],
       },
     ],
     actions: [
@@ -28,22 +30,50 @@ test("accepts a valid buyer assistant turn", () => {
         payload: { propertyId: "prop-1" },
       },
     ],
+    agent: {
+      primaryAgent: "property",
+      participatingAgents: ["orchestrator", "property", "summary"],
+      handoffs: [],
+      confidence: 0.91,
+    },
+    motion: {
+      preset: "property",
+      emphasis: "medium",
+    },
   });
 
-  assert.equal(parsed.intent, "property_search");
+  assert.deepEqual(extractTurnPropertyIds(parsed), ["prop-1", "prop-2"]);
 });
 
-test("rejects an invalid buyer assistant turn", () => {
+test("assistant turn schema rejects invalid action payloads", () => {
   assert.throws(() =>
-    buyerAssistantTurnSchema.parse({
-      version: "buyer_turn.v1",
-      intent: "property_search",
-      objective: "Broken",
+    assistantTurnSchema.parse({
+      version: "assistant_turn.v1",
+      route: "property",
       status: "completed",
       assistantText: "Broken",
-      propertyIds: [],
-      rankingRationale: "Missing cards",
-      cards: [],
-      actions: [],
+      blocks: [
+        {
+          type: "actions",
+          id: "actions",
+          actionIds: ["bad-1"],
+        },
+      ],
+      actions: [
+        {
+          id: "bad-1",
+          title: "Broken",
+          name: "open_property",
+          payload: { brokerId: "broker-1" },
+        },
+      ],
+      agent: {
+        primaryAgent: "property",
+        participatingAgents: ["property"],
+        handoffs: [],
+      },
+      motion: {
+        preset: "property",
+      },
     }));
 });

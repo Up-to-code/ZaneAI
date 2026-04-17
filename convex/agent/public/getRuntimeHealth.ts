@@ -24,9 +24,16 @@ export const getRuntimeHealth = query({
     capabilities: {
       sendMessage: true,
       threadMessages: true,
-      recommendationBatches: true,
       stageFeed: true,
       runStatus: true,
+      workflowRuns: true,
+    },
+    workflow: {
+      configured: true,
+      provider: "convex-orchestrator",
+    },
+    worker: {
+      configured: hasLlmApiKey(),
     },
   }),
 });

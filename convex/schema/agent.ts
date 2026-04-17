@@ -1,24 +1,34 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 
-const buyerStageEventType = v.union(v.literal("stage"), v.literal("tool"), v.literal("lifecycle"));
-const buyerStagePhase = v.union(
-  v.literal("intent_started"),
-  v.literal("intent_done"),
-  v.literal("team_started"),
-  v.literal("team_done"),
-  v.literal("merge_started"),
-  v.literal("merge_done"),
-  v.literal("action_started"),
-  v.literal("action_done"),
+const assistantStageEventType = v.union(v.literal("stage"), v.literal("tool"), v.literal("lifecycle"));
+const assistantStagePhase = v.union(
+  v.literal("classify_started"),
+  v.literal("classify_done"),
+  v.literal("specialist_started"),
+  v.literal("specialist_done"),
+  v.literal("summary_started"),
+  v.literal("summary_done"),
   v.literal("persist_started"),
   v.literal("persist_done"),
 );
-const buyerStageStatus = v.union(
+const assistantStageStatus = v.union(
   v.literal("running"),
   v.literal("completed"),
   v.literal("failed"),
   v.literal("cancelled"),
+);
+const assistantRoute = v.union(
+  v.literal("advisor"),
+  v.literal("property"),
+  v.literal("funding"),
+  v.literal("mixed"),
+);
+const motionPreset = v.union(
+  v.literal("assistant"),
+  v.literal("advisor"),
+  v.literal("property"),
+  v.literal("funding"),
 );
 
 export const agentTables = {
@@ -30,6 +40,10 @@ export const agentTables = {
     status: v.string(),
     summary: v.optional(v.string()),
     diagnostics: v.array(v.string()),
+    workflowId: v.optional(v.string()),
+    route: v.optional(assistantRoute),
+    specialist: v.optional(v.string()),
+    motionPreset: v.optional(motionPreset),
     createdAt: v.number(),
     updatedAt: v.number(),
     startedAt: v.optional(v.number()),
@@ -41,12 +55,18 @@ export const agentTables = {
   agentEvents: defineTable({
     runId: v.id("agentRuns"),
     seq: v.optional(v.number()),
-    eventType: v.optional(buyerStageEventType),
-    phase: v.string(),
-    status: v.optional(buyerStageStatus),
-    teamId: v.optional(v.string()),
-    agentName: v.optional(v.string()),
+    eventType: v.optional(assistantStageEventType),
+    // Compatibility: legacy agentEvents rows still store pre-orchestrator tool/lifecycle
+    // phase strings (for example "tool:promote_profile_fact"). Keep storage widened
+    // until those rows are migrated or expired.
+    phase: v.optional(v.string()),
+    status: v.optional(assistantStageStatus),
     message: v.string(),
+    route: v.optional(assistantRoute),
+    specialist: v.optional(v.string()),
+    motionPreset: v.optional(motionPreset),
+    handoffFrom: v.optional(v.string()),
+    handoffTo: v.optional(v.string()),
     details: v.optional(v.string()),
     detailsJson: v.optional(v.string()),
     createdAt: v.number(),
@@ -58,11 +78,9 @@ export const agentTables = {
     messageId: v.string(),
     assistantText: v.string(),
     turnVersion: v.string(),
-    intent: v.string(),
+    route: assistantRoute,
     status: v.string(),
     propertyIds: v.array(v.string()),
-    rankingRationale: v.string(),
-    recommendationBatchId: v.optional(v.id("recommendationBatches")),
     turnJson: v.string(),
     metaJson: v.optional(v.string()),
     createdAt: v.number(),
@@ -73,21 +91,4 @@ export const agentTables = {
     .index("by_authUserId", ["authUserId"])
     .index("by_messageId", ["messageId"])
     .index("by_runId", ["runId"]),
-  recommendationBatches: defineTable({
-    authUserId: v.string(),
-    threadId: v.string(),
-    runId: v.id("agentRuns"),
-    requestContext: v.string(),
-    propertyIds: v.array(v.string()),
-    rankingRationale: v.string(),
-    sources: v.optional(v.array(v.object({
-      title: v.string(),
-      url: v.string(),
-      snippet: v.string(),
-    }))),
-    createdAt: v.number(),
-  })
-    .index("by_threadId", ["threadId"])
-    .index("by_runId", ["runId"])
-    .index("by_authUserId", ["authUserId"]),
 };

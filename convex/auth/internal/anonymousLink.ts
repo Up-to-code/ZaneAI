@@ -26,7 +26,11 @@ async function listThreadsForUser(ctx: MutationCtx, userId: string) {
   let cursor: string | null = null;
 
   while (true) {
-    const result = await ctx.runQuery(agentComponent.threads.listThreadsByUserId, {
+    const result: {
+      page: Array<{ _id: string }>;
+      isDone: boolean;
+      continueCursor: string;
+    } = await ctx.runQuery(agentComponent.threads.listThreadsByUserId, {
       userId,
       order: "desc",
       paginationOpts: { cursor, numItems: 100 },
@@ -198,12 +202,6 @@ export const linkAnonymousAccount = internalMutation({
       .query("assistantTurns")
       .withIndex("by_authUserId", (q) => q.eq("authUserId", args.anonymousAuthUserId))) {
       await ctx.db.patch(turn._id, { authUserId: args.newAuthUserId, updatedAt: Date.now() });
-    }
-
-    for await (const batch of ctx.db
-      .query("recommendationBatches")
-      .withIndex("by_authUserId", (q) => q.eq("authUserId", args.anonymousAuthUserId))) {
-      await ctx.db.patch(batch._id, { authUserId: args.newAuthUserId });
     }
 
     for await (const usageRow of ctx.db

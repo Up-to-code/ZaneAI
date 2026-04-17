@@ -2,6 +2,10 @@ import { PropsWithChildren, useEffect, useRef } from "react";
 import { usePathname } from "expo-router";
 
 import { track } from "@/persistence/analytics/track";
+import {
+  shouldTrackAppOpen,
+  shouldTrackScreenView,
+} from "@/persistence/analytics/sessionTrackerState";
 import { useAppStore } from "@/store";
 
 export function SessionTracker({ children }: PropsWithChildren) {
@@ -11,7 +15,7 @@ export function SessionTracker({ children }: PropsWithChildren) {
   const sessionId = useAppStore((state) => state.sessionId);
 
   useEffect(() => {
-    if (!openedRef.current) {
+    if (!openedRef.current && shouldTrackAppOpen(sessionId)) {
       openedRef.current = true;
       track("app_open", { sessionId });
     }
@@ -19,7 +23,9 @@ export function SessionTracker({ children }: PropsWithChildren) {
 
   useEffect(() => {
     setCurrentRoute(pathname);
-    track("screen_view", { sessionId, route: pathname });
+    if (shouldTrackScreenView(sessionId, pathname)) {
+      track("screen_view", { sessionId, route: pathname });
+    }
   }, [pathname, sessionId, setCurrentRoute]);
 
   return children;

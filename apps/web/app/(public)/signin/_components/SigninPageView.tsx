@@ -12,6 +12,7 @@ import { authClient } from "@/lib/auth/webAuthClient";
 import { isWebAuthConfigured } from "@/lib/auth/runtime";
 import { TypewriterText } from "./TypewriterText";
 import { motion, AnimatePresence } from "framer-motion";
+import { Eye } from "lucide-react";
 
 type SigninPageViewProps = {
   redirectTo: string;
@@ -273,9 +274,14 @@ export default function SigninPageView({
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center"
         >
-          <h1 className="mb-8 text-5xl font-black uppercase tracking-[0.24em] text-[var(--zane-ai-deep)] dark:text-white lg:text-7xl">
-            Zane-AI
-          </h1>
+          <div className="flex flex-col items-center gap-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--zane-ai-deep)] dark:bg-white">
+              <Eye className="h-10 w-10 text-white dark:text-black" />
+            </div>
+            <h1 className="mb-0 text-5xl font-black uppercase tracking-[0.24em] text-[var(--zane-ai-deep)] dark:text-white lg:text-7xl">
+              Zane-AI
+            </h1>
+          </div>
           <TypewriterText
             phrases={[
               "The first unified real estate agent.",

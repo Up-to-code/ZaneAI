@@ -8,6 +8,18 @@ import { mockProperties } from "@/persistence/mocks/mock-data";
 import { useAppStore } from "@/store";
 import type { PropertyCardVM } from "@/types/domain";
 
+function ensureArray<T>(value: unknown, label: string): T[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (__DEV__ && value !== undefined && value !== null) {
+    console.warn(`[property] Expected array for ${label}`, value);
+  }
+
+  return [];
+}
+
 export function useCandidateProperties() {
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const rows = useQuery(
@@ -20,7 +32,7 @@ export function useCandidateProperties() {
       return mockProperties;
     }
 
-    return (rows ?? []).map(toPropertyCardVM);
+    return ensureArray<any>(rows, "listCandidateProperties").map(toPropertyCardVM);
   }, [e2eQaMode, rows]);
 }
 
@@ -52,7 +64,7 @@ export function usePropertiesByIds(propertyIds: string[]) {
       return mockProperties.filter((property) => propertyIds.includes(property.id));
     }
 
-    return (rows ?? []).map(toPropertyCardVM);
+    return ensureArray<any>(rows, "listByIds").map(toPropertyCardVM);
   }, [e2eQaMode, propertyIds, rows]);
 }
 
@@ -80,11 +92,13 @@ export function useSavedProperties() {
       return;
     }
 
-    if (rows.length === 0 && guestMirrorSavedPropertyIds.length > 0) {
+    const savedRows = ensureArray<any>(rows, "listSavedProperties");
+
+    if (savedRows.length === 0 && guestMirrorSavedPropertyIds.length > 0) {
       return;
     }
 
-    setGuestMirrorSavedPropertyIds(rows.map((row: any) => row.propertyExternalId));
+    setGuestMirrorSavedPropertyIds(savedRows.map((row: any) => row.propertyExternalId));
   }, [e2eQaMode, guestMirrorSavedPropertyIds.length, isGuest, rows, setGuestMirrorSavedPropertyIds]);
 
   useEffect(() => {
@@ -99,7 +113,8 @@ export function useSavedProperties() {
       return;
     }
 
-    const existingIds = rows.map((row: any) => row.propertyExternalId);
+    const savedRows = ensureArray<any>(rows, "listSavedProperties");
+    const existingIds = savedRows.map((row: any) => row.propertyExternalId);
     const missingIds = guestMirrorSavedPropertyIds.filter((propertyId) => !existingIds.includes(propertyId));
 
     if (missingIds.length === 0) {
@@ -139,15 +154,17 @@ export function useSavedProperties() {
         }));
       }
 
-      if (rows !== undefined && !(rows.length === 0 && isGuest && guestMirrorSavedPropertyIds.length > 0)) {
-        return rows.map((row: any) => ({
+      const savedRows = ensureArray<any>(rows, "listSavedProperties");
+
+      if (rows !== undefined && !(savedRows.length === 0 && isGuest && guestMirrorSavedPropertyIds.length > 0)) {
+        return savedRows.map((row: any) => ({
           ...row,
           property: row.property ? toPropertyCardVM(row.property) : null,
         }));
       }
 
       if (isGuest) {
-        const mirroredProperties = (mirroredRows ?? []).map(toPropertyCardVM);
+        const mirroredProperties = ensureArray<any>(mirroredRows, "listByIds.mirrored").map(toPropertyCardVM);
         return guestMirrorSavedPropertyIds.map((propertyExternalId) => ({
           propertyExternalId,
           property: mirroredProperties.find((property: PropertyCardVM) => property.id === propertyExternalId) ?? null,

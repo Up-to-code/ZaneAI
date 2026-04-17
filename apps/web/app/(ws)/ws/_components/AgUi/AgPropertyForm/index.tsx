@@ -47,7 +47,7 @@ const staggerContainer = {
 
 const staggerItem = {
   enter: { opacity: 0, y: 20, filter: "blur(4px)" },
-  center: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  center: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 export default function AgPropertyForm({
@@ -164,7 +164,7 @@ export default function AgPropertyForm({
               initial={{ opacity: 0, y: -10, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.97 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
               className="mb-8 rounded-[20px] bg-rose-500/10 px-6 py-4 text-right text-[15px] font-bold text-rose-500"
             >
               {feedback}
@@ -182,7 +182,7 @@ export default function AgPropertyForm({
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
@@ -233,7 +233,7 @@ export default function AgPropertyForm({
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
@@ -310,7 +310,7 @@ export default function AgPropertyForm({
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
@@ -344,7 +344,7 @@ export default function AgPropertyForm({
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
@@ -366,7 +366,7 @@ export default function AgPropertyForm({
                         disabled={pending}
                         initial={{ opacity: 0, y: 12, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ delay: idx * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ delay: idx * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] as const }}
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.93 }}
                         className={`rounded-[24px] px-6 py-4 text-[14px] font-black tracking-tight transition-colors disabled:opacity-50 ${
@@ -390,7 +390,7 @@ export default function AgPropertyForm({
         className="fixed bottom-8 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 px-4"
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
       >
         <div className="flex w-full items-center justify-between gap-4 rounded-full border border-[color:var(--workspace-border)] bg-[color:color-mix(in_srgb,var(--workspace-panel)_85%,transparent)] p-3 pr-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] backdrop-blur-xl" dir="rtl">
            <div className="hidden text-[15px] font-black text-[var(--workspace-muted)] sm:block">
@@ -413,7 +413,7 @@ export default function AgPropertyForm({
                    initial={{ opacity: 0, scale: 0.8, width: 0 }}
                    animate={{ opacity: 1, scale: 1, width: "auto" }}
                    exit={{ opacity: 0, scale: 0.8, width: 0 }}
-                   transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                   transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] as const }}
                    type="button"
                    onClick={handlePrev}
                    disabled={pending}

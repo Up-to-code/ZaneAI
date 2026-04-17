@@ -9,19 +9,21 @@ export const darkColors = {
   textMuted: "#737373",
   accent: "#FF3D00",
   success: "#22C55E",
+  border: "rgba(255,255,255,0.1)",
 };
 
 export const lightColors = {
   background: "#FFFFFF",
   backgroundSoft: "#FAFAFA",
   surface: "#F4F4F5",
-  surfaceRaised: "#FFFFFF",
+  surfaceRaised: "#F4F4F5", // Stand out from white background
   divider: "rgba(0,0,0,0.08)",
   textPrimary: "#000000",
   textSecondary: "#52525B",
   textMuted: "#A1A1AA",
   accent: "#FF3D00",
   success: "#16A34A",
+  border: "rgba(0,0,0,0.05)",
 };
 
 export const spacing = {

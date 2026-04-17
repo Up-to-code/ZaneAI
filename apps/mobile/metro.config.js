@@ -49,7 +49,6 @@ config.resolver.alias = {
   "@": path.resolve(projectRoot, "src"),
   "@convex": path.resolve(workspaceRoot, "convex"),
   "@zayon/assistant-protocol": path.resolve(workspaceRoot, "packages/zayon-assistant-protocol/src/index.ts"),
-  "@zayon/buyer-ui-native": path.resolve(workspaceRoot, "packages/zayon-buyer-ui-native/src/index.ts"),
   react: path.resolve(projectNodeModules, "react"),
   "react/jsx-runtime": path.resolve(projectNodeModules, "react/jsx-runtime"),
   "react/jsx-dev-runtime": path.resolve(projectNodeModules, "react/jsx-dev-runtime"),

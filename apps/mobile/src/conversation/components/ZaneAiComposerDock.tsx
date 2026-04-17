@@ -199,7 +199,7 @@ export function ZaneAiComposerDock({
         keyboardVisible ? styles.keyboardOpen : null,
       ]}
     >
-      <View style={styles.backdrop} />
+      {/* Floating Pure Canvas Utilities */}
 
       {disabledReason ? (
         <View style={styles.disabledBanner}>
@@ -233,29 +233,17 @@ export function ZaneAiComposerDock({
                   pressed ? styles.placeCardPressed : null,
                 ]}
               >
-                <View style={styles.placeAvatarWrap}>
-                  <Image
-                    source={place.image}
-                    style={styles.placeAvatar}
-                    contentFit="cover"
-                  />
-                </View>
-                <View style={styles.placeTextWrap}>
-                  <Text style={styles.placeName} numberOfLines={1}>
-                    {place.name}
-                  </Text>
-                  <Text style={styles.placeTag} numberOfLines={1}>
-                    {place.tag}
-                  </Text>
-                </View>
+                <Text style={styles.placeName} numberOfLines={1}>
+                  {place.name}
+                </Text>
               </Pressable>
             ))}
           </ScrollView>
         </Animated.View>
       )}
 
-      <View style={styles.inputRow}>
-        <View style={[styles.fieldSurface, inputExpanded ? styles.fieldSurfaceExpanded : null]}>
+      <View style={[styles.unifiedBar, inputExpanded ? styles.unifiedBarExpanded : null]}>
+        <View style={styles.inputField}>
           {isRecording ? (
             <View style={styles.visualizerWrap}>
               <RecordingVisualizer active={isRecording} level={audioLevel} />
@@ -338,35 +326,29 @@ export function ZaneAiComposerDock({
 
 const createStyles = (colors: any, insets: any) => StyleSheet.create({
   container: {
-    zIndex: 20,
+    zIndex: 2000,
     backgroundColor: "transparent",
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: 0,
-    paddingBottom: Math.max(insets.bottom, theme.spacing.md),
+    paddingTop: 10,
+    paddingBottom: Math.max(insets.bottom, theme.spacing.lg),
   },
   keyboardOpen: {
-    paddingBottom: 4,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: colors.background,
+    paddingBottom: 8,
   },
   promptsContainer: {
-    marginTop: 4,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   disabledBanner: {
     marginBottom: 8,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radii.md,
-    backgroundColor: colors.surface,
+    paddingVertical: 8,
+    borderRadius: theme.radii.lg,
+    backgroundColor: colors.surfaceRaised,
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: colors.border,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: theme.spacing.sm,
   },
   disabledBannerText: {
     flex: 1,
@@ -377,116 +359,83 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   },
   disabledBannerAction: {
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: 6,
-    borderRadius: theme.radii.pill,
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: 1,
-    borderColor: colors.divider,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: colors.accent,
   },
   disabledBannerActionText: {
-    color: colors.textPrimary,
+    color: colors.background,
+    fontFamily: "Manrope_700Bold",
   },
   promptsScroll: {
-    paddingHorizontal: theme.spacing.xs,
-    gap: theme.spacing.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 2,
+    paddingHorizontal: 0,
+    gap: 8,
   },
   placeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 42,
-    paddingLeft: 4,
-    paddingRight: 16,
-    borderRadius: 21,
-    backgroundColor: colors.surface,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.backgroundSoft,
     borderWidth: 1,
-    borderColor: colors.divider,
-    gap: 10,
+    borderColor: colors.border,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    alignItems: "center",
   },
   placeCardPressed: {
-    opacity: 0.8,
-    backgroundColor: colors.surfaceRaised,
-    transform: [{ scale: 0.97 }],
-  },
-  placeAvatarWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    overflow: "hidden",
+    opacity: 0.7,
     backgroundColor: colors.backgroundSoft,
-  },
-  placeAvatar: {
-    width: "100%",
-    height: "100%",
-  },
-  placeTextWrap: {
-    justifyContent: "center",
-    gap: 0,
+    transform: [{ scale: 0.98 }],
   },
   placeName: {
     fontFamily: "Manrope_700Bold",
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textPrimary,
   },
-  placeTag: {
-    fontFamily: "Manrope_500Medium",
-    fontSize: 9,
-    color: colors.textMuted,
-    marginTop: -1,
-  },
-  inputRow: {
+  unifiedBar: {
     flexDirection: "row",
     alignItems: "flex-end",
-    gap: theme.spacing.sm,
-    paddingVertical: 4,
-  },
-  fieldSurface: {
-    flex: 1,
-    minHeight: 54,
-    borderRadius: 27,
-    backgroundColor: colors.surface,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xs,
-    paddingBottom: theme.spacing.xs,
-    justifyContent: "center",
+    minHeight: 56,
+    borderRadius: 28,
+    backgroundColor: colors.surfaceRaised,
+    paddingLeft: theme.spacing.md,
+    paddingRight: 6,
+    paddingVertical: 6,
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: colors.border,
   },
-  fieldSurfaceExpanded: {
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.md,
+  unifiedBarExpanded: {
+    borderRadius: 24,
+  },
+  inputField: {
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingRight: 8,
   },
   input: {
     minHeight: 24,
-    maxHeight: 120,
+    maxHeight: 150,
     color: colors.textPrimary,
-    fontFamily: "Manrope_600SemiBold",
-    fontSize: 16,
+    fontFamily: "Manrope_500Medium",
+    fontSize: 15,
     lineHeight: 22,
     backgroundColor: "transparent",
     paddingVertical: 0,
-    includeFontPadding: false,
   },
   visualizerWrap: {
     minHeight: 24,
     justifyContent: "center",
   },
   actionWell: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.divider,
   },
   actionButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -494,16 +443,14 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     backgroundColor: colors.accent,
   },
   actionIdle: {
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.divider,
+    backgroundColor: "transparent",
   },
   actionDisabled: {
     opacity: 0.5,
   },
   actionPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.96 }],
+    opacity: 0.8,
+    transform: [{ scale: 0.92 }],
   },
 });
 

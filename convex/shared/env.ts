@@ -8,6 +8,8 @@ const AGENT_MODEL_ENV = {
   ranking: "OPENROUTER_RANKING_MODEL",
   preference: "OPENROUTER_PREFERENCE_MODEL",
   summary: "OPENROUTER_SUMMARY_MODEL",
+  decision: "OPENROUTER_DECISION_MODEL",
+  memory: "OPENROUTER_MEMORY_MODEL",
 } as const;
 
 export function getChatModel() {

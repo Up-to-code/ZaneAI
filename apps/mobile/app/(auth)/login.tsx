@@ -124,6 +124,7 @@ export default function LoginScreen() {
       if (result?.error) {
         throw new Error(result.error.message ?? "Unable to sign in.");
       }
+      await authClient.getSession();
       router.replace("/(app)");
     } catch (error) {
       Alert.alert(

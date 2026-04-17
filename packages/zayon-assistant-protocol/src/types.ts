@@ -1,83 +1,106 @@
-export const BUYER_TURN_VERSION = "buyer_turn.v1" as const;
+export const ASSISTANT_TURN_VERSION = "assistant_turn.v1" as const;
 
-export const BUYER_INTENTS = [
-  "property_search",
-  "compare_properties",
-  "market_context",
-  "refine_search",
-  "follow_up",
-  "no_match",
+export const ASSISTANT_ROUTES = [
+  "advisor",
+  "property",
+  "funding",
+  "mixed",
 ] as const;
 
-export const BUYER_TURN_STATUSES = [
+export const ASSISTANT_TURN_STATUSES = [
   "completed",
   "needs_input",
   "no_match",
 ] as const;
 
-export const BUYER_CARD_TYPES = [
-  "shortlist",
-  "rationale",
-  "market_sources",
-  "followup",
+export const ASSISTANT_BLOCK_TYPES = [
+  "text",
+  "property_list",
   "comparison",
+  "sources",
+  "followup",
+  "funding_options",
+  "advisor_note",
   "actions",
   "empty",
 ] as const;
 
-export const BUYER_ACTION_NAMES = [
+export const ASSISTANT_ACTION_NAMES = [
   "save_property",
   "compare_property",
   "open_property",
   "contact_agent",
   "schedule_visit",
-  "refine_search",
-  "ask_followup",
   "continue_thread",
+  "open_search",
 ] as const;
 
-export const BUYER_STAGE_PHASES = [
-  "intent_started",
-  "intent_done",
-  "team_started",
-  "team_done",
-  "merge_started",
-  "merge_done",
-  "action_started",
-  "action_done",
+export const ASSISTANT_STAGE_PHASES = [
+  "classify_started",
+  "classify_done",
+  "specialist_started",
+  "specialist_done",
+  "summary_started",
+  "summary_done",
   "persist_started",
   "persist_done",
 ] as const;
 
-export const BUYER_STAGE_STATUSES = [
+export const ASSISTANT_STAGE_STATUSES = [
   "running",
   "completed",
   "failed",
   "cancelled",
 ] as const;
 
-export type BuyerIntent = typeof BUYER_INTENTS[number];
-export type BuyerTurnStatus = typeof BUYER_TURN_STATUSES[number];
-export type BuyerCardType = typeof BUYER_CARD_TYPES[number];
-export type BuyerActionName = typeof BUYER_ACTION_NAMES[number];
-export type BuyerStagePhase = typeof BUYER_STAGE_PHASES[number];
-export type BuyerStageStatus = typeof BUYER_STAGE_STATUSES[number];
+export const ASSISTANT_MOTION_PRESETS = [
+  "assistant",
+  "advisor",
+  "property",
+  "funding",
+] as const;
 
-export type BuyerSource = {
+export type AssistantRoute = typeof ASSISTANT_ROUTES[number];
+export type AssistantTurnStatus = typeof ASSISTANT_TURN_STATUSES[number];
+export type AssistantBlockType = typeof ASSISTANT_BLOCK_TYPES[number];
+export type AssistantActionName = typeof ASSISTANT_ACTION_NAMES[number];
+export type AssistantStagePhase = typeof ASSISTANT_STAGE_PHASES[number];
+export type AssistantStageStatus = typeof ASSISTANT_STAGE_STATUSES[number];
+export type AssistantMotionPreset = typeof ASSISTANT_MOTION_PRESETS[number];
+
+export type AssistantSource = {
   title: string;
   url: string;
   snippet: string;
 };
 
-export type BuyerAnalytics = {
+export type AssistantAnalytics = {
   source: "assistant";
   threadId?: string;
   runId?: string;
+  workflowId?: string;
   messageId?: string;
-  recommendationBatchId?: string;
+  route?: AssistantRoute;
 };
 
-export type BuyerAction =
+export type AssistantAgentContext = {
+  primaryAgent: string;
+  participatingAgents: string[];
+  handoffs: Array<{
+    from: string;
+    to: string;
+    reason: string;
+  }>;
+  confidence?: number;
+};
+
+export type AssistantMotion = {
+  preset: AssistantMotionPreset;
+  emphasis?: "low" | "medium" | "high";
+  phaseHints?: string[];
+};
+
+export type AssistantAction =
   | {
     id: string;
     title: string;
@@ -111,48 +134,56 @@ export type BuyerAction =
     title: string;
     name: "schedule_visit";
     payload: {
-      propertyId: string;
+      propertyId?: string;
       prompt?: string;
     };
   }
   | {
     id: string;
     title: string;
-    name: "refine_search";
-    payload: { prompt: string };
-  }
-  | {
-    id: string;
-    title: string;
-    name: "ask_followup";
-    payload: { prompt: string };
-  }
-  | {
-    id: string;
-    title: string;
     name: "continue_thread";
     payload: { prompt: string };
+  }
+  | {
+    id: string;
+    title: string;
+    name: "open_search";
+    payload: {
+      query?: string;
+      location?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      minBeds?: number;
+    };
   };
 
-export type BuyerCard =
+export type AssistantBlock =
   | {
-    type: "shortlist";
+    type: "text";
+    id: string;
+    title?: string;
+    body: string;
+  }
+  | {
+    type: "property_list";
     id: string;
     title: string;
     subtitle?: string;
     propertyIds: string[];
+    querySummary?: string;
   }
   | {
-    type: "rationale";
+    type: "comparison";
     id: string;
     title: string;
-    bullets: string[];
+    propertyIds: string[];
+    points: string[];
   }
   | {
-    type: "market_sources";
+    type: "sources";
     id: string;
     title: string;
-    sources: BuyerSource[];
+    sources: AssistantSource[];
   }
   | {
     type: "followup";
@@ -162,11 +193,19 @@ export type BuyerCard =
     suggestions?: string[];
   }
   | {
-    type: "comparison";
+    type: "funding_options";
     id: string;
     title: string;
-    propertyIds: string[];
-    points: string[];
+    summary: string;
+    options: string[];
+    disclaimers?: string[];
+  }
+  | {
+    type: "advisor_note";
+    id: string;
+    title: string;
+    body: string;
+    bullets?: string[];
   }
   | {
     type: "actions";
@@ -182,28 +221,28 @@ export type BuyerCard =
     suggestions?: string[];
   };
 
-export type BuyerAssistantTurn = {
-  version: typeof BUYER_TURN_VERSION;
-  intent: BuyerIntent;
-  objective: string;
-  status: BuyerTurnStatus;
+export type AssistantTurn = {
+  version: typeof ASSISTANT_TURN_VERSION;
+  route: AssistantRoute;
+  status: AssistantTurnStatus;
   assistantText: string;
-  propertyIds: string[];
-  rankingRationale: string;
-  followupQuestion?: string;
-  cards: BuyerCard[];
-  actions: BuyerAction[];
-  analytics?: BuyerAnalytics;
+  blocks: AssistantBlock[];
+  actions: AssistantAction[];
+  agent: AssistantAgentContext;
+  motion: AssistantMotion;
+  analytics?: AssistantAnalytics;
 };
 
-export type BuyerStageEvent = {
+export type AssistantStageEvent = {
   seq: number;
   eventType: "stage";
-  phase: BuyerStagePhase;
-  status: BuyerStageStatus;
-  teamId?: string;
-  agentName?: string;
+  phase: AssistantStagePhase;
+  status: AssistantStageStatus;
   message: string;
   timestamp: number;
-  details?: Record<string, string | number | boolean | null>;
+  route?: AssistantRoute;
+  specialist?: string;
+  motionPreset?: AssistantMotionPreset;
+  handoffFrom?: string;
+  handoffTo?: string;
 };

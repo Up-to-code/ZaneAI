@@ -1,4 +1,4 @@
-import { E2E_QA_USER, resolveE2EPromptScenario, type E2EFixtureThread, type E2ERecommendationBatch } from "@/e2e/fixtures";
+import { E2E_QA_USER, resolveE2EPromptScenario, type E2EFixtureThread } from "@/e2e/fixtures";
 import { useAppStore } from "@/store";
 import type { ConversationMessage } from "@/types/domain";
 
@@ -81,7 +81,6 @@ export function createE2EThread() {
     title: "Untitled search",
     summary: "Fresh conversation ready for a new search.",
     messages: [],
-    recommendationBatches: [],
   };
 
   useAppStore.setState((state) => ({
@@ -126,23 +125,32 @@ export function completeE2EPrompt(threadId: string, prompt: string, createdAt: n
     id: `${threadId}-assistant-${createdAt}`,
     sessionId: threadId,
     role: "assistant",
-    kind: scenario.kind ?? "text",
+    kind: "assistant_turn",
     text: scenario.assistantText,
     streamState: "complete",
-    relatedPropertyIds: scenario.properties.map((property) => property.id),
+    relatedPropertyIds: scenario.turn.blocks.flatMap((block) => {
+      if (block.type === "property_list" || block.type === "comparison") {
+        return block.propertyIds;
+      }
+
+      return [];
+    }),
     createdAt: createdAt + 1,
     runId,
-    sourceMetadata: scenario.sources,
-  };
-  const batch: E2ERecommendationBatch = {
-    _id: `${threadId}-batch-${createdAt}`,
-    threadId,
-    runId,
-    rankingRationale: scenario.summary,
-    properties: scenario.properties,
-    sources: scenario.sources,
-    createdAt: createdAt + 1,
-    kind: scenario.kind,
+    sourceMetadata: scenario.turn.blocks.flatMap((block) => (block.type === "sources" ? block.sources : [])),
+    uiTurn: {
+      ...scenario.turn,
+      analytics: {
+        source: "assistant",
+        ...scenario.turn.analytics,
+        runId,
+        threadId,
+      },
+    },
+    turnMeta: {
+      runId,
+      sources: scenario.turn.blocks.flatMap((block) => (block.type === "sources" ? block.sources : [])),
+    },
   };
 
   updateThread(threadId, (thread) => ({
@@ -150,6 +158,5 @@ export function completeE2EPrompt(threadId: string, prompt: string, createdAt: n
     title: scenario.title,
     summary: scenario.summary,
     messages: [...thread.messages, assistantMessage],
-    recommendationBatches: [...thread.recommendationBatches, batch],
   }));
 }

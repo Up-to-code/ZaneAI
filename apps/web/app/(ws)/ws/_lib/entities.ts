@@ -12,13 +12,13 @@ export type UnitReference = {
   id: string;
   projectId?: string;
   label: string;
-  unitType: UnitType;
+  unitType?: UnitType;
   floor?: string;
   bedrooms?: number;
   bathrooms?: number;
   area?: string;
   priceLabel?: string;
-  status: UnitStatus;
+  status?: UnitStatus;
   description?: string;
   image?: string;
   listingType?: ListingType;
@@ -32,8 +32,8 @@ export type UnitReference = {
   nearbyPlaces?: { name: string; distance: string }[];
   adLicenseNumber?: string;
   registrationStatus?: "registered" | "not_registered" | "pending";
-  createdAt: number;
-  updatedAt: number;
+  createdAt?: number;
+  updatedAt?: number;
 };
 
 export type ProjectReference = {
@@ -49,7 +49,7 @@ export type PersonBadge = "verified" | "vip";
 
 export type PersonRelation = {
   project: ProjectReference | null;
-  unit: UnitReference | null;
+  unit: (Pick<UnitReference, "id" | "label"> & Partial<Omit<UnitReference, "id" | "label">>) | null;
   stageLabel?: string;
   summary?: string;
 };

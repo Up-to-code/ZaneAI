@@ -1,4 +1,4 @@
-import type { BuyerAction, BuyerAssistantTurn, BuyerSource, BuyerStageEvent } from "@/conversation/buyerProtocol";
+import type { AssistantAction, AssistantSource, AssistantStageEvent, AssistantTurn } from "@/conversation/assistantProtocol";
 
 export type AnalyticsEventName =
   | "app_open"
@@ -19,18 +19,14 @@ export type AnalyticsEventName =
 export type ConversationRole = "user" | "assistant";
 export type ConversationKind =
   | "text"
-  | "property_bundle"
-  | "summary_card"
-  | "comparison_analytics"
-  | "web_search"
-  | "buyer_turn";
+  | "assistant_turn";
 export type StreamState = "idle" | "streaming" | "complete" | "stopped";
 export type VoiceMode = "idle" | "requesting_permission" | "listening" | "transcribing" | "failed";
 
 export type ConversationTurnMeta = {
   runId?: string;
-  recommendationBatchId?: string;
-  sources?: BuyerSource[];
+  workflowId?: string;
+  sources?: AssistantSource[];
   diagnostics?: string[];
 };
 
@@ -45,18 +41,22 @@ export type ConversationMessage = {
   createdAt: number;
   runId?: string;
   sourceMetadata?: { title: string; url: string; snippet: string }[];
-  uiTurn?: BuyerAssistantTurn;
+  uiTurn?: AssistantTurn;
   turnMeta?: ConversationTurnMeta;
 };
 
-export type ConversationTurnAction = BuyerAction;
-export type ConversationRunStage = BuyerStageEvent;
+export type ConversationTurnAction = AssistantAction;
+export type ConversationRunStage = AssistantStageEvent;
 
 export type ConversationRunStatus = {
   runId: string;
   status: "queued" | "running" | "completed" | "failed" | "cancelled";
   summary?: string;
   diagnostics: string[];
+  workflowId?: string;
+  route?: AssistantTurn["route"];
+  specialist?: string;
+  motionPreset?: AssistantTurn["motion"]["preset"];
   startedAt?: number;
   completedAt?: number;
   updatedAt: number;
@@ -80,9 +80,16 @@ export type AgentRuntimeHealth = {
   capabilities?: {
     sendMessage: boolean;
     threadMessages: boolean;
-    recommendationBatches: boolean;
     stageFeed: boolean;
     runStatus: boolean;
+    workflowRuns: boolean;
+  };
+  workflow?: {
+    configured: boolean;
+    provider: string;
+  };
+  worker?: {
+    configured: boolean;
   };
   message?: string;
 };
@@ -128,15 +135,6 @@ export type PropertyCardVM = {
   amenities: AmenityVM[];
   broker: BrokerVM;
   priceAnalysis: PriceAnalysisVM;
-};
-
-export type RecommendationBatch = {
-  id: string;
-  userId: string;
-  requestContext: string;
-  propertyIds: string[];
-  rankingRationale: string;
-  createdAt: number;
 };
 
 export type PreferenceProfile = {

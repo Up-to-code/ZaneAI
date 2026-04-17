@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PlugZap } from "lucide-react";
 import ConsentAutoSubmit from "./ConsentAutoSubmit";
-import { PageHero, Section } from "@/app/(public)/public";
+import { PageHero, Section } from "@/components/ui/portal";
 import type { OAuthAuthorizationPreview } from "../loaders";
 import {
   buildApprovalStatus,

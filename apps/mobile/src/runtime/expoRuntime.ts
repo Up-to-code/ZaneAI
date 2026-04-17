@@ -35,7 +35,8 @@ export function getConvexUrl() {
 export function getAuthUrl() {
   return (
     normalizeUrlEnvValue(process.env.EXPO_PUBLIC_AUTH_URL) ??
+    normalizeUrlEnvValue(process.env.EXPO_PUBLIC_CONVEX_SITE_URL) ??
     normalizeUrlEnvValue(getExpoExtra().authUrl) ??
-    getConvexUrl()
+    ""
   );
 }

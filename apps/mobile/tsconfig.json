@@ -18,9 +18,6 @@
       ],
       "@zayon/assistant-protocol": [
         "../../packages/zayon-assistant-protocol/src/index.ts"
-      ],
-      "@zayon/buyer-ui-native": [
-        "../../packages/zayon-buyer-ui-native/src/index.ts"
       ]
     }
   },

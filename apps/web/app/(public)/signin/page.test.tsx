@@ -22,7 +22,7 @@ vi.mock("./_components/GoogleSignInButton", () => ({
   default: ({ redirectTo }: { redirectTo: string }) => <button type="button">Google:{redirectTo}</button>,
 }));
 
-vi.mock("@/app/(public)/public", () => ({
+vi.mock("@anan/ag-ui/react", () => ({
   PageHero: ({
     title,
     description,

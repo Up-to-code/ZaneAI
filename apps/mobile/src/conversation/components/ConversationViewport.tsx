@@ -7,7 +7,6 @@ import { ConversationStatusBanner } from "@/conversation/components/Conversation
 import { ZaneAiComposerDock } from "@/conversation/components/ZaneAiComposerDock";
 import { useConversationController } from "@/conversation/hooks/useConversationController";
 import { useKeyboardDock } from "@/conversation/hooks/useKeyboardDock";
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useAppStore } from "@/store";
 

@@ -1,9 +1,7 @@
 import { AlertCircle, ArrowLeft, Home, Search } from "lucide-react";
 import { cookies } from "next/headers";
-import { ButtonLink, Footer, Navbar, Section } from "@/app/(public)/public";
-import { getWebDictionary } from "@/lib/i18n";
-import { isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@/lib/locale";
-import { cn } from "@/lib/utils";
+import { ButtonLink, Footer, Navbar, Section } from "@/components/ui/portal";
+import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE, cn } from "@anan/ag-ui/anan";
 
 /**
  * WHY:   Missing routes must render with the same premium quality as the core application.
@@ -48,6 +46,7 @@ export default async function NotFound() {
             <ButtonLink 
               href="/" 
               variant="primary"
+              locale={locale}
               className="group flex items-center justify-center gap-4 rounded-2xl bg-[var(--zane-ai-deep)] px-10 py-5 text-[11px] font-black uppercase tracking-[0.24em] text-white dark:bg-white dark:text-black"
             >
               <Home className="h-4 w-4 transition-transform group-hover:-translate-y-1" />
@@ -56,6 +55,7 @@ export default async function NotFound() {
             <ButtonLink 
               href="/ws" 
               variant="outline"
+              locale={locale}
               className="group flex items-center justify-center gap-4 rounded-2xl border border-[var(--zane-ai-line)] px-10 py-5 text-[11px] font-black uppercase tracking-[0.24em] text-[var(--zane-ai-deep)] dark:border-white/20 dark:text-white"
             >
               <ArrowLeft className={cn("h-4 w-4 transition-transform", isRtl ? "group-hover:translate-x-1" : "group-hover:-translate-x-1")} />

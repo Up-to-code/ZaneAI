@@ -16,13 +16,67 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState, type ChangeEvent } from "react";
-import ZonePageIntro from "../../../../apps/web/app/(ws)/ws/_components/ZoneShell/ZonePageIntro";
-import type { BrokerPresence } from "../../../../apps/web/app/(ws)/ws/_components/Visuals/BrokerPresenceChip";
-import { useUploadThing } from "../../../../apps/web/lib/uploadthing";
-import { cn } from "../../../../apps/web/lib/utils";
-import type { UploadedFileReference } from "../../../../apps/web/server/contracts/files";
+import { useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { cn } from "./utils";
 import AgRichTextEditor from "./AgRichTextEditor";
+
+export type UploadedFileReference = {
+  key?: string;
+  id?: string;
+  name: string;
+  url: string;
+  type?: string;
+  size?: number;
+};
+
+export type BrokerPresence = {
+  id: string;
+  name: string;
+  title?: string | null;
+  avatarLabel: string;
+  avatarImage: string | null;
+};
+
+function useUploadThing(_endpoint: string) {
+  return {
+    startUpload: async (files: File[]) =>
+      files.map((file, index) => ({
+        serverData: {
+          key: `${file.name}-${file.size}-${index}`,
+          name: file.name,
+          url: URL.createObjectURL(file),
+          type: file.type,
+          size: file.size,
+        } satisfies UploadedFileReference,
+      })),
+    isUploading: false,
+  };
+}
+
+function ZonePageIntro({
+  eyebrow,
+  title,
+  description,
+  actions,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <section className="border-b border-slate-200 bg-white px-6 py-10">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">{eyebrow}</p>
+          <h1 className="text-3xl font-black text-slate-950 md:text-5xl">{title}</h1>
+          <p className="max-w-3xl text-base font-medium leading-relaxed text-slate-500">{description}</p>
+        </div>
+        {actions ? <div>{actions}</div> : null}
+      </div>
+    </section>
+  );
+}
 
 export type ProjectFormData = {
   name: string;

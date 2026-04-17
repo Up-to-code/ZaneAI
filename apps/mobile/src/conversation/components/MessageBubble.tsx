@@ -54,7 +54,7 @@ function FadeWord({ word, delay }: { word: string; delay: number }) {
   );
 }
 
-const PENDING_PLACEHOLDER = "Searching your catalog and checking live market context\u2026";
+const PENDING_PLACEHOLDER = "Thinking through your request\u2026";
 
 /**
  * Animated three-dot indicator shown while the assistant is thinking.
@@ -171,7 +171,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   return (
     <Animated.View entering={FadeIn.duration(250)} style={[styles.row, styles.assistantRow]}>
-      <Text variant="label" style={styles.assistantLabel}>Zane-ai</Text>
+      <Text variant="label" style={styles.assistantLabel}>ZANE AI</Text>
       {isPending ? (
         <ThinkingDots />
       ) : (
@@ -198,16 +198,18 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingRight: theme.spacing.xl,
   },
   userBubble: {
-    maxWidth: "85%",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: 14,
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: theme.radii.lg,
-    borderBottomEndRadius: 4,
+    maxWidth: "100%",
+    paddingHorizontal: theme.spacing.xxxl,
+    paddingVertical: 18,
+    backgroundColor: "transparent",
   },
   assistantLabel: {
     color: colors.accent,
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 1,
+    fontSize: 11,
+    fontWeight: "800",
+    opacity: 0.85,
   },
   assistantText: {
     lineHeight: 24,

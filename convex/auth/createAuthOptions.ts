@@ -1,11 +1,14 @@
 import { type BetterAuthOptions } from "better-auth/minimal";
 import { anonymous } from "better-auth/plugins/anonymous";
 import { convex, crossDomain } from "@convex-dev/better-auth/plugins";
+import { expo } from "@better-auth/expo";
 
 import { internal } from "../_generated/api";
 import authConfig from "../auth.config";
 
 export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } | any) {
+  const siteUrl = process.env.SITE_URL || undefined;
+  const appScheme = "zane-ai://";
   const socialProviders = {
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? {
@@ -28,16 +31,7 @@ export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } |
   return {
     baseURL: process.env.BETTER_AUTH_URL || process.env.CONVEX_SITE_URL,
     basePath: "/api/auth",
-    trustedOrigins: [process.env.SITE_URL || "http://localhost:3000"],
-    advanced: {
-      crossSubDomainCookies: {
-        enabled: true,
-      },
-      defaultCookieAttributes: {
-        sameSite: "none",
-        secure: true,
-      },
-    },
+    trustedOrigins: [appScheme, ...(siteUrl ? [siteUrl] : [])],
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
@@ -60,12 +54,11 @@ export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } |
           });
         },
       }),
+      expo(),
       convex({
         authConfig,
       }),
-      crossDomain({
-        siteUrl: process.env.SITE_URL || "http://localhost:3000",
-      }),
+      ...(siteUrl ? [crossDomain({ siteUrl })] : []),
     ],
   } satisfies BetterAuthOptions;
 }

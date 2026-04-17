@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { authClient, isAuthConfigured } from "@/auth/authClient";
 import { useAppStore } from "@/store";
@@ -17,20 +17,6 @@ export function useAuthSession() {
   const setComparePropertyIds = useAppStore((state) => state.setComparePropertyIds);
   const setActiveThreadId = useAppStore((state) => state.setActiveThreadId);
   const clearGuestMirror = useAppStore((state) => state.clearGuestMirror);
-  const [pendingTimedOut, setPendingTimedOut] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthConfigured() || !session.isPending) {
-      setPendingTimedOut(false);
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setPendingTimedOut(true);
-    }, 3000);
-
-    return () => clearTimeout(timeoutId);
-  }, [session.isPending]);
 
   useEffect(() => {
     const user = session.data?.user ?? null;
@@ -105,7 +91,7 @@ export function useAuthSession() {
 
       return {
         ...session,
-        isReady: !configured || !session.isPending || pendingTimedOut,
+        isReady: !configured || !session.isPending,
         isAuthenticated: hasSession,
         isAnonymous,
         isGuest,
@@ -115,6 +101,6 @@ export function useAuthSession() {
         user,
       };
     },
-    [e2eForceAuthScreen, e2eQaMode, e2eQaUser, guestMode, pendingTimedOut, session],
+    [e2eForceAuthScreen, e2eQaMode, e2eQaUser, guestMode, session],
   );
 }

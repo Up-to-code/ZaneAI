@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 
 const cardHover = {
   rest: { scale: 1, y: 0 },
-  hover: { scale: 1.02, y: -4, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
+  hover: { scale: 1.02, y: -4, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const } },
   tap: { scale: 0.97 },
 };
 

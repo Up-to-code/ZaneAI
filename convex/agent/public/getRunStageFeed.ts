@@ -3,7 +3,22 @@ import { v } from "convex/values";
 import { internal } from "../../_generated/api";
 import { query } from "../../_generated/server";
 import { requireAuthUserId } from "../../auth/requireAuth";
-import { requireThreadAccess } from "../lib/threadAccess";
+import { findThreadAccess } from "../lib/threadAccess";
+
+const assistantStagePhases = new Set([
+  "classify_started",
+  "classify_done",
+  "specialist_started",
+  "specialist_done",
+  "summary_started",
+  "summary_done",
+  "persist_started",
+  "persist_done",
+] as const);
+
+function isAssistantStagePhase(value: string | undefined): value is typeof assistantStagePhases extends Set<infer T> ? T : never {
+  return value !== undefined && assistantStagePhases.has(value as never);
+}
 
 function parseDetails(detailsJson: string | undefined) {
   if (!detailsJson) {
@@ -21,10 +36,14 @@ export const getRunStageFeed = query({
   args: { threadId: v.string(), runId: v.id("agentRuns") },
   handler: async (ctx, args) => {
     const authUserId = await requireAuthUserId(ctx);
-    await requireThreadAccess(ctx, args.threadId, authUserId);
+    const thread = await findThreadAccess(ctx, args.threadId, authUserId);
+    if (!thread) {
+      return [];
+    }
+
     const run = await ctx.runQuery(internal.agent.internal.runs.getRun, { runId: args.runId });
     if (!run || run.threadId !== args.threadId || run.authUserId !== authUserId) {
-      throw new Error("Run not found");
+      return [];
     }
 
     const rows = await ctx.db
@@ -34,16 +53,19 @@ export const getRunStageFeed = query({
       .take(40);
 
     return rows
-      .filter((row) => row.eventType === "stage")
+      .filter((row) => row.eventType === "stage" && isAssistantStagePhase(row.phase))
       .map((row) => ({
         seq: row.seq,
         eventType: "stage" as const,
         phase: row.phase,
         status: row.status ?? "running",
-        teamId: row.teamId,
-        agentName: row.agentName,
         message: row.message,
         timestamp: row.createdAt,
+        route: row.route,
+        specialist: row.specialist,
+        motionPreset: row.motionPreset,
+        handoffFrom: row.handoffFrom,
+        handoffTo: row.handoffTo,
         details: parseDetails(row.detailsJson),
       }));
   },

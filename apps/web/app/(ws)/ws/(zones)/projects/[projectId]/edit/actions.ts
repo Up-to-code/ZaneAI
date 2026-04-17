@@ -28,8 +28,8 @@ export async function saveProjectAction(args: WorkspaceActionArgs, data: Project
       patch: mapWorkspaceProjectToPropertyInput(data),
     });
 
-    const imageKeys = data.images.map((image) => image.key);
-    const permitKeys = data.privatePermitFiles.map((file) => file.key);
+    const imageKeys = (data.images ?? []).map((image) => image.key);
+    const permitKeys = (data.privatePermitFiles ?? []).map((file) => file.key);
 
     if (imageKeys.length > 0) {
       await convexOrganizationAssetsRepository.attachOrganizationAssets(session.token, {

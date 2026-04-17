@@ -1,9 +1,32 @@
+import type { UploadedFileReference } from "@/server/contracts/files";
 import type { ProjectFormSaveResult } from "../../../(zones)/projects/shared/forms/projectFormSubmission";
 
 export type ProjectFormData = {
   name: string;
+  price?: string;
   location: string;
   description: string;
+  shortDescription?: string;
+  amenitiesText?: string;
+  hasParking?: boolean;
+  parkingSpaces?: string;
+  coverImageKey?: string | null;
+  galleryDisplayMode?: "cover" | "fit";
+  galleryAspectRatio?: "landscape" | "portrait" | "square";
+  privatePermitSummary?: string;
+  privatePermitFiles?: UploadedFileReference[];
+  rooms?: string;
+  baths?: string;
+  area?: string;
+  status?: string;
+  clientVisibility?: "public" | "private";
+  images?: UploadedFileReference[];
+  video?: unknown | null;
+  brokerId?: string | null;
+  visibilityMembers?: Array<{ authUserId: string; name: string; email?: string }>;
+  privatePermitVisibility?: "hidden" | "conversation_only";
+  adLicenseNumber?: string;
+  adLicenseStatus?: string | null;
   projectType: "villas" | "apartments" | "land_plots" | "mixed" | "custom";
   expectedUnits?: string;
   developerName?: string;
@@ -23,4 +46,5 @@ export type AgPropertyFormProps = {
   onCancel?: () => void;
   cancelHref?: string;
   onDelete?: () => void;
+  onRevokeViewer?: (viewerAuthUserId: string) => Promise<void>;
 };

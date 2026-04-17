@@ -108,6 +108,7 @@ export default function RegisterScreen() {
       if (result?.error) {
         throw new Error(result.error.message ?? "Unable to create account.");
       }
+      await authClient.getSession();
       router.replace("/(app)");
     } catch (error) {
       Alert.alert("Registration failed", error instanceof Error ? error.message : "Unable to create account.");

@@ -6,6 +6,7 @@ import { createComposerSlice, type ComposerSlice } from "@/store/slices/composer
 import { createConversationSlice, type ConversationSlice } from "@/store/slices/conversationSlice";
 import { createE2ESlice, type E2ESlice } from "@/store/slices/e2eSlice";
 import { createGuestMirrorSlice, type GuestMirrorSlice } from "@/store/slices/guestMirrorSlice";
+import { MOBILE_STORE_VERSION, migratePersistedAppStore } from "@/store/persistence";
 import { createPreferenceSlice, type PreferenceSlice } from "@/store/slices/preferenceSlice";
 import { createPropertySlice, type PropertySlice } from "@/store/slices/propertySlice";
 import { createSessionSlice, type SessionSlice } from "@/store/slices/sessionSlice";
@@ -37,10 +38,10 @@ export const useAppStore = create<AppStore>()(
     }),
     {
       name: "zane-ai-mobile-store",
+      version: MOBILE_STORE_VERSION,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         sessionId: state.sessionId,
-        guestMode: state.guestMode,
         guestMirrorThreads: state.guestMirrorThreads,
         guestMirrorSavedPropertyIds: state.guestMirrorSavedPropertyIds,
         guestMirrorComparePropertyIds: state.guestMirrorComparePropertyIds,
@@ -51,6 +52,7 @@ export const useAppStore = create<AppStore>()(
         appearanceMode: state.appearanceMode,
         activeThreadId: state.activeThreadId,
       }),
+      migrate: migratePersistedAppStore,
       onRehydrateStorage: () => (state) => {
         state?.setHydrationComplete(true);
       },

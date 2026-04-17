@@ -28,16 +28,12 @@ type MessagePage = {
       role: "user" | "assistant" | string;
       content: unknown;
     };
+    metadata?: {
+      uiTurn?: unknown;
+    };
   }>;
   continueCursor: string;
   isDone: boolean;
-};
-
-type RecommendationBatch = {
-  runId: string;
-  propertyIds: string[];
-  rankingRationale: string;
-  properties: Array<{ id?: string; externalId?: string }>;
 };
 
 const DEFAULT_PROMPT =
@@ -190,7 +186,7 @@ async function waitForAssistantReply(client: ConvexHttpClient, threadId: string)
     if (assistantMessage) {
       lastAssistantText = getMessageText(assistantMessage.message.content);
       if (lastAssistantText) {
-        return { assistantText: lastAssistantText, messages: ordered };
+        return { assistantText: lastAssistantText, message: assistantMessage, messages: ordered };
       }
     }
 
@@ -231,22 +227,21 @@ async function main() {
   });
   console.log(`[run] queued run ${String(sendResult.runId)}`);
 
-  const { assistantText } = await waitForAssistantReply(client, threadId);
+  const { assistantText, message } = await waitForAssistantReply(client, threadId);
   console.log("[assistant] reply received");
+  const uiTurn = message.metadata?.uiTurn as
+    | {
+      route?: string;
+      blocks?: Array<{ type?: string }>;
+    }
+    | undefined;
 
-  const recommendationBatches = await client.query(
-    api.agent.public.listRecommendationsForThread.listRecommendationsForThread,
-    { threadId },
-  ) as RecommendationBatch[];
-
-  if (recommendationBatches.length === 0) {
-    throw new Error("Assistant replied but no recommendation batches were created.");
+  if (!uiTurn) {
+    throw new Error("Assistant replied but no structured turn metadata was saved.");
   }
 
-  const latestBatch = recommendationBatches[recommendationBatches.length - 1];
   console.log("[result] smoke test passed");
-  console.log(`[result] properties=${latestBatch.properties.length} propertyIds=${latestBatch.propertyIds.length}`);
-  console.log(`[result] rankingRationale=${latestBatch.rankingRationale}`);
+  console.log(`[result] route=${uiTurn.route ?? "unknown"} blocks=${uiTurn.blocks?.length ?? 0}`);
   console.log(`[result] assistant=${assistantText}`);
 }
 

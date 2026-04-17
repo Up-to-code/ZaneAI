@@ -9,72 +9,48 @@ import Animated, {
   Easing,
   FadeIn,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Screen } from "@/foundation/primitives/Screen";
-import { Text } from "@/foundation/primitives/Text";
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { LogoMark } from "@/foundation/icons/LogoMark";
 
-type AppBootScreenProps = {
-  title?: string;
-  subtitle?: string;
-};
-
-export function AppBootScreen({
-  title = "Opening Zane-AI",
-  subtitle = "Preparing your secure session.",
-}: AppBootScreenProps) {
+export function AppBootScreen() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const scale = useSharedValue(1);
+  
+  const opacity = useSharedValue(0.4);
+  const letterSpacing = useSharedValue(4);
 
   useEffect(() => {
-    scale.value = withRepeat(
+    opacity.value = withRepeat(
       withSequence(
-        withTiming(1.08, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.4, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
       ),
       -1,
       true,
     );
-  }, [scale]);
+    letterSpacing.value = withRepeat(
+      withSequence(
+        withTiming(8, { duration: 5000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(4, { duration: 5000, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      true,
+    );
+  }, [opacity, letterSpacing]);
 
-  const animatedLogoStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const animatedTextStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    letterSpacing: letterSpacing.value,
   }));
 
   return (
     <Screen safe={false}>
-      <View
-        pointerEvents="none"
-        style={[
-          styles.backgroundOrb,
-          { backgroundColor: colors.accent, top: insets.top + 60 },
-        ]}
-      />
-      <View
-        pointerEvents="none"
-        style={[
-          styles.backgroundGlow,
-          { borderColor: colors.divider, top: insets.top + 140 },
-        ]}
-      />
-
-      <Animated.View entering={FadeIn.duration(800)} style={styles.container}>
-        <Animated.View style={[styles.logoWrap, animatedLogoStyle]}>
-          <LogoMark size={64} />
-        </Animated.View>
-
-        <View style={styles.copy}>
-          <Text variant="title" style={styles.title}>
-            {title}
-          </Text>
-          <Text tone="secondary" style={styles.subtitle}>
-            {subtitle}
-          </Text>
+      <Animated.View entering={FadeIn.duration(1500)} style={styles.container}>
+        <View style={styles.content}>
+          <Animated.Text style={[styles.brandName, animatedTextStyle]}>
+            ZANE AI
+          </Animated.Text>
         </View>
       </Animated.View>
     </Screen>
@@ -86,51 +62,18 @@ const createStyles = (colors: any) => StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: theme.spacing.xxxl,
-    gap: theme.spacing.xl,
     backgroundColor: colors.background,
   },
-  backgroundOrb: {
-    position: "absolute",
-    right: -72,
-    width: 260,
-    height: 260,
-    borderRadius: 260,
-    opacity: 0.08,
-    zIndex: 0,
-  },
-  backgroundGlow: {
-    position: "absolute",
-    left: -100,
-    width: 320,
-    height: 320,
-    borderRadius: 320,
-    opacity: 0.3,
-    borderWidth: 1,
-    zIndex: 0,
-  },
-  logoWrap: {
-    marginBottom: theme.spacing.md,
-    zIndex: 10,
-  },
-  copy: {
+  content: {
     alignItems: "center",
-    gap: theme.spacing.xs,
-    zIndex: 10,
+    justifyContent: "center",
+    flex: 1,
   },
-  title: {
-    textAlign: "center",
-    fontFamily: "Manrope_800ExtraBold",
-    fontSize: 22,
-    letterSpacing: -0.5,
+  brandName: {
     color: colors.textPrimary,
-  },
-  subtitle: {
+    fontSize: 24,
+    fontFamily: "Manrope_800ExtraBold",
     textAlign: "center",
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.textSecondary,
-    maxWidth: 240,
+    textTransform: "uppercase",
   },
 });
-

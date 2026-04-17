@@ -48,7 +48,12 @@ loadEnvFile(path.join(workspaceRoot, ".env"));
 const convexUrl = normalizeUrlEnvValue(
   process.env.EXPO_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL ?? "",
 ) ?? "";
-const authUrl = normalizeUrlEnvValue(process.env.EXPO_PUBLIC_AUTH_URL) ?? convexUrl;
+const authUrl = normalizeUrlEnvValue(
+  process.env.EXPO_PUBLIC_AUTH_URL
+    ?? process.env.EXPO_PUBLIC_CONVEX_SITE_URL
+    ?? process.env.CONVEX_SITE_URL
+    ?? "",
+) ?? "";
 
 const config: ExpoConfig = {
   name: "Zane-AI",
@@ -62,10 +67,10 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: "com.zaneai.mobile",
+    bundleIdentifier: "com.zayon.mobile",
   },
   android: {
-    package: "com.zaneai.mobile",
+    package: "com.zayon.mobile",
   },
   plugins: [
     "expo-font",

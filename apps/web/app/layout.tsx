@@ -3,9 +3,8 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { RootFontFaces, rootFontClassName } from "@/lib/rootFonts";
-import { getWebDictionary } from "@/lib/i18n";
-import { isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@/lib/locale";
-import { WebLocaleProvider } from "./_components/WebLocaleProvider";
+import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@anan/ag-ui/anan";
+import { WebLocaleProvider } from "@/components/ui/portal";
 import WebAuthProvider from "./_components/WebAuthProvider";
 import ThemeProvider from "./theme-provider";
 

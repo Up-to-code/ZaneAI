@@ -5,7 +5,6 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import { Mail, X } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Linking from "expo-linking";
 
 import { Text } from "@/foundation/primitives/Text";
 import { Button } from "@/foundation/primitives/Button";
@@ -13,7 +12,6 @@ import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { authClient, signInAnonymously } from "@/auth/authClient";
-import { getOAuthCallbackUrl } from "@/auth/AuthProvider";
 import { AppleIcon, GoogleIcon } from "@/foundation/components/BrandIcons";
 import { TypewriterText } from "@/foundation/components/TypewriterText";
 import { useAppStore } from "@/store";
@@ -32,16 +30,15 @@ export default function AuthScreen() {
 
   const handleSocialSignIn = async (provider: "google" | "apple") => {
     try {
-      const result = await (authClient as any).signIn.social({
+      const { error } = await (authClient as any).signIn.social({
         provider,
-        callbackURL: getOAuthCallbackUrl(),
-        disableRedirect: true,
+        callbackURL: "/",
       });
-      const url = result?.data?.url;
-      if (!url) {
-        throw new Error(`${provider} sign in is not configured for this environment.`);
+      if (error) {
+        throw new Error(error.message ?? `${provider} sign in is not configured for this environment.`);
       }
-      await Linking.openURL(url);
+      await authClient.getSession();
+      router.replace("/(app)");
     } catch (error) {
       Alert.alert("Sign in unavailable", error instanceof Error ? error.message : "Unable to start sign in.");
     }
@@ -235,4 +232,3 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingVertical: 10,
   },
 });
-

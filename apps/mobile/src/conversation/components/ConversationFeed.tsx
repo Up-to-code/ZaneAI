@@ -1,28 +1,18 @@
-import { useEffect, useMemo, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import {
-  AnchorItem,
-  StreamingItem,
-  StreamingMessageList,
-  StreamingMessageListProvider,
-  type StreamingMessageListRef,
-  useStreamingMessageList,
-} from "react-native-streaming-message-list";
 import { ArrowDown } from "lucide-react-native";
 
-import { GenerativeUIAdapter } from "@/conversation/adapters/GenerativeUIAdapter";
-import { BuyerStageProgress } from "@/conversation/components/BuyerStageProgress";
+import { AssistantTurnAdapter } from "@/conversation/adapters/AssistantTurnAdapter";
+import { AssistantStageProgress } from "@/conversation/components/AssistantStageProgress";
 import { MessageBubble } from "@/conversation/components/MessageBubble";
 import { EmptyThreadWelcome } from "@/conversation/components/EmptyThreadWelcome";
-import { PropertyBundleUI } from "@/conversation/components/PropertyBundleUI";
-import { AgentWebSearchUI } from "@/conversation/components/AgentWebSearchUI";
-import { AgentAnalyticsUI } from "@/conversation/components/AgentAnalyticsUI";
 import { IconButton } from "@/foundation/primitives/IconButton";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { usePropertiesByIds } from "@/persistence/convex/usePropertyData";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { findLastIndex } from "@/foundation/utils/findLastIndex";
 import type { ConversationMessage, ConversationRunStage, ConversationTurnAction } from "@/types/domain";
 
 type ConversationFeedProps = {
@@ -34,13 +24,17 @@ type ConversationFeedProps = {
 const AUTO_SCROLL_THRESHOLD = 120;
 
 function ScrollToLatestButton({
+  contentFillsViewport,
+  isAtEnd,
   onPress,
 }: {
+  contentFillsViewport: boolean;
+  isAtEnd: boolean;
   onPress: () => void;
 }) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isAtEnd, contentFillsViewport } = useStreamingMessageList();
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(colors, insets), [colors, insets]);
 
   if (isAtEnd || !contentFillsViewport) {
     return null;
@@ -57,36 +51,49 @@ function ScrollToLatestButton({
 
 export function ConversationFeed({ messages, runStageFeed, onTurnAction }: ConversationFeedProps) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const listRef = useRef<StreamingMessageListRef | null>(null);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(colors, insets), [colors, insets]);
+  const scrollViewRef = useRef<ScrollView | null>(null);
   const shouldAutoScrollRef = useRef(true);
   const prevMessageCountRef = useRef(messages.length);
-  const allRelatedIds = useMemo(
-    () => [...new Set(messages.flatMap((message) => [...message.relatedPropertyIds, ...(message.uiTurn?.propertyIds ?? [])]))],
-    [messages],
-  );
-  const properties = usePropertiesByIds(allRelatedIds);
-
-  const lastUserIndex = useMemo(
-    () => messages.findLastIndex((message) => message.role === "user"),
-    [messages],
-  );
+  const viewportHeightRef = useRef(0);
+  const contentHeightRef = useRef(0);
+  const scrollOffsetRef = useRef(0);
+  const [isAtEnd, setIsAtEnd] = useState(true);
+  const [contentFillsViewport, setContentFillsViewport] = useState(false);
   const lastAssistantIndex = useMemo(
-    () => messages.findLastIndex((message) => message.role === "assistant"),
+    () => findLastIndex(messages, (message) => message.role === "assistant"),
     [messages],
   );
   const latestAssistantMessage = lastAssistantIndex >= 0 ? messages[lastAssistantIndex] : null;
+  const shouldShowStageProgress = useMemo(
+    () => runStageFeed.some((event) => Boolean(event.route || event.specialist)),
+    [runStageFeed],
+  );
 
   const scrollToLatest = () => {
-    listRef.current?.scrollToEnd({ animated: true });
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  };
+
+  const syncScrollState = (offsetY: number, viewportHeight: number, contentHeight: number) => {
+    const nextIsAtEnd = offsetY + viewportHeight >= contentHeight - AUTO_SCROLL_THRESHOLD;
+    const nextContentFillsViewport = contentHeight > viewportHeight + 1;
+
+    shouldAutoScrollRef.current = nextIsAtEnd;
+    setIsAtEnd((current) => (current === nextIsAtEnd ? current : nextIsAtEnd));
+    setContentFillsViewport((current) =>
+      current === nextContentFillsViewport ? current : nextContentFillsViewport,
+    );
   };
 
   const updateAutoScrollPreference = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
   ) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-    shouldAutoScrollRef.current =
-      contentOffset.y + layoutMeasurement.height >= contentSize.height - AUTO_SCROLL_THRESHOLD;
+    scrollOffsetRef.current = contentOffset.y;
+    viewportHeightRef.current = layoutMeasurement.height;
+    contentHeightRef.current = contentSize.height;
+    syncScrollState(contentOffset.y, layoutMeasurement.height, contentSize.height);
   };
 
   // Reset auto-scroll when new messages are added (user sends a message)
@@ -129,91 +136,71 @@ export function ConversationFeed({ messages, runStageFeed, onTurnAction }: Conve
   }
 
   return (
-    <StreamingMessageListProvider>
-      <View style={styles.container}>
-        <StreamingMessageList
-          ref={listRef}
-          data={messages}
-          isStreaming={messages[lastAssistantIndex]?.streamState === "streaming"}
-          keyExtractor={(item: ConversationMessage) => item.id}
-          contentContainerStyle={styles.content}
-          onScroll={updateAutoScrollPreference}
-          onContentSizeChange={() => {
-            if (!shouldAutoScrollRef.current || !latestAssistantMessage) {
-              return;
-            }
+    <View style={styles.container}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.content}
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height;
+          viewportHeightRef.current = height;
+          syncScrollState(scrollOffsetRef.current, height, contentHeightRef.current);
+        }}
+        onScroll={updateAutoScrollPreference}
+        onContentSizeChange={(_width, height) => {
+          contentHeightRef.current = height;
+          syncScrollState(scrollOffsetRef.current, viewportHeightRef.current, height);
 
-            requestAnimationFrame(() => {
-              scrollToLatest();
-            });
-          }}
-          renderItem={({ item, index }: { item: ConversationMessage; index: number }) => {
-            const propertyCards = properties.filter((property: { id: string }) => item.relatedPropertyIds.includes(property.id));
-            const isTextComplete = item.streamState === "complete" || item.streamState === "stopped";
+          if (!shouldAutoScrollRef.current || !latestAssistantMessage) {
+            return;
+          }
 
-            let content = (
-              <View>
-                {item.id === "pending-assistant" && runStageFeed.length > 0 ? (
-                  <BuyerStageProgress events={runStageFeed} />
-                ) : null}
-
-                {item.kind === "web_search" ? (
-                  <AgentWebSearchUI message={item} />
-                ) : null}
-
-                <MessageBubble message={item} />
-
-                {item.uiTurn ? (
-                  <Animated.View entering={FadeInDown.duration(300)}>
-                    <GenerativeUIAdapter message={item} onAction={onTurnAction} />
-                  </Animated.View>
-                ) : null}
-
-                {/* Always show PropertyBundle if there are properties, or if it's the primary kind waiting to load */}
-                {!item.uiTurn && (item.kind === "property_bundle" || item.kind === "web_search" || propertyCards.length > 0) ? (
-                  <PropertyBundleUI message={item} properties={propertyCards} />
-                ) : null}
-
-                {item.kind === "comparison_analytics" && isTextComplete ? (
-                  <AgentAnalyticsUI message={item} properties={propertyCards} />
-                ) : null}
-
-              </View>
-            );
-
-            if (index === lastUserIndex) {
-              content = <AnchorItem>{content}</AnchorItem>;
-            }
-
-            if (index === lastAssistantIndex) {
-              content = <StreamingItem>{content}</StreamingItem>;
-            }
-
-            return content;
-          }}
-        />
-
-        <ScrollToLatestButton
-          onPress={() => {
-            shouldAutoScrollRef.current = true;
+          requestAnimationFrame(() => {
             scrollToLatest();
-          }}
-        />
-      </View>
-    </StreamingMessageListProvider>
+          });
+        }}
+        scrollEventThrottle={16}
+      >
+        <View style={{ height: insets.top + 70 }} />
+        {messages.map((item) => {
+          return (
+            <View key={item.id}>
+              {item.id === "pending-assistant" && shouldShowStageProgress ? (
+                <AssistantStageProgress events={runStageFeed} />
+              ) : null}
+
+              <MessageBubble message={item} />
+
+              {item.uiTurn ? (
+                <Animated.View entering={FadeInDown.duration(300)}>
+                  <AssistantTurnAdapter message={item} onAction={onTurnAction} />
+                </Animated.View>
+              ) : null}
+            </View>
+          );
+        })}
+      </ScrollView>
+
+      <ScrollToLatestButton
+        contentFillsViewport={contentFillsViewport}
+        isAtEnd={isAtEnd}
+        onPress={() => {
+          shouldAutoScrollRef.current = true;
+          scrollToLatest();
+        }}
+      />
+    </View>
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, insets: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
   content: {
     flexGrow: 1,
-    justifyContent: "flex-end",
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xs, // Tight list alignment
+    paddingTop: theme.spacing.lg, // Reduced since spacer handles the header gap
+    paddingBottom: theme.spacing.md,
   },
   scrollButtonWrap: {
     position: "absolute",
