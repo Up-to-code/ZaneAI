@@ -21,7 +21,7 @@
     "convex:codegen": "npm --workspace apps/mobile run convex:codegen"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/node": "^20.17.15",
     "@typescript/native-preview": "7.0.0-dev.20260415.1",
     "convex": "^1.35.1",
     "expo": "54.0.33",

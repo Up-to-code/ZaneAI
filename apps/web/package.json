@@ -10,7 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@anan/ag-ui": "file:../../packages/ag-ui",
+    "@anan/ag-ui": "*",
     "@base-ui/react": "^1.2.0",
     "@clerk/nextjs": "^6.31.9",
     "@convex-dev/better-auth": "^0.11.4",
@@ -22,7 +22,7 @@
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.577.0",
     "marked": "^17.0.5",
-    "next": "16.1.6",
+    "next": "15.1.0",
     "next-themes": "^0.4.6",
     "posthog-js": "^1.364.1",
     "react": "19.2.3",
@@ -42,11 +42,11 @@
   "devDependencies": {
     "@playwright/test": "^1.51.1",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.17.15",
     "@types/react": "^19.2.3",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "15.1.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^4",
     "typescript": "^5"

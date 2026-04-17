@@ -92,6 +92,7 @@ export function ConversationViewport() {
           messages={messages}
           runStageFeed={runStageFeed}
           onTurnAction={handleTurnAction}
+          onSuggestionPress={sendPrompt}
         />
       </View>
       <View pointerEvents="box-none" style={[styles.dockWrap, { bottom: dockBottomOffset }]}>

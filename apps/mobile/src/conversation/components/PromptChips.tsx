@@ -9,11 +9,14 @@ import { useTheme } from "@/foundation/theme/ThemeProvider";
 export type PromptChipData = {
   id: string;
   label: string;
+  tag?: string;
   onPress: () => void;
 };
 
 type PromptChipsProps = {
   prompts: PromptChipData[];
+  variant?: "chip" | "link";
+  isAr?: boolean;
   containerStyle?: ViewStyle;
   contentContainerStyle?: ViewStyle;
 };
@@ -24,6 +27,8 @@ type PromptChipsProps = {
  */
 export function PromptChips({
   prompts,
+  variant = "chip",
+  isAr = false,
   containerStyle,
   contentContainerStyle,
 }: PromptChipsProps) {
@@ -37,26 +42,30 @@ export function PromptChips({
       horizontal
       showsHorizontalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
-      style={containerStyle}
-      contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
+      style={[styles.container, containerStyle]}
+      contentContainerStyle={[
+        styles.scrollContent, 
+        isAr && { flexDirection: "row-reverse" }, 
+        contentContainerStyle
+      ]}
     >
       {prompts.map((prompt, index) => (
         <Animated.View
           key={prompt.id}
-          entering={FadeInDown.duration(400)
-            .delay(index * 50) // Staggered entrance for "magic" feel
-            .springify()
-            .damping(12)}
+          entering={FadeInDown.duration(300).delay(index * 30)}
         >
           <Pressable
             onPress={prompt.onPress}
             style={({ pressed }) => [
-              styles.chip,
-              pressed ? styles.chipPressed : null,
+              variant === "chip" ? styles.chip : styles.link,
+              pressed ? (variant === "chip" ? styles.chipPressed : styles.linkPressed) : null,
             ]}
           >
-            <Text style={styles.chipText} numberOfLines={1}>
+            <Text style={variant === "chip" ? styles.chipText : styles.linkText} numberOfLines={1}>
               {prompt.label}
+              {prompt.tag ? (
+                <Text style={styles.chipTag}>  •  {prompt.tag}</Text>
+              ) : null}
             </Text>
           </Pressable>
         </Animated.View>
@@ -67,6 +76,9 @@ export function PromptChips({
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
+    container: {
+      marginBottom: 8,
+    },
     scrollContent: {
       gap: theme.spacing.sm,
       paddingHorizontal: theme.spacing.xl,
@@ -93,10 +105,31 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.backgroundSoft,
       transform: [{ scale: 0.96 }],
     },
+    link: {
+      height: 38,
+      paddingHorizontal: 8,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    linkPressed: {
+      opacity: 0.6,
+      transform: [{ scale: 0.98 }],
+    },
     chipText: {
       fontFamily: "Manrope_700Bold",
       fontSize: 13,
       color: colors.textPrimary,
       letterSpacing: -0.1,
+    },
+    chipTag: {
+      fontFamily: "Manrope_500Medium",
+      fontSize: 11,
+      color: colors.textSecondary,
+    },
+    linkText: {
+      fontFamily: "Manrope_700Bold",
+      fontSize: 13,
+      color: colors.accent,
+      textDecorationLine: "underline",
     },
   });

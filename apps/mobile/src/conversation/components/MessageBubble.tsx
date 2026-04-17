@@ -235,13 +235,21 @@ export function MessageBubble({ message, latestStageEvent, isFirstAssistant }: M
     isStreaming && (message.id === "pending-assistant" || message.text === PENDING_PLACEHOLDER);
 
   if (isUser) {
+    const isAr = isArabic(message.text);
     return (
       <Animated.View
         entering={FadeIn.duration(200)}
         style={[styles.row, styles.userRow, { marginTop: 32 }]}
       >
         <View style={styles.userBubble}>
-          <Text tone="primary" selectable={true} style={styles.userText}>
+          <Text 
+            tone="primary" 
+            selectable={true} 
+            style={[
+              styles.userText, 
+              isAr && { textAlign: "right", writingDirection: "rtl" }
+            ]}
+          >
             {message.text}
           </Text>
         </View>
@@ -286,7 +294,10 @@ export function MessageBubble({ message, latestStageEvent, isFirstAssistant }: M
           <StreamingText
             text={message.text}
             isStreaming={isStreaming}
-            style={styles.assistantText}
+            style={[
+              styles.assistantText,
+              isAr && { textAlign: "right", writingDirection: "rtl" }
+            ]}
           />
         </>
       )}
@@ -297,7 +308,7 @@ export function MessageBubble({ message, latestStageEvent, isFirstAssistant }: M
 const createStyles = (colors: any) => StyleSheet.create({
   row: {
     paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.sm, // Reduced from lg to sm
   },
   userRow: {
     alignItems: "flex-end",
@@ -327,7 +338,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontFamily: "Manrope_800ExtraBold",
   },
   brandingWrap: {
-    marginBottom: 4,
+    marginBottom: 2, // Reduced from 4
   },
   tagline: {
     fontSize: 8,

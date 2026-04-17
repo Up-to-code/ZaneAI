@@ -18,6 +18,7 @@ type ConversationFeedProps = {
   messages: ConversationMessage[];
   runStageFeed: ConversationRunStage[];
   onTurnAction: (action: ConversationTurnAction, message: ConversationMessage) => void | Promise<void>;
+  onSuggestionPress?: (suggestion: string) => void;
 };
 
 const AUTO_SCROLL_THRESHOLD = 120;
@@ -48,7 +49,12 @@ function ScrollToLatestButton({
   );
 }
 
-export function ConversationFeed({ messages, runStageFeed, onTurnAction }: ConversationFeedProps) {
+export function ConversationFeed({
+  messages,
+  runStageFeed,
+  onTurnAction,
+  onSuggestionPress,
+}: ConversationFeedProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors, insets), [colors, insets]);
@@ -104,8 +110,8 @@ export function ConversationFeed({ messages, runStageFeed, onTurnAction }: Conve
   useEffect(() => {
     if (messages.length > prevMessageCountRef.current) {
       shouldAutoScrollRef.current = true;
-      // Immediate scroll for new user messages
-      setTimeout(() => scrollToLatest(), 50);
+      // Give more time for the keyboard to dismiss and layout to settle
+      setTimeout(() => scrollToLatest(), 250);
     }
     prevMessageCountRef.current = messages.length;
   }, [messages.length]);
@@ -164,7 +170,7 @@ export function ConversationFeed({ messages, runStageFeed, onTurnAction }: Conve
         }}
         scrollEventThrottle={16}
       >
-        <View style={{ height: insets.top + 70 }} />
+        <View style={{ height: insets.top + 40 }} />
         {messages.map((item) => {
           const isPending = item.id === "pending-assistant";
           const latestStageEvent = isPending
@@ -183,7 +189,11 @@ export function ConversationFeed({ messages, runStageFeed, onTurnAction }: Conve
 
               {item.uiTurn ? (
                 <Animated.View entering={FadeInDown.duration(300)}>
-                  <AssistantTurnAdapter message={item} onAction={onTurnAction} />
+                  <AssistantTurnAdapter
+                    message={item}
+                    onAction={onTurnAction}
+                    onSuggestionPress={onSuggestionPress}
+                  />
                 </Animated.View>
               ) : null}
             </View>

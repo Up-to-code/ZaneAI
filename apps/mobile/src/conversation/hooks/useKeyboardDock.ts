@@ -26,7 +26,7 @@ export function useKeyboardDock({
         ? keyboardHeight + keyboardGap + 4
         : 0,
     listBottomPadding:
-      dockHeight +
+      Math.min(dockHeight, 200) + // Clamp stale dockHeight to prevent ghost spikes
       (Platform.OS === "ios" && keyboardVisible
         ? keyboardHeight + keyboardGap + 4
         : restingGap),

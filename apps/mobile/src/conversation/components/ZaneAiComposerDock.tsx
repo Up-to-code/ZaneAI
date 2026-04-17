@@ -17,6 +17,7 @@ import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 import { ArrowUp, Mic, Square } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PromptChips, type PromptChipData } from "./PromptChips";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { Text } from "@/foundation/primitives/Text";
@@ -88,6 +89,13 @@ const PLACE_PROMPTS: PlacePrompt[] = [
     tag: "Affordable · Family",
     image: require("../../../assets/places/october_city.png"),
     query: "Show family apartments and compounds in 6th October City",
+  },
+  {
+    id: "deep_search",
+    name: "Deep Market Search",
+    tag: "Analysis · Data",
+    image: require("../../../assets/places/new_cairo.png"), // Reusing an existing icon placeholder
+    query: "Perform a deep market search for luxury properties with the best ROI in East Cairo",
   },
 ];
 
@@ -178,9 +186,20 @@ export function ZaneAiComposerDock({
     if (!value || disabled) return;
     Keyboard.dismiss();
     setComposerFocused(false);
+    setInputHeight(24); // Force reset to avoid "ghost" height spikes
     onSend(value);
     setDraftText("");
   };
+
+  const preparedPrompts = useMemo<PromptChipData[]>(() => 
+    PLACE_PROMPTS.map(p => ({
+      id: p.id,
+      label: p.name,
+      tag: p.tag,
+      onPress: () => setDraftText(p.query)
+    })),
+    [setDraftText]
+  );
 
   const handleVoicePress = () => {
     if (disabled) return;
@@ -214,31 +233,14 @@ export function ZaneAiComposerDock({
 
       {isNewThread && (
         <Animated.View
-          entering={FadeInDown.duration(400).springify()}
+          entering={FadeInDown.duration(400)}
           exiting={FadeOutDown.duration(200)}
           style={styles.promptsContainer}
         >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.promptsScroll}
-            keyboardShouldPersistTaps="handled"
-          >
-            {PLACE_PROMPTS.map((place) => (
-              <Pressable
-                key={place.id}
-                onPress={() => setDraftText(place.query)}
-                style={({ pressed }) => [
-                  styles.placeCard,
-                  pressed ? styles.placeCardPressed : null,
-                ]}
-              >
-                <Text style={styles.placeName} numberOfLines={1}>
-                  {place.name}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
+          <PromptChips
+            prompts={preparedPrompts}
+            contentContainerStyle={styles.promptsScrollContent}
+          />
         </Animated.View>
       )}
 
@@ -367,29 +369,9 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     color: colors.background,
     fontFamily: "Manrope_700Bold",
   },
-  promptsScroll: {
-    paddingHorizontal: 0,
+  promptsScrollContent: {
+    paddingHorizontal: 0, // PromptChips already has padding, we might need to adjust or keep it empty
     gap: 8,
-  },
-  placeCard: {
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.backgroundSoft,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  placeCardPressed: {
-    opacity: 0.7,
-    backgroundColor: colors.backgroundSoft,
-    transform: [{ scale: 0.98 }],
-  },
-  placeName: {
-    fontFamily: "Manrope_700Bold",
-    fontSize: 12,
-    color: colors.textPrimary,
   },
   unifiedBar: {
     flexDirection: "row",

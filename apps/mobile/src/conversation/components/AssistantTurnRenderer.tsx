@@ -1,5 +1,6 @@
 import { Fragment, useMemo, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import type { AssistantAction, AssistantBlock, AssistantTurn } from "@/conversation/assistantProtocol";
 import { Text } from "@/foundation/primitives/Text";
@@ -9,21 +10,26 @@ import { theme, radii } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { MessageActions } from "./MessageActions";
 
+import { PromptChips, type PromptChipData } from "./PromptChips";
+
 type AssistantTurnRendererProps = {
   turn: AssistantTurn;
   renderPropertyPreview?: (propertyId: string) => ReactNode;
   onAction?: (action: AssistantAction, turn: AssistantTurn) => void | Promise<void>;
+  onSuggestionPress?: (suggestion: string) => void;
 };
 
 function Section({
   title,
   tone,
   cardless,
+  isAr,
   children,
 }: {
   title?: string;
   tone: AssistantTurn["motion"]["preset"];
   cardless?: boolean;
+  isAr?: boolean;
   children: ReactNode;
 }) {
   const { colors } = useTheme();
@@ -31,8 +37,14 @@ function Section({
 
   return (
     <View style={[!cardless ? styles.card : styles.cardless, !cardless && styles[`card_${tone}`]]}>
-      {title ? <Text style={styles.cardTitle}>{title}</Text> : null}
-      {children}
+      <View style={styles.content}>
+        {title ? (
+          <Text variant="title" style={styles.cardTitle}>
+            {title}
+          </Text>
+        ) : null}
+        {children}
+      </View>
     </View>
   );
 }
@@ -63,10 +75,12 @@ function renderProperties(propertyIds: string[], renderPropertyPreview?: (proper
 function ActionButtons({
   actionIds,
   turn,
+  isAr,
   onAction,
 }: {
   actionIds: string[];
   turn: AssistantTurn;
+  isAr: boolean;
   onAction?: AssistantTurnRendererProps["onAction"];
 }) {
   const { colors } = useTheme();
@@ -78,41 +92,39 @@ function ActionButtons({
     return null;
   }
 
+  const preparedActions = useMemo<PromptChipData[]>(() =>
+    actions.map((action) => ({
+      id: action.id,
+      label: action.title,
+      onPress: () => onAction?.(action, turn),
+    })),
+    [actions, onAction, turn]
+  );
+
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={[styles.actionRow, isArabicTurn ? styles.actionRowRtl : null]}
-    >
-      {actions.map((action) => (
-        <Pressable
-          key={action.id}
-          onPress={() => void onAction?.(action, turn)}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.actionLinkWrap,
-            pressed ? styles.actionButtonPressed : null,
-          ]}
-        >
-          <Text style={[styles.actionText, isArabicTurn ? styles.actionTextRtl : null]}>
-            {action.title}
-          </Text>
-        </Pressable>
-      ))}
-    </ScrollView>
+    <PromptChips 
+      prompts={preparedActions} 
+      variant="link" 
+      isAr={isAr} 
+      containerStyle={styles.actionChipsContainer} 
+    />
   );
 }
 
 function RenderBlock({
   block,
   turn,
+  isAr,
   renderPropertyPreview,
   onAction,
+  onSuggestionPress,
 }: {
   block: AssistantBlock;
   turn: AssistantTurn;
+  isAr: boolean;
   renderPropertyPreview?: AssistantTurnRendererProps["renderPropertyPreview"];
   onAction?: AssistantTurnRendererProps["onAction"];
+  onSuggestionPress?: AssistantTurnRendererProps["onSuggestionPress"];
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -120,66 +132,76 @@ function RenderBlock({
   switch (block.type) {
     case "text":
       return (
-        <Section title={block.title} tone={turn.motion.preset} cardless>
-          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} />
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr} cardless>
+          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} onBadgePress={onSuggestionPress} />
+          {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
     case "property_list":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr}>
           {block.subtitle ? <Text style={styles.subtleText}>{block.subtitle}</Text> : null}
           {renderProperties(block.propertyIds, renderPropertyPreview)}
+          {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
     case "comparison":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr}>
           {renderProperties(block.propertyIds, renderPropertyPreview)}
           <View style={styles.bulletsWrap}>
-            {block.points.map((point) => (
-              <Text key={point} style={styles.bulletText}>• {point}</Text>
-            ))}
+            {block.points.map((point) => {
+              const isPtAr = isArabic(point);
+              return (
+                <View key={point} style={[styles.bulletRow, isPtAr && { flexDirection: "row-reverse" }]}>
+                  <Text style={styles.bulletText}>•</Text>
+                  <Text style={[styles.bulletText, { flex: 1 }, isPtAr && { textAlign: "right", writingDirection: "rtl" }]}>
+                    {point}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
+          {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
     case "sources":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr}>
           {block.sources.map((source) => (
             <View key={source.url} style={styles.sourceRow}>
               <Text style={styles.sourceTitle}>{source.title}</Text>
               <Text style={styles.sourceSnippet}>{source.snippet}</Text>
             </View>
           ))}
+          {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
     case "followup":
       return (
-        <Section title={block.title} tone={turn.motion.preset} cardless>
-          <MarkdownText text={block.prompt} tone="secondary" style={styles.bodyText} />
-          {block.suggestions?.length ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.suggestionRow}
-            >
-              {block.suggestions.map((suggestion) => (
-                <View key={suggestion} style={styles.suggestionPill}>
-                  <Text style={styles.suggestionText}>{suggestion}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          ) : null}
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr} cardless>
+          <MarkdownText text={block.prompt} tone="secondary" style={styles.bodyText} onBadgePress={onSuggestionPress} />
+          {renderBlockSuggestions(block, onSuggestionPress, true, isAr)}
         </Section>
       );
     case "funding_options":
       return (
-        <Section title={block.title} tone={turn.motion.preset}>
-          <Text style={styles.bodyText}>{block.summary}</Text>
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr}>
+          <Text style={[styles.bodyText, isArabic(block.summary) && { textAlign: "right", writingDirection: "rtl" }]}>
+            {block.summary}
+          </Text>
           <View style={styles.bulletsWrap}>
-            {block.options.map((option) => (
-              <Text key={option} style={styles.bulletText}>• {option}</Text>
-            ))}
+            {block.options.map((option) => {
+              const isOptAr = isArabic(option);
+              return (
+                <View key={option} style={[styles.bulletRow, isOptAr && { flexDirection: "row-reverse" }]}>
+                  <Text style={styles.bulletText}>•</Text>
+                  <Text style={[styles.bulletText, { flex: 1 }, isOptAr && { textAlign: "right", writingDirection: "rtl" }]}>
+                    {option}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
           {block.disclaimers?.length ? (
             <View style={styles.disclaimerWrap}>
@@ -188,44 +210,42 @@ function RenderBlock({
               ))}
             </View>
           ) : null}
+          {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
     case "advisor_note":
       return (
-        <Section title={block.title} tone={turn.motion.preset} cardless>
-          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} />
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr} cardless>
+          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} onBadgePress={onSuggestionPress} />
           {block.bullets?.length ? (
             <View style={styles.bulletsWrap}>
-              {block.bullets.map((bullet) => (
-                <Text key={bullet} style={styles.bulletText}>• {bullet}</Text>
-              ))}
+              {block.bullets.map((bullet) => {
+                const isBulAr = isArabic(bullet);
+                return (
+                  <View key={bullet} style={[styles.bulletRow, isBulAr && { flexDirection: "row-reverse" }]}>
+                    <Text style={styles.bulletText}>•</Text>
+                    <Text style={[styles.bulletText, { flex: 1 }, isBulAr && { textAlign: "right", writingDirection: "rtl" }]}>
+                      {bullet}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
           ) : null}
+          {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
     case "actions":
       return (
-        <Section tone={turn.motion.preset} cardless>
-          <ActionButtons actionIds={block.actionIds} turn={turn} onAction={onAction} />
+        <Section tone={turn.motion.preset} isAr={isAr} cardless>
+          <ActionButtons actionIds={block.actionIds} turn={turn} isAr={isAr} onAction={onAction} />
         </Section>
       );
     case "empty":
       return (
-        <Section title={block.title} tone={turn.motion.preset} cardless>
-          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} />
-          {block.suggestions?.length ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.suggestionRow}
-            >
-              {block.suggestions.map((suggestion) => (
-                <View key={suggestion} style={styles.suggestionPill}>
-                  <Text style={styles.suggestionText}>{suggestion}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          ) : null}
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr} cardless>
+          <MarkdownText text={block.body} tone="secondary" style={styles.bodyText} onBadgePress={onSuggestionPress} />
+          {renderBlockSuggestions(block, onSuggestionPress, true, isAr)}
         </Section>
       );
     default:
@@ -237,6 +257,7 @@ export function AssistantTurnRenderer({
   turn,
   renderPropertyPreview,
   onAction,
+  onSuggestionPress,
 }: AssistantTurnRendererProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -244,8 +265,9 @@ export function AssistantTurnRenderer({
   const fullText = useMemo(() => {
     return turn.blocks
       .map((b) => {
-        if (b.type === "text" || b.type === "advisor_note" || b.type === "empty") return b.body;
-        if (b.type === "followup") return b.prompt;
+        if ("body" in b) return b.body || "";
+        if ("summary" in b) return b.summary || "";
+        if ("prompt" in b) return b.prompt || "";
         return "";
       })
       .filter(Boolean)
@@ -257,34 +279,88 @@ export function AssistantTurnRenderer({
   return (
     <View style={styles.container}>
       {turn.blocks.map((block) => (
-        <View key={block.id} style={isAr && { alignItems: "flex-end" }}>
+        <View key={block.id}>
           <RenderBlock
             block={block}
             turn={turn}
+            isAr={isAr}
             renderPropertyPreview={renderPropertyPreview}
             onAction={onAction}
+            onSuggestionPress={onSuggestionPress}
           />
         </View>
       ))}
 
-      <View style={[styles.actionsContainer, isAr && { alignItems: "flex-end" }]}>
+      <View style={styles.actionsContainer}>
         <MessageActions text={fullText} isArabic={isAr} />
       </View>
     </View>
   );
 }
 
+function renderBlockSuggestions(
+  block: AssistantBlock,
+  onPress?: (suggestion: string) => void,
+  isFollowup = false,
+  isAr = false,
+) {
+  const suggestions = (block as any).suggestions as string[] | undefined;
+  if (!suggestions?.length) return null;
+
+  const chips: PromptChipData[] = suggestions.map((s) => {
+    // Localize common system prompts
+    let label = s;
+    if (isAr) {
+      if (s.toLowerCase() === "continue") label = "استمرار";
+      if (s.toLowerCase() === "stop") label = "توقف";
+    }
+
+    return {
+      id: s,
+      label,
+      onPress: () => onPress?.(s),
+    };
+  });
+
+  return (
+    <PromptChips
+      prompts={chips}
+      variant="link"
+      isAr={isAr}
+      containerStyle={isFollowup ? rendererStyles.followupSuggestionContainer : rendererStyles.blockSuggestionContainer}
+      contentContainerStyle={isFollowup ? rendererStyles.followupSuggestionContent : undefined}
+    />
+  );
+}
+
+const rendererStyles = StyleSheet.create({
+  blockSuggestionContainer: {
+    marginTop: 6,
+  },
+  followupSuggestionContainer: {
+    marginTop: 4,
+    marginHorizontal: -theme.spacing.xl, // Bleed out of the cardless padding
+  },
+  followupSuggestionContent: {
+    paddingHorizontal: theme.spacing.xl,
+  },
+});
+
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
-      marginTop: 4,
-      gap: 4,
+      marginTop: 0,
+      gap: 12, // Increased from 2 for better block separation
     },
     card: {
       marginHorizontal: theme.spacing.xl,
       borderRadius: radii.md,
       borderWidth: 1,
       padding: theme.spacing.xl,
+      gap: theme.spacing.md,
+    },
+    content: {
+      flex: 1,
       gap: theme.spacing.md,
     },
     cardless: {
@@ -313,6 +389,7 @@ const createStyles = (colors: any) =>
       fontSize: 16,
       fontFamily: "Manrope_700Bold",
       color: colors.textPrimary,
+      marginBottom: 6, // Added margin below titles for legibility
     },
     bodyText: {
       fontSize: 14,
@@ -327,7 +404,11 @@ const createStyles = (colors: any) =>
       fontFamily: "Manrope_500Medium",
     },
     bulletsWrap: {
-      gap: theme.spacing.xs,
+      gap: theme.spacing.sm, // Increased from xs to sm
+    },
+    bulletRow: {
+      flexDirection: "row",
+      gap: 8,
     },
     bulletText: {
       fontSize: 14,
@@ -380,31 +461,10 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
       fontFamily: "Manrope_500Medium",
     },
-    actionRow: {
+    actionChipsContainer: {
       flexDirection: "row",
-      gap: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.xl,
-      alignItems: "center",
-    },
-    actionRowRtl: {
-      flexDirection: "row-reverse",
-    },
-    actionLinkWrap: {
-      paddingVertical: 2,
-      paddingHorizontal: 2,
-    },
-    actionButtonPressed: {
-      opacity: 0.65,
-    },
-    actionText: {
-      color: colors.accent,
-      fontSize: 13,
-      fontFamily: "Manrope_600SemiBold",
-      textDecorationLine: "underline",
-    },
-    actionTextRtl: {
-      textAlign: "right",
-      writingDirection: "rtl",
+      paddingHorizontal: 0, // Chips handle their own padding in the ScrollView, but container might need normalization
+      marginTop: 2,
     },
     propertyFallback: {
       minWidth: 160,

@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 4, // Reduced margin for "tight" layout
+    marginTop: 2, // Further reduced from 4 for "tight" layout
     gap: 12,
   },
   containerRtl: {

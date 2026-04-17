@@ -11,9 +11,10 @@ import type { ConversationMessage, PropertyCardVM } from "@/types/domain";
 type AssistantTurnAdapterProps = {
   message: ConversationMessage;
   onAction: (action: AssistantAction, message: ConversationMessage) => void | Promise<void>;
+  onSuggestionPress?: (suggestion: string) => void;
 };
 
-export function AssistantTurnAdapter({ message, onAction }: AssistantTurnAdapterProps) {
+export function AssistantTurnAdapter({ message, onAction, onSuggestionPress }: AssistantTurnAdapterProps) {
   const parsedTurn = assistantTurnSchema.safeParse(message.uiTurn);
   const turn = parsedTurn.success ? parsedTurn.data : null;
   const propertyIds = turn ? extractTurnPropertyIds(turn) : [];
@@ -37,6 +38,7 @@ export function AssistantTurnAdapter({ message, onAction }: AssistantTurnAdapter
     <AssistantTurnRenderer
       turn={turn}
       onAction={(action) => onAction(action, message)}
+      onSuggestionPress={onSuggestionPress}
       renderPropertyPreview={(propertyId) => {
         const property = propertyMap.get(propertyId);
         if (!property) {
