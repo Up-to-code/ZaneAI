@@ -172,16 +172,16 @@ export default function SigninPageView({
   }
 
   return (
-    <main className="flex min-h-[100dvh] flex-col items-center bg-[var(--zane-ai-background)] px-6 py-12 dark:bg-black lg:flex-row lg:px-24">
+    <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--zane-ai-background)] px-6 py-12 dark:bg-black lg:flex-row lg:px-24">
       <AuthBrandHeader />
 
       {/* Auth Interaction Canvas */}
-      <div className="flex w-full flex-col justify-center lg:w-1/2 lg:pl-12">
+      <div className="flex w-full flex-col justify-center lg:w-1/2 lg:pl-20 border-l border-border/10">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mx-auto w-full max-w-[400px] space-y-12"
+          className="mx-auto w-full max-w-[440px] space-y-16"
         >
           {/* Top minimal toggle area */}
           <div className="flex items-center justify-center space-x-6">

@@ -1,8 +1,8 @@
 export const AUTH_TEXT_INPUT_CLASS_NAME =
-  "w-full border-b border-[var(--zane-ai-line)] bg-transparent px-2 py-4 text-lg tracking-wide text-[var(--zane-ai-deep)] outline-none transition-all placeholder:text-[var(--zane-ai-text-muted)] focus:border-[var(--zane-ai-deep)] dark:border-white/20 dark:text-white dark:focus:border-white opacity-80 focus:opacity-100";
+  "w-full border-b border-[var(--zane-ai-line)] bg-transparent px-4 py-5 text-lg tracking-wide text-[var(--zane-ai-deep)] outline-none transition-all placeholder:text-[var(--zane-ai-text-muted)] focus:border-[var(--zane-ai-deep)] dark:border-white/10 dark:text-white dark:focus:border-white focus:bg-slate-50/10 dark:focus:bg-white/5 opacity-80 focus:opacity-100 rounded-t-lg font-medium";
 
 export const AUTH_PRIMARY_BUTTON_CLASS_NAME =
-  "inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--zane-ai-deep)] px-5 py-4 mt-4 text-[13px] tracking-[0.2em] font-black text-white transition-all hover:scale-[1.02] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 dark:bg-white dark:text-black uppercase";
+  "inline-flex w-full items-center justify-center gap-2 rounded-full bg-black px-5 py-5 mt-6 text-[13px] tracking-[0.25em] font-bold text-white transition-all hover:scale-[1.01] hover:bg-[color-mix(in_srgb,black,white_10%)] active:scale-95 shadow-xl shadow-black/10 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 dark:bg-white dark:text-black dark:shadow-white/5 dark:hover:bg-zinc-100 uppercase";
 
 export const staggerContainer = {
   hidden: { opacity: 0 },

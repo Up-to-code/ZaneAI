@@ -34,10 +34,8 @@ export default async function RootLayout({
             <WebAuthProvider>
               <Suspense fallback={null}>
                 <WebLocaleProvider locale={locale} dictionary={dictionary}>
-                  <PortalNavbar />
                   <RootFontFaces />
                   {children}
-                  <PortalFooter />
                 </WebLocaleProvider>
               </Suspense>
             </WebAuthProvider>

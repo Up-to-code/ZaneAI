@@ -1,6 +1,9 @@
 import { WebLocaleProvider } from "../_components/WebLocaleProvider";
 import { getWebDictionary } from "@/lib/i18n";
 import { getWorkspaceLocale } from "./ws/_lib/workspaceLocale";
+import WorkspaceHeader from "../../components/WorkspaceHeader";
+import ThemeToggle from "../_components/ThemeToggle";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +22,10 @@ export default async function WorkspaceGroupLayout({ children }: { children: Rea
         data-slot="workspace-group-layout"
         className="flex h-full min-h-screen min-h-dvh min-w-0 w-full flex-1 basis-0 flex-col"
       >
-        {children}
+        <WorkspaceHeader />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
       </div>
     </WebLocaleProvider>
   );

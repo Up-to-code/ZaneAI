@@ -32,10 +32,8 @@ export default async function RootLayout({
           <div className="min-h-screen bg-background text-foreground selection:bg-[var(--zane-ai-accent)] selection:text-white transition-colors">
             <Suspense fallback={null}>
               <WebLocaleProvider locale={locale} dictionary={dictionary}>
-                <PortalNavbar />
                 <RootFontFaces />
                 {children}
-                <PortalFooter />
               </WebLocaleProvider>
             </Suspense>
           </div>

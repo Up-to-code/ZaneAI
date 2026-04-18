@@ -13,22 +13,24 @@ export function AuthBrandHeader() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="text-center"
       >
-        <div className="flex flex-col items-center gap-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--zane-ai-deep)] dark:bg-white">
-            <Eye className="h-10 w-10 text-white dark:text-black" />
+        <div className="flex flex-col items-center gap-10">
+          <div className="relative flex items-center justify-center">
+            {/* Logo Glow Backdrop */}
+            <div className="absolute h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
+            
+            <img 
+              src="/brand-logo.svg" 
+              alt="Zane AI Logo" 
+              className="relative h-24 w-auto object-contain transition-transform duration-700 hover:scale-110" 
+            />
           </div>
-          <h1 className="mb-0 text-5xl font-black uppercase tracking-[0.24em] text-[var(--zane-ai-deep)] dark:text-white lg:text-7xl">
-            Zane-ai
-          </h1>
+          
+          <div className="space-y-4">
+            <h1 className="mb-0 text-5xl font-black uppercase tracking-[0.24em] text-[var(--zane-ai-deep)] dark:text-white lg:text-7xl">
+              Zane-ai
+            </h1>
+          </div>
         </div>
-        <TypewriterText
-          phrases={[
-            "The first unified real estate agent.",
-            "Deep market analysis.",
-            "Maximize profit and ROI.",
-            "Smartest property insights.",
-          ]}
-        />
       </motion.div>
     </div>
   );
