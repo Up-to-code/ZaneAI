@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { cn } from "@zaneai/ag-ui/zaneai";
+import { cn } from "@/lib/i18n";
 
 interface SectionLabelProps {
     icon?: LucideIcon;

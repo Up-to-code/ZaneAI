@@ -10,6 +10,6 @@ export type UiSlice = {
 export const createUiSlice: StateCreator<UiSlice, [], [], UiSlice> = (set) => ({
   showScrollToLatest: false,
   setShowScrollToLatest: (value) => set({ showScrollToLatest: value }),
-  operativeMode: "ai",
+  operativeMode: "normal",
   setOperativeMode: (mode) => set({ operativeMode: mode }),
 });

@@ -1,6 +1,6 @@
 import { Section } from "@/components/ui/portal";
 import { cookies } from "next/headers";
-import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@zaneai/ag-ui/zaneai";
+import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@/lib/i18n";
 import { ShieldCheck } from "lucide-react";
 
 export default async function PrivacyPage() {

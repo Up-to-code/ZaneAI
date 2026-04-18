@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { RootFontFaces, rootFontClassName } from "@/lib/rootFonts";
-import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@zaneai/ag-ui/zaneai";
+import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@/lib/i18n";
 import { WebLocaleProvider } from "@/components/ui/portal";
 import ThemeProvider from "./theme-provider";
 import PortalNavbar from "../components/PortalNavbar";

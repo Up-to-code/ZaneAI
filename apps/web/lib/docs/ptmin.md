@@ -42,7 +42,7 @@ A PTM is divided into five core layers. Every generated PDF MUST respect this hi
 The PTM PDF must inherit the **"Pure Canvas"** design system used in the web workspace.
 
 *   **Color Palette**:
-    - **Primary**: `#EC1B23` (Zane-ai Accent) for calls to action and key metrics.
+    - **Primary**: `#EC2D35` (Zane-ai Accent) for calls to action and key metrics.
     - **Background**: White (`#FFFFFF`) or Slate-50 (`#F8FAFC`) for subtle sectioning.
     - **Grid Lines**: 1px stroke in Slate-200 for technical boundaries.
 *   **Typography**:

@@ -57,8 +57,8 @@ export default function HomeScreen() {
             styles.navBtn, 
             { 
               backgroundColor: isAiMode 
-                ? (resolvedColorScheme === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.06)') 
-                : (resolvedColorScheme === 'dark' ? '#222' : '#FFF') 
+                ? colors.surfaceRaised
+                : colors.surface
             }
           ]} 
           onPress={() => router.navigate(isAiMode ? "/(app)/menu" : "/(app)/saved")}
@@ -67,12 +67,12 @@ export default function HomeScreen() {
           {isAiMode ? (
             <Menu size={18} color={colors.textPrimary} />
           ) : (
-            <Heart size={18} color="#EA1921" fill={resolvedColorScheme === 'dark' ? '#EA1921' : 'transparent'} />
+            <Heart size={18} color="#EC2D35" fill={resolvedColorScheme === 'dark' ? '#EC2D35' : 'transparent'} />
           )}
         </Pressable>
 
         {/* Segmented Control / Tab Switcher */}
-        <View style={[styles.tabContainer, { backgroundColor: resolvedColorScheme === 'dark' ? '#111' : '#F1F5F9' }]}>
+        <View style={[styles.tabContainer, { backgroundColor: colors.surfaceRaised }]}>
           <ModeTab 
             label="AI" 
             active={isAiMode} 
@@ -88,7 +88,7 @@ export default function HomeScreen() {
             resolvedColorScheme={resolvedColorScheme}
           />
           {/* Sliding Indicator */}
-          <SlidingIndicator activeIndex={isAiMode ? 0 : 1} resolvedColorScheme={resolvedColorScheme} />
+          <SlidingIndicator activeIndex={isAiMode ? 0 : 1} resolvedColorScheme={resolvedColorScheme} colors={colors} />
         </View>
 
         <Pressable 
@@ -106,7 +106,7 @@ export default function HomeScreen() {
 }
 
 function ModeTab({ label, active, onPress, colors, resolvedColorScheme }: { label: string; active: boolean; onPress: () => void; colors: any; resolvedColorScheme: string }) {
-  const activeTextColor = resolvedColorScheme === 'dark' ? '#000000' : '#FFFFFF';
+  const activeTextColor = colors.background;
   
   return (
     <Pressable onPress={onPress} style={styles.tabItem}>
@@ -117,13 +117,13 @@ function ModeTab({ label, active, onPress, colors, resolvedColorScheme }: { labe
         ]}>
           {label}
         </Text>
-        {active && <View style={[styles.brandDot, { backgroundColor: '#EA1921' }]} />}
+        {active && <View style={[styles.brandDot, { backgroundColor: '#EC2D35' }]} />}
       </View>
     </Pressable>
   );
 }
 
-function SlidingIndicator({ activeIndex, resolvedColorScheme }: { activeIndex: number; resolvedColorScheme: string }) {
+function SlidingIndicator({ activeIndex, resolvedColorScheme, colors }: { activeIndex: number; resolvedColorScheme: string; colors: any }) {
   const offset = useSharedValue(activeIndex);
   
   useEffect(() => {
@@ -134,7 +134,7 @@ function SlidingIndicator({ activeIndex, resolvedColorScheme }: { activeIndex: n
     transform: [{ translateX: offset.value * 64 }],
   }));
 
-  const indicatorColor = resolvedColorScheme === 'dark' ? '#FFFFFF' : '#000000';
+  const indicatorColor = colors.textPrimary;
 
   return (
     <Animated.View style={[styles.indicator, animatedStyle, { backgroundColor: indicatorColor }]} />

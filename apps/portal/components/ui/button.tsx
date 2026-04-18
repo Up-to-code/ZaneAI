@@ -1,7 +1,7 @@
 "use client";
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { cn } from "@zaneai/ag-ui/zaneai";
+import { cn } from "@/lib/i18n";
 
 type ButtonVariant = "default" | "outline" | "secondary" | "ghost" | "destructive" | "link";
 type ButtonSize = "default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg";

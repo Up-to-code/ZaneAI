@@ -1,6 +1,6 @@
 import { Section } from "@/components/ui/portal";
 import { MoveRight } from "lucide-react";
-import { getWebDictionary, resolveLocale, WEB_LOCALE_COOKIE } from "@zaneai/ag-ui/zaneai";
+import { getWebDictionary, resolveLocale, WEB_LOCALE_COOKIE } from "@/lib/i18n";
 import { cookies } from "next/headers";
 
 export default async function HomePage() {
@@ -127,9 +127,9 @@ export default async function HomePage() {
                         <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible" viewBox="0 0 100 100">
                             <defs>
                                 <linearGradient id="line-glow" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="#EC1B23" stopOpacity="0" />
-                                    <stop offset="50%" stopColor="#EC1B23" stopOpacity="0.8" />
-                                    <stop offset="100%" stopColor="#EC1B23" stopOpacity="0" />
+                                    <stop offset="0%" stopColor="#EC2D35" stopOpacity="0" />
+                                    <stop offset="50%" stopColor="#EC2D35" stopOpacity="0.8" />
+                                    <stop offset="100%" stopColor="#EC2D35" stopOpacity="0" />
                                 </linearGradient>
                             </defs>
                             {/* Lines connecting labels to core */}
@@ -154,7 +154,7 @@ export default async function HomePage() {
                         </div>
 
                         <div className="absolute -bottom-8 left-1/4 z-20 animate-float" style={{ animationDelay: "3s" }}>
-                            <div className="bg-primary text-white px-6 py-3 rounded-full shadow-[0_20px_50px_rgba(236,27,35,0.4)] flex items-center gap-4">
+                            <div className="bg-primary text-white px-6 py-3 rounded-full shadow-[0_20px_50px_rgba(236,45,53,0.4)] flex items-center gap-4">
                                 <span className="text-xs md:text-sm font-black uppercase tracking-widest leading-none">Single Source of Truth</span>
                             </div>
                         </div>

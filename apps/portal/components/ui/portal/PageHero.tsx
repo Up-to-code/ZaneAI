@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "@zaneai/ag-ui/zaneai";
+import { cn } from "@/lib/i18n";
 
 interface PageHeroProps {
     badge?: ReactNode;

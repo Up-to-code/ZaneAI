@@ -1,7 +1,7 @@
 import { AlertCircle, ArrowLeft, Home, Search } from "lucide-react";
 import { cookies } from "next/headers";
 import { ButtonLink, Footer, Navbar, Section } from "@/components/ui/portal";
-import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE, cn } from "@zaneai/ag-ui/zaneai";
+import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE, cn } from "@/lib/i18n";
 
 /**
  * WHY:   Missing routes must render with the same premium quality as the core application.

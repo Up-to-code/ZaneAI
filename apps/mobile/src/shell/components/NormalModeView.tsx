@@ -19,7 +19,7 @@ import { LogoMark } from "@/foundation/icons/LogoMark";
 import { useTranslation } from "@/foundation/localization";
 
 const BANNER_HEIGHT = 320;
-const BRAND_DOT_COLOR = "#EA1921";
+const BRAND_DOT_COLOR = "#EC2D35";
 const PROJECT_CARD_WIDTH = 260;
 
 interface Project {
@@ -90,7 +90,7 @@ function ProjectCard({ project, styles, isRTL, router }: { project: Project; sty
             isRTL ? { right: 12 } : { left: 12 }
           ]}
         >
-          <Heart size={18} color="#EA1921" fill="transparent" strokeWidth={2.5} />
+          <Heart size={18} color="#EC2D35" fill="transparent" strokeWidth={2.5} />
         </Pressable>
         <View style={[styles.cardBadge, isRTL ? { left: 12 } : { right: 12 }]}>
           <View style={styles.badgeDot} />
@@ -137,12 +137,14 @@ function SlidingIndicator({
   activeIndex, 
   itemsCount, 
   containerWidth, 
-  resolvedColorScheme 
+  resolvedColorScheme,
+  colors
 }: { 
   activeIndex: number; 
   itemsCount: number;
   containerWidth: number;
-  resolvedColorScheme: string 
+  resolvedColorScheme: string;
+  colors: any;
 }) {
   const itemWidth = (containerWidth - 8) / itemsCount; // 8 is total horizontal padding (4 on each side)
   const offset = useSharedValue(activeIndex);
@@ -156,7 +158,7 @@ function SlidingIndicator({
     transform: [{ translateX: offset.value * itemWidth }],
   }));
 
-  const indicatorColor = resolvedColorScheme === 'dark' ? '#FFFFFF' : '#000000';
+  const indicatorColor = colors.textPrimary;
 
   return (
     <Animated.View style={[styles.indicator, animatedStyle, { backgroundColor: indicatorColor }]} />
@@ -211,7 +213,7 @@ export function NormalModeView() {
             {/* Unified Search Bar (Matches AI Composer Dock) */}
             <View style={viewStyles.unifiedBar}>
               <Pressable 
-                style={[viewStyles.actionButton, { backgroundColor: "#EA1921" }]}
+                style={[viewStyles.actionButton, { backgroundColor: "#EC2D35" }]}
                 onPress={() => router.navigate("/(app)/listing")}
               >
                 <Search size={20} color="#FFFFFF" strokeWidth={2.5} />
@@ -234,6 +236,7 @@ export function NormalModeView() {
                 itemsCount={2} 
                 containerWidth={contentWidth} // No padding needed as it's separate
                 resolvedColorScheme={resolvedColorScheme}
+                colors={colors}
               />
               <Pressable 
                 onPress={() => setTransaction("rent")}
@@ -259,6 +262,9 @@ export function NormalModeView() {
               </Pressable>
             </View>
           </Animated.View>
+
+          {/* Spacer between search pill and projects */}
+          <View style={{ height: 48 }} />
 
           {/* Latest Projects Section */}
           <Animated.View 
@@ -302,7 +308,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     height: BANNER_HEIGHT,
     width: "100%",
     position: "relative",
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
   },
   bannerImage: {
     width: "100%",
@@ -317,17 +323,17 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     flex: 1,
     paddingHorizontal: 24,
     alignItems: "center",
-    marginTop: -80, // Deepened overlap with the banner for better integration
+    marginTop: -84, // Centers the 40px transaction selector exactly on the banner's baseline (Search bar is 52px + 12px gap + 20px half-toggle = 84px)
   },
   categoryPillContainer: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surfaceRaised,
     borderRadius: 32,
     padding: 3,
     width: "100%",
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: colors.divider,
     position: "relative",
   },
   categoryBtn: {
@@ -358,7 +364,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     fontFamily: isRTL ? "Cairo_700Bold" : "Manrope_800ExtraBold",
   },
   categoryTextActive: {
-    color: colorScheme === 'dark' ? "#000000" : "#FFFFFF",
+    color: colors.background,
   },
   composerContainer: {
     width: "100%",
@@ -366,13 +372,13 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
   },
   transactionRow: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surfaceRaised,
     borderRadius: 16,
-    padding: 4, // Increased for clearer insetting
+    padding: 2, 
     width: "100%",
-    height: 44, // Explicit height for perfect centering
+    height: 40, // Slimmer, more professional profile
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.04)",
+    borderColor: colors.divider,
     position: "relative",
     alignItems: "center",
   },
@@ -391,7 +397,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     fontFamily: isRTL ? "Cairo_700Bold" : "Manrope_800ExtraBold",
   },
   transactionTextActive: {
-    color: colorScheme === 'dark' ? "#000000" : "#FFFFFF",
+    color: colors.background,
   },
   unifiedBar: {
     flexDirection: "row",
@@ -402,7 +408,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     paddingLeft: 6,
     paddingRight: 12,
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.04)",
+    borderColor: colors.divider,
   },
   inputField: {
     flex: 1,
@@ -422,9 +428,9 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     fontFamily: isRTL ? "Cairo_600SemiBold" : "Manrope_600SemiBold",
   },
   actionButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
@@ -439,7 +445,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
   },
   projectsSection: {
     width: "100%",
-    marginTop: 40,
+    marginTop: 0, // Handled by spacer View above
   },
   sectionHeader: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -491,7 +497,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
   favBtn: {
     position: "absolute",
     bottom: 12,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: colors.surface,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -506,7 +512,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
   cardBadge: {
     position: "absolute",
     top: 12,
-    backgroundColor: "#FFF",
+    backgroundColor: colors.surface,
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 6,
@@ -525,7 +531,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
   cardBadgeText: {
     fontSize: 8,
     fontWeight: "800",
-    color: "#000",
+    color: colors.textPrimary,
     letterSpacing: 1,
     fontFamily: "Manrope_800ExtraBold",
   },

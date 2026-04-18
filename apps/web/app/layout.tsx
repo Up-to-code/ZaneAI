@@ -3,14 +3,19 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { RootFontFaces, rootFontClassName } from "@/lib/rootFonts";
-import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@zaneai/ag-ui/zaneai";
+import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@/lib/i18n";
 import { WebLocaleProvider } from "@/components/ui/portal";
 import WebAuthProvider from "./_components/WebAuthProvider";
 import ThemeProvider from "./theme-provider";
+import PortalNavbar from "../components/PortalNavbar";
+import PortalFooter from "../components/PortalFooter";
 
 export const metadata: Metadata = {
-  title: "Zane-ai - Coming Soon",
-  description: "Advanced Institutional Real Estate Intelligence",
+  title: "Zane-ai | Real Estate Intelligence",
+  description: "The main portal for Zane-ai - Advanced Institutional Real Estate Intelligence",
+  icons: {
+    icon: "/brand-logo.svg",
+  },
 };
 
 export default async function RootLayout({
@@ -25,14 +30,18 @@ export default async function RootLayout({
     <html lang={locale} dir={isRtlLocale(locale) ? "rtl" : "ltr"} suppressHydrationWarning>
       <body className={`${rootFontClassName} bg-background text-foreground antialiased`}>
         <ThemeProvider>
-          <WebAuthProvider>
-            <Suspense fallback={null}>
-              <WebLocaleProvider locale={locale} dictionary={dictionary}>
-                <RootFontFaces />
-                {children}
-              </WebLocaleProvider>
-            </Suspense>
-          </WebAuthProvider>
+          <div className="min-h-screen bg-background text-foreground selection:bg-[var(--zane-ai-accent)] selection:text-white transition-colors">
+            <WebAuthProvider>
+              <Suspense fallback={null}>
+                <WebLocaleProvider locale={locale} dictionary={dictionary}>
+                  <PortalNavbar />
+                  <RootFontFaces />
+                  {children}
+                  <PortalFooter />
+                </WebLocaleProvider>
+              </Suspense>
+            </WebAuthProvider>
+          </div>
         </ThemeProvider>
       </body>
     </html>

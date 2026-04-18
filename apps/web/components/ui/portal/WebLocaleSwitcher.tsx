@@ -9,8 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
-import { getLocaleLabel, WEB_SUPPORTED_LOCALES } from "@zaneai/ag-ui/zaneai";
-import { cn } from "@zaneai/ag-ui/zaneai";
+import { getLocaleLabel, WEB_SUPPORTED_LOCALES } from "@/lib/i18n";
+import { cn } from "@/lib/i18n";
 import { useWebLocale } from "./WebLocaleProvider";
 
 export default function WebLocaleSwitcher({

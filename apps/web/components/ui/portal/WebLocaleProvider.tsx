@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { getWebDictionary } from "@zaneai/ag-ui/zaneai";
-import { getLocaleDirection, isRtlLocale, type AppLocale } from "@zaneai/ag-ui/zaneai";
-import type { WebDictionary } from "@zaneai/ag-ui/zaneai";
+import { getWebDictionary } from "@/lib/i18n";
+import { getLocaleDirection, isRtlLocale, type AppLocale } from "@/lib/i18n";
+import type { WebDictionary } from "@/lib/i18n";
 
 const WebLocaleContext = createContext<{
   locale: AppLocale;

@@ -1,5 +1,5 @@
-import { cn } from "@zaneai/ag-ui/zaneai";
-import type { AppLocale } from "@zaneai/ag-ui/zaneai";
+import { cn } from "@/lib/i18n";
+import type { AppLocale } from "@/lib/i18n";
 import type { ReactNode } from "react";
 
 export default function ButtonLink({

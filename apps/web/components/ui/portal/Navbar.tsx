@@ -1,9 +1,9 @@
-import { cn } from "@zaneai/ag-ui/zaneai";
+import { cn } from "@/lib/i18n";
 import { Eye } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import WebLocaleSwitcher from "./WebLocaleSwitcher";
-import { getWebDictionary } from "@zaneai/ag-ui/zaneai";
-import type { AppLocale } from "@zaneai/ag-ui/zaneai";
+import { getWebDictionary } from "@/lib/i18n";
+import type { AppLocale } from "@/lib/i18n";
 
 export default function Navbar({ locale = "ar" }: { locale?: AppLocale }) {
     const dictionary = getWebDictionary(locale);
