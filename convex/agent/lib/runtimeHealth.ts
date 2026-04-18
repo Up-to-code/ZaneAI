@@ -8,15 +8,15 @@ type BuildRuntimeHealthArgs = {
   llmConfigured: boolean;
   provider: "openrouter" | "openai" | null;
   webSearchConfigured: boolean;
-  workerAvailable: boolean;
-  workerLastHeartbeatAt: number | null;
-  workerStaleAfterMs: number;
+  workerAvailable?: boolean;
+  workerLastHeartbeatAt?: number | null;
+  workerStaleAfterMs?: number;
 };
 
 export function buildAgentRuntimeHealth(args: BuildRuntimeHealthArgs) {
   const reasonCode: AgentReasonCode | undefined = !args.llmConfigured
     ? "missing_llm_key"
-    : !args.workerAvailable
+    : args.workerAvailable === false
       ? "worker_offline"
       : undefined;
 
@@ -54,7 +54,7 @@ export function buildAgentRuntimeHealth(args: BuildRuntimeHealthArgs) {
       },
       message: !args.llmConfigured
         ? DEFAULT_BACKEND_LLM_MESSAGE
-        : !args.workerAvailable
+        : args.workerAvailable === false
           ? DEFAULT_BACKEND_WORKER_MESSAGE
           : undefined,
     },

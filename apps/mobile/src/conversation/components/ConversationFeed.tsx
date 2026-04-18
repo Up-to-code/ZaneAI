@@ -61,6 +61,7 @@ export function ConversationFeed({
   const scrollViewRef = useRef<ScrollView | null>(null);
   const shouldAutoScrollRef = useRef(true);
   const prevMessageCountRef = useRef(messages.length);
+  const messageAddedFrameRef = useRef<number | null>(null);
   const viewportHeightRef = useRef(0);
   const contentHeightRef = useRef(0);
   const scrollOffsetRef = useRef(0);
@@ -110,10 +111,22 @@ export function ConversationFeed({
   useEffect(() => {
     if (messages.length > prevMessageCountRef.current) {
       shouldAutoScrollRef.current = true;
-      // Give more time for the keyboard to dismiss and layout to settle
-      setTimeout(() => scrollToLatest(), 250);
+      if (messageAddedFrameRef.current !== null) {
+        cancelAnimationFrame(messageAddedFrameRef.current);
+      }
+      messageAddedFrameRef.current = requestAnimationFrame(() => {
+        messageAddedFrameRef.current = null;
+        scrollToLatest();
+      });
     }
     prevMessageCountRef.current = messages.length;
+
+    return () => {
+      if (messageAddedFrameRef.current !== null) {
+        cancelAnimationFrame(messageAddedFrameRef.current);
+        messageAddedFrameRef.current = null;
+      }
+    };
   }, [messages.length]);
 
   // Auto-scroll during assistant streaming

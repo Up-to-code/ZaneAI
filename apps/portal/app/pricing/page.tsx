@@ -1,7 +1,7 @@
-import { Section, SectionLabel } from "@/components/ui/portal";
+import { Section } from "@/components/ui/portal";
 import { cookies } from "next/headers";
 import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@zaneai/ag-ui/zaneai";
-import { Check, CreditCard, MoveRight } from "lucide-react";
+import { Check, MoveRight } from "lucide-react";
 
 export default async function PricingPage() {
   const cookieStore = await cookies();
@@ -36,50 +36,52 @@ export default async function PricingPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-white dark:bg-black pt-24 transition-all">
-      <Section className="py-20 border-b border-border">
-        <div className="mx-auto max-w-4xl px-6 space-y-10">
-          <SectionLabel icon={CreditCard} className="bg-primary/5 text-primary border-primary/10 px-4 py-2">
-            Institutional Plans
-          </SectionLabel>
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground uppercase leading-none">
-              Transparent <br />
-              <span className="text-primary">Operational Scale.</span>
+    <main className="min-h-screen bg-white dark:bg-black pt-20 transition-all selection:bg-primary selection:text-white">
+      <Section className="py-20 lg:py-28 border-b border-border/50">
+        <div className="mx-auto max-w-4xl px-6 lg:px-10 text-center space-y-12">
+          <div className="space-y-8 flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-slate-50 dark:bg-zinc-900 px-4 py-1.5 text-xs font-bold text-foreground">
+                <span className="text-xl leading-none -mt-1">★</span>
+                Institutional Plans
+            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-[5.5rem] font-bold tracking-tighter text-foreground leading-[1.05]" dir="auto">
+              Transparent Operational Scale.
             </h1>
-            <p className="text-xl font-bold leading-relaxed text-muted-foreground max-w-2xl italic">
+            <p className="text-lg md:text-xl font-medium leading-relaxed text-muted-foreground max-w-2xl mx-auto pt-2" dir="auto">
               From individual brokers to global development houses, find the plan that fits your operational requirements.
             </p>
           </div>
         </div>
       </Section>
 
-      <Section className="py-24 bg-slate-50 dark:bg-zinc-950/20">
-        <div className="mx-auto max-w-[1400px] px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <Section className="py-16 md:py-24 bg-slate-50/50 dark:bg-zinc-950/20 relative overflow-hidden">
+        <div className="absolute top-1/4 start-1/4 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {plans.map((p, i) => (
-              <div key={i} className={`flex flex-col rounded-[48px] border border-border p-12 space-y-12 bg-white dark:bg-zinc-950 shadow-sm transition-all hover:scale-[1.02] ${p.variant === 'accent' ? 'ring-2 ring-primary/20 bg-primary/[0.02]' : ''}`}>
-                <div className="space-y-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">{p.name}</span>
-                  <div className="text-5xl font-black tracking-tighter uppercase">{p.price}</div>
-                  <p className="text-sm font-bold text-muted-foreground italic h-10">{p.description}</p>
+              <div key={i} className={`flex flex-col rounded-3xl md:rounded-[2.5rem] border border-border p-6 sm:p-10 md:p-14 space-y-8 md:space-y-10 bg-white dark:bg-black shadow-sm transition-all hover:border-black/20 dark:hover:border-zinc-700 isolate [transform:translateZ(0)] ${p.variant === 'accent' ? 'ring-2 ring-primary/20 bg-blue-50/10 dark:bg-primary/[0.02]' : ''}`}>
+                <div className="space-y-3 md:space-y-4">
+                  <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-zinc-800 px-3 py-1 text-xs font-bold text-foreground w-fit mb-3 md:mb-4">{p.name}</span>
+                  <div className="text-4xl md:text-5xl font-black tracking-tighter" dir="auto">{p.price}</div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground h-auto md:h-10" dir="auto">{p.description}</p>
                 </div>
 
-                <div className="flex-1 space-y-6 pt-10 border-t border-border/50">
+                <div className="flex-1 space-y-5 pt-8 border-t border-border/50">
                   {p.features.map((f, j) => (
                     <div key={j} className="flex items-center gap-4">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
+                        <Check className="h-4 w-4" strokeWidth={3} />
                       </div>
-                      <span className="text-sm font-bold text-foreground">{f}</span>
+                      <span className="text-sm font-bold text-foreground" dir="auto">{f}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-6">
-                  <a href="/signin" className={`h-16 w-full flex items-center justify-center rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 shadow-sm ${p.variant === 'dark' ? 'bg-black text-white hover:bg-zinc-900' : 'bg-primary text-white hover:bg-primary/90'}`}>
+                <div className="pt-4 md:pt-6">
+                  <a href="/signin" className={`inline-flex h-12 md:h-14 w-full items-center justify-center rounded-full font-bold text-sm transition-all active:scale-95 shadow-sm border ${p.variant === 'dark' ? 'bg-black dark:bg-white text-white dark:text-black hover:opacity-80' : p.variant === 'accent' ? 'bg-primary text-white border-primary hover:bg-primary/90' : 'bg-white dark:bg-black text-foreground border-border hover:bg-slate-50 dark:hover:bg-zinc-900'}`}>
                     {p.cta}
-                    <MoveRight className="ml-3 h-4 w-4" />
+                    <MoveRight className="ms-2 h-4 w-4 rtl:rotate-180" />
                   </a>
                 </div>
               </div>

@@ -11,3 +11,4 @@ export const authClient = createAuthClient({
     convexClient(),
   ],
 });
+export const { useSession, signIn, signUp, signOut } = authClient;

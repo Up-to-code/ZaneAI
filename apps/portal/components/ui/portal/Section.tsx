@@ -24,11 +24,11 @@ export default function Section({
 }: SectionProps) {
     const backgrounds = {
         white: "bg-background text-foreground",
-        slate: "bg-slate-50 text-foreground dark:bg-slate-950 dark:text-slate-100",
-        dark: "bg-slate-950 text-white dark:bg-[#050c17] dark:text-slate-50",
+        slate: "bg-zinc-50 text-foreground dark:bg-zinc-950 dark:text-zinc-100",
+        dark: "bg-black text-white dark:bg-black dark:text-zinc-50",
         primary: "bg-primary text-primary-foreground",
-        glass: "border-y border-white/30 bg-white/72 text-foreground backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-100",
-        gradient: "bg-slate-50 text-foreground dark:bg-slate-950 dark:text-slate-100", // Simplified gradient to prevent Tailwind parsing issues
+        glass: "border-y border-white/30 bg-white/72 text-foreground backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/70 dark:text-zinc-100",
+        gradient: "bg-zinc-50 text-foreground dark:bg-zinc-950 dark:text-zinc-100", // Simplified gradient to prevent Tailwind parsing issues
         none: ""
     };
 

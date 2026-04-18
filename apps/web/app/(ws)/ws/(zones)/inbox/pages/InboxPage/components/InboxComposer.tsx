@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type SetStateAction } from "react";
 import {
   Building2,
   FileText,
@@ -42,6 +42,14 @@ function buildOfferPayload(offerForm: ComposerOfferFormState) {
     attachments: offerForm.attachments ?? [],
   };
 }
+
+const emptyOfferForm: ComposerOfferFormState = {
+  propertyId: "",
+  title: "",
+  description: "",
+  price: "",
+  attachments: [],
+};
 
 async function executeShareAction(params: {
   activeAction: Exclude<InboxShareAction, "offer"> | null;
@@ -157,11 +165,11 @@ export default function InboxComposer({
   const [draft, setDraft] = useState(initialValue);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [offerForm, setOfferForm] = useState<ComposerOfferFormState>(() => buildDefaultOfferForm(projectOptions));
+  const [offerForm, setOfferForm] = useState<ComposerOfferFormState>(emptyOfferForm);
   const [projectNote, setProjectNote] = useState("");
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<UploadedFileReference | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState(projectOptions[0]?.id ?? "");
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [shareFileNote, setShareFileNote] = useState("");
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -169,6 +177,15 @@ export default function InboxComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { startUpload: startFileUpload, isUploading: isFileUploading } = useUploadThing("crmDocuments");
   const { startUpload: startOfferUpload, isUploading: isOfferUploading } = useUploadThing("offerAttachments");
+  const defaultOfferForm = useMemo(() => buildDefaultOfferForm(projectOptions), [projectOptions]);
+  const offerDraft = offerForm.propertyId ? offerForm : defaultOfferForm;
+  const effectiveSelectedProjectId = selectedProjectId || projectOptions[0]?.id || "";
+  const setOfferDraft = (next: SetStateAction<ComposerOfferFormState>) => {
+    setOfferForm((current) => {
+      const base = current.propertyId ? current : defaultOfferForm;
+      return typeof next === "function" ? next(base) : next;
+    });
+  };
 
   useEffect(() => {
     if (!textareaRef.current) {
@@ -177,30 +194,6 @@ export default function InboxComposer({
     textareaRef.current.style.height = "auto";
     textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 220)}px`;
   }, [draft]);
-
-  useEffect(() => {
-    setDraft(initialValue);
-    setLocalError(null);
-    setIsShareMenuOpen(false);
-    setSelectedFile(null);
-    setShareFileNote("");
-    setProjectNote("");
-    setIsProjectPickerOpen(false);
-    setSelectedProjectId(projectOptions[0]?.id ?? "");
-    setOfferForm(buildDefaultOfferForm(projectOptions));
-  }, [conversation.id, initialValue, projectOptions]);
-
-  useEffect(() => {
-    if (!selectedProjectId && projectOptions[0]?.id) {
-      setSelectedProjectId(projectOptions[0].id);
-    }
-  }, [projectOptions, selectedProjectId]);
-
-  useEffect(() => {
-    if (!offerForm.propertyId && projectOptions[0]?.id) {
-      setOfferForm(buildDefaultOfferForm(projectOptions));
-    }
-  }, [offerForm.propertyId, projectOptions]);
 
   const handleSubmit = async () => {
     if (isInboxComposerSendDisabled(draft, isSending)) {
@@ -256,7 +249,7 @@ export default function InboxComposer({
     try {
       const uploaded = await startOfferUpload(files);
       const nextAttachments = uploaded?.map((file) => file.serverData as UploadedFileReference) ?? [];
-      setOfferForm((current) => ({
+      setOfferDraft((current) => ({
         ...current,
         attachments: [...current.attachments, ...nextAttachments],
       }));
@@ -286,7 +279,7 @@ export default function InboxComposer({
             : null,
         selectedFile,
         shareFileNote,
-        selectedProjectId,
+        selectedProjectId: effectiveSelectedProjectId,
         projectNote,
         onShareFile,
         onShareProject,
@@ -312,18 +305,18 @@ export default function InboxComposer({
   };
 
   const handleSubmitOffer = async () => {
-    if (!offerForm.propertyId || !offerForm.price.trim()) {
+    if (!offerDraft.propertyId || !offerDraft.price.trim()) {
       setLocalError(dictionary.inbox.chooseProjectAndPriceFirst);
       return;
     }
 
     setLocalError(null);
     try {
-      const created = await onCreatePrivateOfferDraft(buildOfferPayload(offerForm));
+      const created = await onCreatePrivateOfferDraft(buildOfferPayload(offerDraft));
       if (created && typeof created === "object" && "offerId" in created) {
         await onPublishConversationOffer(created.offerId);
       }
-      setOfferForm(buildDefaultOfferForm(projectOptions));
+      setOfferForm(emptyOfferForm);
       onShareActionChange(null);
       setIsShareMenuOpen(false);
     } catch {
@@ -333,7 +326,7 @@ export default function InboxComposer({
 
   const handleSelectOfferProject = (projectId: string) => {
     const project = projectOptions.find((entry) => entry.id === projectId) ?? null;
-    setOfferForm((current) => ({
+    setOfferDraft((current) => ({
       ...current,
       propertyId: projectId,
       title:
@@ -416,7 +409,7 @@ export default function InboxComposer({
                 projectNote={projectNote}
                 projectOptions={projectOptions}
                 selectedFile={selectedFile}
-                selectedProjectId={selectedProjectId}
+                selectedProjectId={effectiveSelectedProjectId}
                 setSelectedFile={setSelectedFile}
                 setProjectNote={setProjectNote}
                 setSelectedProjectId={setSelectedProjectId}
@@ -528,11 +521,11 @@ export default function InboxComposer({
         isOpen={activeShareAction === "offer"}
         isSending={isSending}
         isUploading={isOfferUploading}
-        offerForm={offerForm}
+        offerForm={offerDraft}
         onClose={() => onShareActionChange(null)}
         onSubmit={handleSubmitOffer}
         projectOptions={projectOptions}
-        setOfferForm={setOfferForm}
+        setOfferForm={setOfferDraft}
       />
 
       <InboxProjectPickerModal
@@ -540,7 +533,7 @@ export default function InboxComposer({
         onClose={() => setIsProjectPickerOpen(false)}
         onSelectProject={setSelectedProjectId}
         projectOptions={projectOptions}
-        selectedProjectId={selectedProjectId}
+        selectedProjectId={effectiveSelectedProjectId}
       />
     </>
   );

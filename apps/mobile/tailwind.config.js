@@ -10,7 +10,7 @@ module.exports = {
       colors: {
         "zane-ai-dark": "#000000",
         "zane-ai-soft-dark": "#0A0A0A",
-        "zane-ai-red": "#FF3D00",
+        "zane-ai-red": "#EC1B23",
         "zane-ai-card": "#121212",
         "zane-ai-secondary": "#A3A3A3",
         "zane-ai-muted": "#737373",

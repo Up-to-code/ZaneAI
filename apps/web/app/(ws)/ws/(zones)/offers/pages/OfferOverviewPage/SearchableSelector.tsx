@@ -35,16 +35,11 @@ export default function SearchableSelector({
   const copy = getOfferUiCopy(locale);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [selectedValue, setSelectedValue] = useState(value);
   const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const listboxId = useId();
   const labelId = useId();
-
-  useEffect(() => {
-    setSelectedValue(value);
-  }, [value]);
 
   useEffect(() => {
     if (!open) {
@@ -53,12 +48,8 @@ export default function SearchableSelector({
       return;
     }
 
-    const timer = window.setTimeout(() => {
-      searchInputRef.current?.focus();
-      searchInputRef.current?.select();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
+    searchInputRef.current?.focus();
+    searchInputRef.current?.select();
   }, [open]);
 
   useEffect(() => {
@@ -94,11 +85,10 @@ export default function SearchableSelector({
     }
   }, [activeIndex, filteredOptions.length]);
 
-  const selectedOption = options.find((option) => option.value === selectedValue);
+  const selectedOption = options.find((option) => option.value === value);
   const buttonText = selectedOption?.label || placeholder;
 
   function commitValue(nextValue: string) {
-    setSelectedValue(nextValue);
     onValueChange?.(nextValue);
     setOpen(false);
   }
@@ -138,7 +128,7 @@ export default function SearchableSelector({
         </span>
       </div>
 
-      <input type="hidden" name={name} value={selectedValue} />
+      <input type="hidden" name={name} value={value} />
 
       <div className="relative">
         <button
@@ -190,7 +180,7 @@ export default function SearchableSelector({
               {filteredOptions.length > 0 ? (
                 <div className="space-y-1">
                   {filteredOptions.map((option, index) => {
-                    const isSelected = option.value === selectedValue;
+                    const isSelected = option.value === value;
                     const isActive = index === activeIndex;
 
                     return (

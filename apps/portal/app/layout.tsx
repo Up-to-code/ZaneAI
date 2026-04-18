@@ -4,12 +4,17 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import { RootFontFaces, rootFontClassName } from "@/lib/rootFonts";
 import { getWebDictionary, isRtlLocale, resolveLocale, WEB_LOCALE_COOKIE } from "@zaneai/ag-ui/zaneai";
-import { WebLocaleProvider, Navbar, Footer } from "@/components/ui/portal";
+import { WebLocaleProvider } from "@/components/ui/portal";
 import ThemeProvider from "./theme-provider";
+import PortalNavbar from "../components/PortalNavbar";
+import PortalFooter from "../components/PortalFooter";
 
 export const metadata: Metadata = {
   title: "Zane-ai | Real Estate Intelligence",
   description: "The main portal for Zane-ai - Advanced Institutional Real Estate Intelligence",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default async function RootLayout({
@@ -27,10 +32,10 @@ export default async function RootLayout({
           <div className="min-h-screen bg-background text-foreground selection:bg-[var(--zane-ai-accent)] selection:text-white transition-colors">
             <Suspense fallback={null}>
               <WebLocaleProvider locale={locale} dictionary={dictionary}>
-                <Navbar locale={locale} />
+                <PortalNavbar />
                 <RootFontFaces />
                 {children}
-                <Footer locale={locale} />
+                <PortalFooter />
               </WebLocaleProvider>
             </Suspense>
           </div>

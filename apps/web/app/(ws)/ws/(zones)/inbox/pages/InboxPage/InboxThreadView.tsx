@@ -66,11 +66,11 @@ export default function InboxThreadView({
   const [activeShareAction, setActiveShareAction] = useState<InboxShareAction | null>(null);
 
   useEffect(() => {
-    const timerId = setTimeout(() => {
+    const frameId = requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 50);
+    });
 
-    return () => clearTimeout(timerId);
+    return () => cancelAnimationFrame(frameId);
   }, [conversation.messages.length]);
 
   useEffect(() => {
@@ -99,6 +99,7 @@ export default function InboxThreadView({
         onRespondToConversationOffer={onRespondToConversationOffer}
       />
       <InboxComposer
+        key={conversation.id}
         activeShareAction={activeShareAction}
         canUseBusinessActions={canUseBusinessActions}
         conversation={conversation}

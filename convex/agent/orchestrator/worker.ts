@@ -20,7 +20,7 @@ import type {
 import { assistantAgents } from "./registry";
 import { logAgentEvent } from "../lib/debugLog";
 
-const WORKER_HEARTBEAT_INTERVAL_MS = 10_000;
+const WORKER_HEARTBEAT_INTERVAL_MS = 60_000;
 
 type WorkerRunInput = {
   runId: string;

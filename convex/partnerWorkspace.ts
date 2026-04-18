@@ -91,7 +91,6 @@ export const getWorkspaceState = query({
           )
           .take(20)
       : [];
-    const activePendingInvites = pendingInvites.filter((invite) => invite.expiresAt > Date.now());
     const inviteCount = organization
       ? (
           await ctx.db
@@ -125,8 +124,8 @@ export const getWorkspaceState = query({
       visibleZoneKeys: organization ? [...getVisibleZoneKeys()] : ["overview", "settings"],
       needsOrganization: !organization,
       suggestedOrganizationType:
-        activePendingInvites[0]?.organizationId
-          ? (((await ctx.db.get(activePendingInvites[0].organizationId))?.type ?? "brokerage") as
+        pendingInvites[0]?.organizationId
+          ? (((await ctx.db.get(pendingInvites[0].organizationId))?.type ?? "brokerage") as
               | "brokerage"
               | "developer")
           : "brokerage",
@@ -151,7 +150,7 @@ export const getWorkspaceState = query({
         inviteCount,
       },
       pendingInvites: await Promise.all(
-        activePendingInvites.map(async (invite) => {
+        pendingInvites.map(async (invite) => {
           const inviteOrganization = await ctx.db.get(invite.organizationId);
           const inviter = await ctx.db.get(invite.inviterProfileId);
           return {
@@ -174,7 +173,7 @@ export const getInvitePreview = query({
   args: { token: v.string() },
   handler: async (ctx, args) => {
     const invite = await readInviteFromToken(ctx, args.token);
-    if (!invite || invite.status !== "pending" || invite.expiresAt <= Date.now()) {
+    if (!invite || invite.status !== "pending") {
       return null;
     }
     const organization = await ctx.db.get(invite.organizationId);

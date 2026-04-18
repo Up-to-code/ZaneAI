@@ -763,23 +763,14 @@ export default function DeveloperProjectAnalyticsPage({
     });
   }, [onTrackProjectEvent, project.id]);
 
-  useEffect(() => {
-    if (!analytics.brokerTracking.length) {
-      setSelectedBrokerId(null);
-      return;
-    }
-    if (!selectedBrokerId || !analytics.brokerTracking.some((broker) => broker.brokerId === selectedBrokerId)) {
-      setSelectedBrokerId(analytics.brokerTracking[0]?.brokerId ?? null);
-    }
-  }, [analytics.brokerTracking, selectedBrokerId]);
-
-  useEffect(() => {
-    setVisibleBrokerCount((current) => Math.min(current, analytics.brokerTracking.length));
-  }, [analytics.brokerTracking.length]);
+  const effectiveSelectedBrokerId = analytics.brokerTracking.some((broker) => broker.brokerId === selectedBrokerId)
+    ? selectedBrokerId
+    : analytics.brokerTracking[0]?.brokerId ?? null;
+  const effectiveVisibleBrokerCount = Math.min(visibleBrokerCount, analytics.brokerTracking.length);
 
   const selectedBroker = useMemo(
-    () => analytics.brokerTracking.find((broker) => broker.brokerId === selectedBrokerId) ?? null,
-    [analytics.brokerTracking, selectedBrokerId],
+    () => analytics.brokerTracking.find((broker) => broker.brokerId === effectiveSelectedBrokerId) ?? null,
+    [analytics.brokerTracking, effectiveSelectedBrokerId],
   );
 
   const topBrokers = useMemo(
@@ -794,10 +785,10 @@ export default function DeveloperProjectAnalyticsPage({
         .slice(0, 4),
     [analytics.brokerTracking],
   );
-  const visibleBrokers = analytics.brokerTracking.slice(0, visibleBrokerCount);
+  const visibleBrokers = analytics.brokerTracking.slice(0, effectiveVisibleBrokerCount);
   const brokerListLimit = 5;
-  const hasMoreBrokers = analytics.brokerTracking.length > visibleBrokerCount;
-  const canCollapseBrokerList = visibleBrokerCount > brokerListLimit;
+  const hasMoreBrokers = analytics.brokerTracking.length > effectiveVisibleBrokerCount;
+  const canCollapseBrokerList = effectiveVisibleBrokerCount > brokerListLimit;
 
   return (
     <div className="min-h-full bg-background/60 pb-24">
@@ -928,7 +919,7 @@ export default function DeveloperProjectAnalyticsPage({
                     <BrokerCard
                       key={broker.brokerId}
                       broker={broker}
-                      isSelected={selectedBrokerId === broker.brokerId}
+                      isSelected={effectiveSelectedBrokerId === broker.brokerId}
                       onSelect={() => {
                         setSelectedBrokerId(broker.brokerId);
                         setActiveTab("brokers");
@@ -953,7 +944,7 @@ export default function DeveloperProjectAnalyticsPage({
                     <BrokerCard
                       key={broker.brokerId}
                       broker={broker}
-                      isSelected={selectedBrokerId === broker.brokerId}
+                      isSelected={effectiveSelectedBrokerId === broker.brokerId}
                       onSelect={() => setSelectedBrokerId(broker.brokerId)}
                     />
                   ))}
@@ -963,7 +954,7 @@ export default function DeveloperProjectAnalyticsPage({
                         <div>
                           <div className="text-[13px] font-black text-foreground">قائمة الوسطاء</div>
                           <div className="mt-1 text-[12px] text-muted-foreground">
-                            يعرض {Math.min(visibleBrokerCount, analytics.brokerTracking.length)} من {analytics.brokerTracking.length} وسطاء.
+                            يعرض {effectiveVisibleBrokerCount} من {analytics.brokerTracking.length} وسطاء.
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">

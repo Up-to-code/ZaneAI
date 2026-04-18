@@ -34,17 +34,20 @@ function FadeWord({ word, delay }: { word: string; delay: number }) {
   const translateY = useSharedValue(8);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      opacity.value = withTiming(1, {
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, {
         duration: 350,
         easing: Easing.out(Easing.cubic),
-      });
-      translateY.value = withTiming(0, {
+      }),
+    );
+    translateY.value = withDelay(
+      delay,
+      withTiming(0, {
         duration: 350,
         easing: Easing.out(Easing.cubic),
-      });
-    }, delay);
-    return () => clearTimeout(timer);
+      }),
+    );
   }, [delay, opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({

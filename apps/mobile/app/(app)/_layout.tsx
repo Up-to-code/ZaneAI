@@ -31,7 +31,7 @@ export default function AppLayout() {
         contentStyle: {
           backgroundColor: colors.background,
         },
-        animation: "none",
+        animation: "fade",
       }}
     >
       <Stack.Screen name="index" />

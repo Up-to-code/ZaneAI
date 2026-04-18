@@ -14,12 +14,12 @@ export default function Navbar({ locale = "ar" }: { locale?: AppLocale }) {
                 <div className="flex items-center gap-12">
                     <a
                         href="/"
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 transition-all hover:bg-primary/20 active:scale-95"
+                        className="flex h-12 w-12 items-center justify-center transition-all hover:opacity-80 active:scale-95"
                         data-analytics-event="web_nav_clicked"
                         data-analytics-location="navbar"
                         data-analytics-href="/"
                     >
-                        <Eye className="h-7 w-7 text-primary fill-none contrast-125" />
+                        <img src="/logo.svg" alt="Zane-ai Brand" className="h-8 w-auto" />
                     </a>
                 </div>
                 <div className="flex items-center gap-4 sm:gap-8">

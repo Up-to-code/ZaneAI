@@ -1,13 +1,39 @@
 import type { AppLocale } from "./locale";
 
 export type WebDictionary = {
-  hero: {
-    title: string;
-    subtitle: string;
-  };
-  cta: {
-    title: string;
-    subtitle: string;
+  landing: {
+    heroBadge: string;
+    heroTitle: string;
+    heroDescription: string;
+    heroTryFree: string;
+    heroBookDemo: string;
+    connectiveLayer: string;
+    connectiveLayerSubtitle: string;
+    pipelineTitle: string;
+    pipelineDescription: string;
+    truthTitle: string;
+    truthDescription: string;
+    reflowTitle: string;
+    reflowDescription: string;
+    ctaTitle: string;
+    ctaDescription: string;
+    ctaButton: string;
+    metricsTitle: string;
+    metricsAUMValue: string;
+    metricsAUMText: string;
+    metricsUsersValue: string;
+    metricsUsersText: string;
+    metricsCoverageValue: string;
+    metricsCoverageText: string;
+    pillarConnectTitle: string;
+    pillarConnectDesc: string;
+    pillarAutomateTitle: string;
+    pillarAutomateDesc: string;
+    pillarScaleTitle: string;
+    pillarScaleDesc: string;
+    archTitle: string;
+    archSubtitle: string;
+    archDescription: string;
   };
   nav: {
     home: string;
@@ -558,17 +584,50 @@ export type WebDictionary = {
     talkToTeam: string;
     developerSpace: string;
   };
+  homeSearch: {
+    ready: string;
+    projects: string;
+    buy: string;
+    rent: string;
+    placeholder: string;
+  };
 };
 
 const dictionaries: Record<AppLocale, WebDictionary> = {
   ar: {
-    hero: {
-      title: "زين إيه آي",
-      subtitle: "مساحة عمل عقارية موحدة تجمع المطورين والوسطاء في تجربة أوضح للمتابعة والتنسيق والتنفيذ اليومي.",
-    },
-    cta: {
-      title: "ابدأ من نقطة واحدة واضحة",
-      subtitle: "ادخل إلى مساحة العمل لتتابع المشاريع والمحادثات والعمليات من مكان واحد منظم.",
+    landing: {
+      heroBadge: "نقود نموذجاً جديداً",
+      heroTitle: "بنية تحتية تشغيلية مدعومة بالذكاء",
+      heroDescription: "أول طبقة ربط عقارية تسحب البيانات الهيكلية مباشرة أثناء بحثك - لتمنحك بيانات دقيقة وموثوقة لتنفيذ سير عملك.",
+      heroTryFree: "جرب التطبيق مجاناً",
+      heroBookDemo: "احجز عرضاً",
+      connectiveLayer: "طبقة الربط",
+      connectiveLayerSubtitle: "مصممة لإزالة الاحتكاك بين نية العميل والتنفيذ. تعمل زين إيه آي محلياً لتزامن الطلب مباشرة.",
+      pipelineTitle: "بيانات منظمة لخط سير العمل",
+      pipelineDescription: "شاهد كيف تتطابق رغبة العميل مع المخزون المتاح، لتحوّل المحادثات إلى سجلات عملاء جاهزة للتنفيذ.",
+      truthTitle: "حقيقة لا تتغير",
+      truthDescription: "تعمل كل المقاييس كمرجع واحد حقيقي يشارك البيانات مع جميع القنوات والتقارير.",
+      reflowTitle: "تحديث فوري",
+      reflowDescription: "تنعكس أي تعديلات في التسعير أو الحالات أو المساحات فوراً على سير العمل دون تدخل بشري.",
+      ctaTitle: "انتقل من اليدوي إلى التلقائي.",
+      ctaDescription: "ابدأ في استخدام البنية التحتية خلف أقوى الشركات العقارية أداءً.",
+      ctaButton: "انشر أعمالك اليوم",
+      metricsTitle: "المقاييس المؤسسية",
+      metricsAUMValue: "$1.4B+",
+      metricsAUMText: "الأصول تحت الإدارة",
+      metricsUsersValue: "50k+",
+      metricsUsersText: "مستخدم نشط",
+      metricsCoverageValue: "120+",
+      metricsCoverageText: "منطقة تغطية",
+      pillarConnectTitle: "ربط",
+      pillarConnectDesc: "توحيد صوامع البيانات في بنية تحتية واحدة.",
+      pillarAutomateTitle: "أتمتة",
+      pillarAutomateDesc: "تحويل العمليات اليدوية إلى سير عمل ذكي.",
+      pillarScaleTitle: "توسيع",
+      pillarScaleDesc: "تمكين النمو المؤسسي من خلال الرؤى القائمة على الذكاء.",
+      archTitle: "بنية الأنظمة",
+      archSubtitle: "الطبقة الذكية",
+      archDescription: "تعمل زين إيه آي كطبقة تشغيلية ذكية تربط بين نية العميل والبيانات الهيكلية، مما يوفر مرجعاً وحيداً للحقيقة لجميع العمليات العقارية."
     },
     nav: {
       home: "الرئيسية",
@@ -1119,15 +1178,48 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       talkToTeam: "تحدث مع الفريق",
       developerSpace: "مساحة المطورين",
     },
+    homeSearch: {
+      ready: "عقارات",
+      projects: "مشاريع جديدة",
+      buy: "للبيع",
+      rent: "للايجار",
+      placeholder: "ابحث عن مكان، أو منطقة أو مدينة",
+    },
   },
   en: {
-    hero: {
-      title: "ZAYON",
-      subtitle: "A unified real-estate workspace that brings developers and brokers into one clearer flow for follow-through, coordination, and daily execution.",
-    },
-    cta: {
-      title: "Start from one clear place",
-      subtitle: "Enter the workspace to manage projects, conversations, and operations from a single organized hub.",
+    landing: {
+      heroBadge: "Leading the new paradigm",
+      heroTitle: "AI-Powered Infrastructure That Operates",
+      heroDescription: "The first real estate connective layer that pulls live structural data in real-time as you search—giving you accurate, reliable metadata to execute your workflow.",
+      heroTryFree: "Try App For Free",
+      heroBookDemo: "Book A Demo",
+      connectiveLayer: "Connective Layer",
+      connectiveLayerSubtitle: "Designed to eliminate friction between intent and execution. Zane-ai sits natively on top of Convex, synchronizing demand directly into internal operator workflows.",
+      pipelineTitle: "Structured Pipeline Data",
+      pipelineDescription: "Watch as user intent maps perfectly onto your available inventory, transforming conversations into actionable lead records inside the operator panel.",
+      truthTitle: "Immutable Truth",
+      truthDescription: "Every property metric acts as a single source of truth across all external channels and internal reports.",
+      reflowTitle: "Instant Reflow",
+      reflowDescription: "Changes to pricing, statuses, or geometry instantly reflow to team pipelines without manual re-entry.",
+      ctaTitle: "Shift from manual to automatic.",
+      ctaDescription: "Start utilizing the infrastructure behind top performing institutional real estate deployments.",
+      ctaButton: "Deploy Zane-ai Today",
+      metricsTitle: "Institutional Performance",
+      metricsAUMValue: "$1.4B+",
+      metricsAUMText: "Assets Managed",
+      metricsUsersValue: "50k+",
+      metricsUsersText: "Active Users",
+      metricsCoverageValue: "120+",
+      metricsCoverageText: "Coverage Areas",
+      pillarConnectTitle: "Connect",
+      pillarConnectDesc: "Unify fragmented data silos into a single, high-fidelity infrastructure.",
+      pillarAutomateTitle: "Automate",
+      pillarAutomateDesc: "Transform manual workflows into intelligent, autonomous operations.",
+      pillarScaleTitle: "Scale",
+      pillarScaleDesc: "Enable institutional growth via intelligence-driven asset orchestration.",
+      archTitle: "System Architecture",
+      archSubtitle: "The Intelligent Layer",
+      archDescription: "Zane AI serves as the definitive operating system bridging the gap between property intent, institutional assets, and intelligence mapping. It provides a single source of truth for complex real estate orchestration."
     },
     nav: {
       home: "Home",
@@ -1678,15 +1770,48 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       talkToTeam: "Talk to the team",
       developerSpace: "Developer space",
     },
+    homeSearch: {
+      ready: "Properties",
+      projects: "New Projects",
+      buy: "For Sale",
+      rent: "For Rent",
+      placeholder: "Search for a place, area, or city",
+    },
   },
   fr: {
-    hero: {
-      title: "ZAYON",
-      subtitle: "Un espace de travail immobilier unifié qui réunit promoteurs et courtiers dans un flux plus clair pour le suivi, la coordination et l'exécution quotidienne.",
-    },
-    cta: {
-      title: "Commencez depuis un point clair",
-      subtitle: "Entrez dans l'espace de travail pour gérer projets, conversations et opérations depuis un hub unique et organisé.",
+    landing: {
+      heroBadge: "À la pointe du nouveau modèle",
+      heroTitle: "Infrastructure Opérationnelle Propulsée par l'IA",
+      heroDescription: "La première couche conjonctive immobilière qui extrait les données structurelles en direct en temps réel à mesure que vous recherchez—vous offrant des métadonnées précises et fiables.",
+      heroTryFree: "Essayez l'application",
+      heroBookDemo: "Réserver une démo",
+      connectiveLayer: "Couche Conjonctive",
+      connectiveLayerSubtitle: "Conçu pour éliminer les frictions entre l'intention et l'exécution. Zane-ai se superpose nativement pour synchroniser la demande directement dans les flux de travail.",
+      pipelineTitle: "Données de Pipeline Structurées",
+      pipelineDescription: "Observez comment l'intention de l'utilisateur correspond parfaitement à votre inventaire disponible, transformant les conversations en enregistrements d'idées exploitables.",
+      truthTitle: "Vérité Immuable",
+      truthDescription: "Chaque métrique agit comme une seule source de vérité à travers tous les canaux externes et les rapports internes.",
+      reflowTitle: "Reflux Instantané",
+      reflowDescription: "Les modifications de prix, des statuts ou instantanément se répercutent sur les pipelines de l'équipe sans ré-entrée manuelle.",
+      ctaTitle: "Passez de manuel à automatique.",
+      ctaDescription: "Commencez à utiliser l'infrastructure derrière les déploiements de l'immobilier institutionnel les plus performants.",
+      ctaButton: "Déployer Aujourd'hui",
+      metricsTitle: "Performance Institutionnelle",
+      metricsAUMValue: "1,4 Md$+",
+      metricsAUMText: "Actifs gérés",
+      metricsUsersValue: "50k+",
+      metricsUsersText: "Utilisateurs actifs",
+      metricsCoverageValue: "120+",
+      metricsCoverageText: "Zones de couverture",
+      pillarConnectTitle: "Connecter",
+      pillarConnectDesc: "Unifier les silos de données fragmentés en une seule infrastructure haute fidélité.",
+      pillarAutomateTitle: "Automatiser",
+      pillarAutomateDesc: "Transformer les flux de travail manuels en opérations intelligentes et autonomes.",
+      pillarScaleTitle: "Évoluer",
+      pillarScaleDesc: "Permettre une croissance institutionnelle via une orchestration des actifs axée sur l'intelligence.",
+      archTitle: "Architecture du Système",
+      archSubtitle: "La Couche Intelligente",
+      archDescription: "Zane AI sert de système d'exploitation définitif comblant le fossé entre l'intention immobilière, les actifs institutionnels et la cartographie de l'intelligence. Il fournit une source unique de vérité pour l'orchestration immobilière complexe."
     },
     nav: {
       home: "Accueil",
@@ -2236,6 +2361,13 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       identityDescriptionSecondary: "C'est sur cette base que nous construisons : un produit clair, un message clair et une expérience publique qui explique la vraie valeur de l'espace que nous proposons.",
       talkToTeam: "Parler à l'équipe",
       developerSpace: "Espace promoteurs",
+    },
+    homeSearch: {
+      ready: "Immobilier",
+      projects: "Nouveaux Projets",
+      buy: "À Vendre",
+      rent: "À Louer",
+      placeholder: "Rechercher un lieu, une zone ou une ville",
     },
   },
 };

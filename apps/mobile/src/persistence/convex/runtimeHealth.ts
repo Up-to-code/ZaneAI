@@ -7,8 +7,8 @@ type RuntimeHealthSource = Omit<AgentRuntimeHealth, "status">;
 
 export function deriveAgentRuntimeHealth(health: RuntimeHealthSource): AgentRuntimeHealth {
   const llmConfigured = Boolean(health.llm?.configured);
-  const workerAvailable = health.worker?.available === true;
-  const status: AgentRuntimeHealth["status"] = llmConfigured && workerAvailable ? "ready" : "unavailable";
+  const workerUnavailable = health.worker?.available === false;
+  const status: AgentRuntimeHealth["status"] = llmConfigured && !workerUnavailable ? "ready" : "unavailable";
 
   return {
     ...health,

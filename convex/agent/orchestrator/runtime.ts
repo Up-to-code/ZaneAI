@@ -87,20 +87,23 @@ export const heartbeatWorker = mutation({
       .unique();
 
     if (existing) {
+      const wasOnline = existing.status === "online";
       await ctx.db.patch(existing._id, {
         status: "online",
         version: args.version ?? existing.version,
         lastHeartbeatAt: now,
         updatedAt: now,
       });
-      logAgentEvent("info", {
-        scope: "orchestrator_runtime",
-        event: "worker_heartbeat_recorded",
-        workerId: args.workerId,
-        workerRecordId: String(existing._id),
-        lastHeartbeatAt: now,
-        version: args.version ?? existing.version ?? null,
-      });
+      if (!wasOnline) {
+        logAgentEvent("info", {
+          scope: "orchestrator_runtime",
+          event: "worker_recovered",
+          workerId: args.workerId,
+          workerRecordId: String(existing._id),
+          lastHeartbeatAt: now,
+          version: args.version ?? existing.version ?? null,
+        });
+      }
       return existing._id;
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
 import { 
@@ -26,30 +26,10 @@ export default function WorkspaceSettingsPage() {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [organizationForm, setOrganizationForm] = useState({
-    name: "",
-    description: "",
-    website: "",
-    contactEmail: "",
-    phone: "",
-  });
   const [inviteForm, setInviteForm] = useState({
     email: "",
     role: "member" as "manager" | "member" | "viewer",
   });
-
-  useEffect(() => {
-    if (!settingsState?.organization) {
-      return;
-    }
-    setOrganizationForm({
-      name: settingsState.organization.name,
-      description: settingsState.organization.description || "",
-      website: settingsState.organization.website || "",
-      contactEmail: settingsState.organization.contactEmail || "",
-      phone: settingsState.organization.phone || "",
-    });
-  }, [settingsState?.organization]);
 
   if (!settingsState) {
     return (
@@ -128,18 +108,21 @@ export default function WorkspaceSettingsPage() {
             </div>
 
             <form
+              key={settingsState.organization._id}
               className="grid gap-8"
               onSubmit={(event) => {
                 event.preventDefault();
+                const formData = new FormData(event.currentTarget);
+                const readString = (key: string) => String(formData.get(key) ?? "").trim();
                 setPending(true);
                 setError(null);
                 setMessage(null);
                 void updateOrganization({
-                  name: organizationForm.name,
-                  description: organizationForm.description || undefined,
-                  website: organizationForm.website || undefined,
-                  contactEmail: organizationForm.contactEmail || undefined,
-                  phone: organizationForm.phone || undefined,
+                  name: readString("name"),
+                  description: readString("description") || undefined,
+                  website: readString("website") || undefined,
+                  contactEmail: readString("contactEmail") || undefined,
+                  phone: readString("phone") || undefined,
                 })
                   .then(() => setMessage("Organization profile updated successfully."))
                   .catch((cause) => setError(cause instanceof Error ? cause.message : "Unable to synchronize profile update."))
@@ -152,10 +135,10 @@ export default function WorkspaceSettingsPage() {
                     Organization Name
                   </span>
                   <input
+                    name="name"
                     type="text"
                     required
-                    value={organizationForm.name}
-                    onChange={(e) => setOrganizationForm(f => ({ ...f, name: e.target.value }))}
+                    defaultValue={settingsState.organization.name}
                     className="h-14 w-full rounded-2xl border border-[var(--zane-ai-line)] bg-transparent px-5 text-[13px] font-bold text-[var(--zane-ai-deep)] outline-none transition-all focus:border-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:focus:border-white"
                   />
                 </label>
@@ -164,9 +147,9 @@ export default function WorkspaceSettingsPage() {
                     Website Protocol
                   </span>
                   <input
+                    name="website"
                     type="url"
-                    value={organizationForm.website}
-                    onChange={(e) => setOrganizationForm(f => ({ ...f, website: e.target.value }))}
+                    defaultValue={settingsState.organization.website || ""}
                     placeholder="https://yourdomain.com"
                     className="h-14 w-full rounded-2xl border border-[var(--zane-ai-line)] bg-transparent px-5 text-[13px] font-bold text-[var(--zane-ai-deep)] outline-none transition-all focus:border-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:focus:border-white"
                   />
@@ -179,9 +162,9 @@ export default function WorkspaceSettingsPage() {
                     Contact Email
                   </span>
                   <input
+                    name="contactEmail"
                     type="email"
-                    value={organizationForm.contactEmail}
-                    onChange={(e) => setOrganizationForm(f => ({ ...f, contactEmail: e.target.value }))}
+                    defaultValue={settingsState.organization.contactEmail || ""}
                     className="h-14 w-full rounded-2xl border border-[var(--zane-ai-line)] bg-transparent px-5 text-[13px] font-bold text-[var(--zane-ai-deep)] outline-none transition-all focus:border-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:focus:border-white"
                   />
                 </label>
@@ -190,9 +173,9 @@ export default function WorkspaceSettingsPage() {
                     Phone Communication
                   </span>
                   <input
+                    name="phone"
                     type="tel"
-                    value={organizationForm.phone}
-                    onChange={(e) => setOrganizationForm(f => ({ ...f, phone: e.target.value }))}
+                    defaultValue={settingsState.organization.phone || ""}
                     className="h-14 w-full rounded-2xl border border-[var(--zane-ai-line)] bg-transparent px-5 text-[13px] font-bold text-[var(--zane-ai-deep)] outline-none transition-all focus:border-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:focus:border-white"
                   />
                 </label>
@@ -203,8 +186,8 @@ export default function WorkspaceSettingsPage() {
                   Business Description
                 </span>
                 <textarea
-                  value={organizationForm.description}
-                  onChange={(e) => setOrganizationForm(f => ({ ...f, description: e.target.value }))}
+                  name="description"
+                  defaultValue={settingsState.organization.description || ""}
                   rows={4}
                   className="w-full rounded-2xl border border-[var(--zane-ai-line)] bg-transparent px-5 py-4 text-[13px] font-bold text-[var(--zane-ai-deep)] outline-none transition-all focus:border-[var(--zane-ai-accent)] dark:border-white/10 dark:text-white dark:focus:border-white"
                 />

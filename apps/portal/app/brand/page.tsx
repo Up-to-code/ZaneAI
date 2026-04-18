@@ -1,4 +1,4 @@
-import { Section, SectionLabel } from "@/components/ui/portal";
+import { Section } from "@/components/ui/portal";
 import { FileText, Zap, User, ExternalLink } from "lucide-react";
 
 export default function BrandIdentityPage() {
@@ -27,55 +27,54 @@ export default function BrandIdentityPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-white dark:bg-black pt-24 transition-all">
-      <Section className="py-20 border-b border-border">
-        <div className="mx-auto max-w-4xl px-6 space-y-10">
-          <SectionLabel icon={Zap} className="bg-primary/5 text-primary border-primary/10 px-4 py-2">
-            Visual Intelligence
-          </SectionLabel>
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground uppercase leading-none">
-              Brand <br />
-              <span className="text-primary italic">Identity Framework.</span>
+    <main className="min-h-screen bg-white dark:bg-black pt-20 transition-all selection:bg-primary selection:text-white">
+      <Section className="py-20 lg:py-28">
+        <div className="mx-auto max-w-4xl px-6 lg:px-10 text-center space-y-12">
+          <div className="space-y-8 flex flex-col items-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-slate-50 dark:bg-zinc-900 px-4 py-1.5 text-xs font-bold text-foreground">
+                <span className="text-xl leading-none -mt-1">★</span>
+                Visual Intelligence
+            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-[5.5rem] font-bold tracking-tighter text-foreground leading-[1.05]" dir="auto">
+              Brand Identity Framework.
             </h1>
-            <p className="text-xl font-bold leading-relaxed text-muted-foreground max-w-2xl italic">
+            <p className="text-lg md:text-xl font-medium leading-relaxed text-muted-foreground max-w-2xl mx-auto pt-2" dir="auto">
               Explore the design language and technical foundations that power the Zane-ai operating layer—built for high-precision institutional property tech.
             </p>
           </div>
         </div>
       </Section>
 
-      <Section className="py-24 bg-slate-50 dark:bg-zinc-950/20 border-b border-border">
-        <div className="mx-auto max-w-[1400px] px-6">
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <Section className="py-24 bg-slate-50/50 dark:bg-zinc-950/20 border-b border-border/50 relative overflow-hidden">
+        <div className="absolute top-1/4 start-0 w-[400px] h-[400px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+        
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {assets.map((asset, i) => (
               <div 
                 key={i}
-                className="group relative rounded-[40px] border border-border bg-white dark:bg-zinc-950 p-10 overflow-hidden flex flex-col justify-between min-h-[420px] shadow-sm transition-all hover:scale-[1.02]"
+                className="group relative rounded-[2.5rem] border border-border bg-white dark:bg-black p-10 flex flex-col justify-between min-h-[420px] shadow-sm transition-all hover:border-primary/40 isolate [transform:translateZ(0)]"
               >
                 <div className="space-y-6">
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted border border-border text-muted-foreground group-hover:text-primary transition-colors">
-                    <asset.icon className="h-5 w-5" />
+                  <div className="h-12 w-12 md:h-14 md:w-14 flex items-center justify-center rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform">
+                    <asset.icon className="h-5 w-5 md:h-6 md:w-6" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black tracking-[0.2em] uppercase text-primary mb-2">
-                       {asset.tag}
-                    </p>
-                    <h2 className="text-2xl font-black uppercase tracking-tight leading-tighter">{asset.title}</h2>
-                    <p className="text-sm font-bold text-muted-foreground leading-relaxed italic mt-4">
+                    <h2 className="text-xl md:text-2xl font-black tracking-tight" dir="auto">{asset.title}</h2>
+                    <p className="text-sm md:text-base font-medium text-muted-foreground leading-relaxed mt-3 md:mt-4" dir="auto">
                         {asset.description}
                     </p>
                   </div>
                 </div>
-                <div className="pt-10">
+                <div className="pt-6 md:pt-10">
                   <a 
                     href={asset.href} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 shadow-md"
+                    className="inline-flex h-12 md:h-14 w-full items-center justify-center gap-3 rounded-full bg-black dark:bg-white text-white dark:text-black font-bold text-sm transition-all active:scale-95 hover:opacity-80 shadow-md"
                   >
                     Launch Document
-                    <ExternalLink className="h-3.5 w-3.5" />
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                 </div>
               </div>
@@ -84,13 +83,13 @@ export default function BrandIdentityPage() {
         </div>
       </Section>
 
-      <Section className="py-20">
-         <div className="mx-auto max-w-4xl px-8 p-12 rounded-[40px] bg-white dark:bg-zinc-950 border border-border text-center space-y-6">
-            <h3 className="text-xl font-black uppercase tracking-tight">Need technical assets?</h3>
-            <p className="font-bold text-muted-foreground text-sm max-w-lg mx-auto italic">
+      <Section className="py-16 md:py-24 lg:py-32">
+         <div className="mx-auto max-w-4xl px-4 sm:px-8 p-8 sm:p-12 lg:p-16 rounded-3xl md:rounded-[3rem] bg-slate-50 dark:bg-zinc-900 border border-black/5 dark:border-white/10 text-center space-y-6 md:space-y-8 flex flex-col items-center">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tighter text-foreground" dir="auto">Need technical assets?</h3>
+            <p className="font-medium text-muted-foreground text-base md:text-lg max-w-lg mx-auto" dir="auto">
               Our branding kit is designed for modular integration. If you require vectorized logos or specific color tokens, please contact our support team.
             </p>
-            <a href="/contact" className="inline-flex h-14 items-center justify-center rounded-xl border border-border px-10 text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-colors">
+            <a href="/contact" className="inline-flex h-12 md:h-14 items-center justify-center rounded-full bg-white dark:bg-black px-8 md:px-10 text-sm font-bold text-foreground hover:opacity-80 transition-opacity active:scale-95 shadow-sm border border-border mt-4">
               Contact Support
             </a>
          </div>

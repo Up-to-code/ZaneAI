@@ -38,7 +38,7 @@ export default function WebLocaleSwitcher({
             type="button"
             variant="outline"
             size="icon"
-            className={cn("h-10 w-10 rounded-[10px]", className)}
+            className={cn("h-9 w-9 rounded-full", className)}
             aria-label={dictionary.nav.switchLanguage}
             title={dictionary.nav.switchLanguage}
             disabled={isPending}

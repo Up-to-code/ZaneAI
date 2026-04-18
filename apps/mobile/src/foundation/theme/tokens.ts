@@ -7,7 +7,7 @@ export const darkColors = {
   textPrimary: "#FFFFFF",
   textSecondary: "#A3A3A3",
   textMuted: "#737373",
-  accent: "#FF3D00",
+  accent: "#EC1B23",
   success: "#22C55E",
   border: "rgba(255,255,255,0.1)",
 };
@@ -21,7 +21,7 @@ export const lightColors = {
   textPrimary: "#000000",
   textSecondary: "#52525B",
   textMuted: "#A1A1AA",
-  accent: "#FF3D00",
+  accent: "#EC1B23",
   success: "#16A34A",
   border: "rgba(0,0,0,0.05)",
 };

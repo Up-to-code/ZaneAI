@@ -10,6 +10,7 @@ import { useKeyboardDock } from "@/conversation/hooks/useKeyboardDock";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { getRuntimeDisabledReason } from "@/persistence/convex/runtimeHealth";
 import { useAppStore } from "@/store";
+import { NormalModeView } from "@/shell/components/NormalModeView";
 
 function logViewportEvent(event: string, payload: Record<string, unknown>) {
   console.info(JSON.stringify({
@@ -26,6 +27,8 @@ export function ConversationViewport() {
   const lastBannerSignatureRef = useRef<string | null>(null);
   const composerDockHeight = useAppStore((state) => state.composerDockHeight);
   const keyboardHeight = useAppStore((state) => state.keyboardHeight);
+  const operativeMode = useAppStore((state) => state.operativeMode);
+
   const {
     canUpgrade,
     clearRunFailureMessage,
@@ -65,49 +68,60 @@ export function ConversationViewport() {
     logViewportEvent("banner_state_changed", payload);
   }, [composerDisabledReason, runFailureMessage, runtimeUnavailable]);
 
+  const isAiMode = operativeMode === "ai";
+
   return (
     <View style={styles.container}>
-      <View style={[styles.feedWrap, { paddingBottom: listBottomPadding }]}>
-        {(runtimeUnavailable || runFailureMessage) ? (
-          <View style={[styles.bannerStack, { paddingTop: insets.top + 64 }]}>
-            {runtimeUnavailable ? (
-              <ConversationStatusBanner
-                title="AI unavailable"
-                body={runtimeHealth.message ?? "Convex runtime missing deploy or model config."}
-                tone="error"
-              />
-            ) : null}
+      <View style={[styles.feedWrap, { paddingBottom: isAiMode ? listBottomPadding : 0 }]}>
+        {isAiMode ? (
+          <>
+            {(runtimeUnavailable || runFailureMessage) ? (
+              <View style={[styles.bannerStack, { paddingTop: insets.top + 64 }]}>
+                {runtimeUnavailable ? (
+                  <ConversationStatusBanner
+                    title="AI unavailable"
+                    body={runtimeHealth.message ?? "Convex runtime missing deploy or model config."}
+                    tone="error"
+                  />
+                ) : null}
 
-            {runFailureMessage ? (
-              <ConversationStatusBanner
-                title="Run failed"
-                body={runFailureMessage}
-                tone="warning"
-                onDismiss={clearRunFailureMessage}
-              />
+                {runFailureMessage ? (
+                  <ConversationStatusBanner
+                    title="Run failed"
+                    body={runFailureMessage}
+                    tone="warning"
+                    onDismiss={clearRunFailureMessage}
+                  />
+                ) : null}
+              </View>
             ) : null}
-          </View>
-        ) : null}
-        <ConversationFeed
-          messages={messages}
-          runStageFeed={runStageFeed}
-          onTurnAction={handleTurnAction}
-          onSuggestionPress={sendPrompt}
-        />
+            <ConversationFeed
+              messages={messages}
+              runStageFeed={runStageFeed}
+              onTurnAction={handleTurnAction}
+              onSuggestionPress={sendPrompt}
+            />
+          </>
+        ) : (
+          <NormalModeView />
+        )}
       </View>
-      <View pointerEvents="box-none" style={[styles.dockWrap, { bottom: dockBottomOffset }]}>
-        <ZaneAiComposerDock
-          onSend={sendPrompt}
-          onStop={stop}
-          isStreaming={isStreaming}
-          disabled={runtimeUnavailable}
-          disabledReason={composerDisabledReason}
-          canUpgrade={canUpgrade}
-          onUpgrade={openUpgrade}
-          keyboardVisible={keyboardVisible}
-          messageCount={messages.length}
-        />
-      </View>
+      
+      {isAiMode && (
+        <View pointerEvents="box-none" style={[styles.dockWrap, { bottom: dockBottomOffset }]}>
+          <ZaneAiComposerDock
+            onSend={sendPrompt}
+            onStop={stop}
+            isStreaming={isStreaming}
+            disabled={runtimeUnavailable}
+            disabledReason={composerDisabledReason}
+            canUpgrade={canUpgrade}
+            onUpgrade={openUpgrade}
+            keyboardVisible={keyboardVisible}
+            messageCount={messages.length}
+          />
+        </View>
+      )}
     </View>
   );
 }
