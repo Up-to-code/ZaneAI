@@ -4,7 +4,7 @@ import { Upload, Search, Check } from "lucide-react";
 import type { UploadedFileReference } from "@/server/contracts/files";
 import type { RequirementItem, RequirementSourceLink } from "./requirements";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 type RequirementsChecklistProps = {
   countryLabel?: string | null;

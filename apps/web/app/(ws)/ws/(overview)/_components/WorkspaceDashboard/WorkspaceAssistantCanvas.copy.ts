@@ -1,4 +1,4 @@
-import type { AppLocale } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
 
 type SuggestionCopy = {
   label: string;

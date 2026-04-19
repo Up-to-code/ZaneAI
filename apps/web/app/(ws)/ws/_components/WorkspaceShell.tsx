@@ -13,7 +13,7 @@ import WorkspaceTopNavbar from "./WorkspaceTopNavbar";
 import WorkspaceMessageToasts from "./WorkspaceMessageToasts";
 import type { WorkspaceZoneKey } from "@/server/contracts/workspace";
 import type { ZaneAiProThreadSummary } from "@/server/contracts/zaneAiPro";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { getWorkspaceZonesForKeys } from "../_lib/zones";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import type { ComplianceBanner } from "../_lib/complianceBanner";
@@ -85,13 +85,13 @@ export default function WorkspaceShell({
       data-variant={chrome.variant}
       dir={direction}
       className={cn(
-        "app-shell-height app-shell-fixed-height flex h-full min-h-0 w-full flex-col overflow-hidden bg-[var(--zane-ai-background)] dark:bg-black lg:flex-row",
+        "relative isolate flex h-dvh max-h-dvh min-h-dvh w-full flex-col overflow-hidden bg-[var(--workspace-shell)] lg:flex-row",
         !chrome.isAssistantHome && "lg:overflow-hidden",
       )}
     >
       <div
         className={cn(
-          "relative hidden h-full min-h-0 shrink-0 lg:flex motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-out",
+          "relative hidden h-dvh max-h-dvh min-h-0 shrink-0 overflow-hidden lg:flex motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-out",
           sidebarCollapsed ? "w-24" : WORKSPACE_SIDEBAR_WIDTH_CLASS,
         )}
       >
@@ -111,7 +111,7 @@ export default function WorkspaceShell({
             allAssistantThreads={allAssistantThreads}
             variant={chrome.variant}
             headerAction={!sidebarCollapsed ? sidebarToggleButton : undefined}
-            className="h-full w-full overflow-hidden border-e border-[var(--zane-ai-line)] dark:border-white/10"
+            className="h-full w-full overflow-hidden border-e border-[color:var(--workspace-border)] bg-[var(--workspace-chrome-sidebar-bg)]"
           />
         </div>
         {sidebarCollapsed ? (
@@ -127,7 +127,7 @@ export default function WorkspaceShell({
         ) : null}
         <div
           className={cn(
-            "hidden h-full w-full flex-col items-center border-e border-[var(--zane-ai-line)] bg-[var(--zane-ai-background)] dark:border-white/10 dark:bg-black px-2 pb-4 lg:flex motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out",
+            "hidden h-full w-full flex-col items-center border-e border-[color:var(--workspace-border)] bg-[var(--workspace-chrome-sidebar-bg)] px-2 pb-4 lg:flex motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out",
             collapsedRailPaddingTopClassName,
             sidebarCollapsed
               ? "translate-x-0 opacity-100"
@@ -138,7 +138,7 @@ export default function WorkspaceShell({
           <div className="flex w-full flex-col items-center gap-2">
             <Link
               href="/ws"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5 active:scale-95"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-transparent text-foreground transition hover:bg-[var(--workspace-elevated)] active:scale-95"
               aria-label={dictionary.nav.newChat}
               title={dictionary.nav.newChat}
             >
@@ -155,7 +155,7 @@ export default function WorkspaceShell({
                 return (
                   <div
                     key={item.href}
-                    className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] opacity-30 dark:border-white/5 dark:text-white/40 cursor-not-allowed group"
+                    className="relative inline-flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-transparent text-foreground opacity-30"
                     title={`${item.label} (Coming Soon)`}
                   >
                     <Icon className="h-4 w-4" />
@@ -171,8 +171,8 @@ export default function WorkspaceShell({
                   className={cn(
                     "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition-all active:scale-95",
                     isActive
-                      ? "border-[var(--zane-ai-deep)] bg-[var(--zane-ai-deep)] text-white dark:border-white dark:bg-white dark:text-black"
-                      : "border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] hover:bg-[var(--zane-ai-surface)] dark:border-white/10 dark:text-white dark:hover:bg-white/5",
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-[color:var(--workspace-border)] bg-transparent text-foreground hover:bg-[var(--workspace-elevated)]",
                   )}
                   aria-label={item.label}
                   title={item.label}
@@ -185,7 +185,7 @@ export default function WorkspaceShell({
         </div>
       </div>
 
-      <div className="relative flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col bg-[var(--zane-ai-surface)] dark:bg-[#0A0A0A] lg:overflow-hidden">
+      <div className="relative flex h-dvh max-h-dvh min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--workspace-canvas)]">
         <WorkspaceTopNavbar
           user={user}
           organization={organization}
@@ -207,15 +207,15 @@ export default function WorkspaceShell({
 
         <main
           className={cn(
-            "flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col motion-safe:animate-zone-page-enter",
+            "min-h-0 min-w-0 flex-1 motion-safe:animate-zone-page-enter",
             chrome.isAssistantHome ? "overflow-hidden" : "overflow-auto",
           )}
         >
           <div
             data-slot="workspace-content"
             className={cn(
-              "flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col",
-              isAssistantVariant ? "pt-0" : undefined,
+              "min-h-full min-w-0 w-full",
+              isAssistantVariant ? "flex flex-col pt-0" : undefined,
             )}
           >
             {children}

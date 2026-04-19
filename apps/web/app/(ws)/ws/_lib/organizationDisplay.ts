@@ -1,4 +1,4 @@
-import type { AppLocale } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
 import { getWebDictionary } from "@/lib/i18n";
 
 type OrganizationDisplayInput = {

@@ -3,8 +3,8 @@
 import { memo } from "react"
 import { ArrowUpLeft } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { formatLocaleNumber } from "@/lib/locale";
-import { cn } from "@/lib/utils";
+import { formatLocaleNumber } from "@/lib/i18n";
+import { cn } from "@/lib/i18n";
 import type {
   DealShareMetadata,
   FileShareMetadata,

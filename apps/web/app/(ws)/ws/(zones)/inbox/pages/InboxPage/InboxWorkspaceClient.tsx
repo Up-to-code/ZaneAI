@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PanelLeftOpen } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { UploadedFileReference } from "@/server/contracts/files";
 import type { OfferActionResult } from "@/server/contracts/offers";
 import type { IncomingOrganizationInvite } from "@/server/contracts/organizations";

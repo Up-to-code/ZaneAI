@@ -24,7 +24,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { formatLocaleDateTime } from "@/lib/locale";
+import { formatLocaleDateTime } from "@/lib/i18n";
 import {
   buildClientRequirementViewModel,
   buildWhatsAppHref,

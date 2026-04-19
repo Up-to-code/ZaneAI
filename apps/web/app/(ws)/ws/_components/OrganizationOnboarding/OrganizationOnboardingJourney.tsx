@@ -104,7 +104,7 @@ export default function OrganizationOnboardingJourney({
   const shouldShowGreeting = greetingName.trim().length > 0;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 py-10">
+    <div className="w-full space-y-8 py-10 px-6 lg:px-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
         <div className="space-y-1.5">
           <div className="text-xl font-black tracking-tight text-foreground">رحلة التفعيل</div>

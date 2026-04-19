@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpLeft, Check, Clock3, FileText, MapPin, Shield, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { OfferEventMetadata } from "@/server/contracts/inbox";
 import type { OfferLiveState } from "@/server/contracts/offers";
 

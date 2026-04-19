@@ -2,7 +2,7 @@
 
 import { AgUiTurnRenderer as PackageAgUiTurnRenderer } from "@zaneai/ag-ui/react";
 import type { ZaneAiProUiTurn } from "@/server/contracts/zaneAiPro";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 /**
  * WHY:   The workspace chat surface still needs a local renderer entrypoint even after the AG UI package extraction.

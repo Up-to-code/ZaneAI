@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import SidebarContent from "./SidebarContent";
 import type { SidebarProps } from "./types";
 
@@ -26,7 +26,7 @@ export default function Sidebar({
     <Component
       data-slot={mode === "desktop" ? "workspace-sidebar-desktop" : "workspace-sidebar-drawer"}
       aria-labelledby={titleId}
-      className={cn("flex min-h-0 flex-col", mode === "desktop" ? "h-full" : "h-full w-full", className)}
+      className={cn("flex min-h-0 flex-col overflow-hidden", mode === "desktop" ? "h-full max-h-full" : "h-full w-full", className)}
     >
       <SidebarContent
         user={user}

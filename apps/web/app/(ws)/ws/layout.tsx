@@ -4,7 +4,7 @@ export default function WorkspaceRootLayout({ children }: { children: React.Reac
   return (
     <div
       data-slot="workspace-root-layout"
-      className="workspace-root-chrome flex h-full min-h-0 min-w-0 w-full flex-1 basis-0 flex-col"
+      className="workspace-root-chrome flex h-dvh max-h-dvh min-h-0 min-w-0 w-full flex-col overflow-hidden"
     >
       <WorkspaceRootClient>{children}</WorkspaceRootClient>
     </div>

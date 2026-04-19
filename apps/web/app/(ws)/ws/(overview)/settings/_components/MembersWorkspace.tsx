@@ -8,7 +8,7 @@ import InviteMemberForm from "./InviteMemberForm";
 import OrganizationMemberCard from "../../../_components/Visuals/OrganizationMemberCard";
 import type { OrganizationInviteDisplay, OrganizationMemberDisplay } from "../../../_lib/entities";
 import { getOrganizationMemberRoleLabel } from "../../../_lib/organizationMembers";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { formatWebCopy } from "@/lib/i18n";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import type { DirectorySearchResult } from "@/server/contracts/organizations";

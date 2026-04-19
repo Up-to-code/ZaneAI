@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Building2, Briefcase, UserRound } from "lucide-react";
 import type { OfferOrganizationSummary, OffersDirectoryProfile } from "@/server/contracts/organizations";
 import OfferPaginationNav from "../../shared/components/OfferPaginationNav";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 export type DirectoryEntityFilter = "businessPersons" | "organizationPeople";
 

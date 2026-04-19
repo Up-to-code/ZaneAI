@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { DirectorySearchResult } from "@/server/contracts/organizations";
 
 type DirectoryResult = DirectorySearchResult;

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { SidebarUser } from "../Sidebar/types";
 import type { WorkspaceOrganizationDisplay } from "../../_lib/organizationDisplay";
 import type { ZoneShellData } from "../../_lib/zones";

@@ -2,7 +2,7 @@
 
 import React, { memo } from "react";
 import { AIMotionLogo, type AIMotionState } from "../AIMotion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { UploadedFileReference } from "@/server/contracts/files";
 import { MarkdownContent } from "@/components/ui/markdown-content";
 import {

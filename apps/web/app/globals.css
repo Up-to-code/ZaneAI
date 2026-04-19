@@ -48,6 +48,7 @@
 
 :root {
   --zane-ai-deep: #000000;
+  --zane-ai-background: #FFFFFF;
   --zane-ai-surface: #FAFAFA;
   --zane-ai-surface-strong: #F4F4F5;
   --zane-ai-accent: #EC2D35;
@@ -111,6 +112,7 @@
 
 .dark {
   --zane-ai-deep: #FFFFFF;
+  --zane-ai-background: #000000;
   --zane-ai-surface: #0A0A0A;
   --zane-ai-surface-strong: #121212;
   --zane-ai-accent: #EC2D35;

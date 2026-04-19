@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 /**
  * WHY:   AG UI cards should look consistent across assistant pages in both light and dark themes.

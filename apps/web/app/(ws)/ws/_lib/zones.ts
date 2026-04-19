@@ -8,7 +8,7 @@ import {
   Mail,
 } from "lucide-react";
 import { getWebDictionary } from "@/lib/i18n";
-import type { AppLocale } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
 import type { WorkspaceZoneKey } from "@/server/contracts/workspace";
 
 export type WorkspaceRole = string | null | undefined;

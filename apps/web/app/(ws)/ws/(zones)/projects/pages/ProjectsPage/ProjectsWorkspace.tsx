@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { Plus, Building2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/lib/convexApi";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import FilterChipBar from "../../../../_components/Visuals/FilterChipBar";
 import AgUnitCard from "@/app/(ws)/ws/_components/Visuals/AgUnitCard";
@@ -32,18 +30,22 @@ export default function ProjectsWorkspace({
   const [projects] = useState(initialProjects);
   const [filterKey, setFilterKey] = useState("projects"); // Default to projects view
 
-  const allUnits = useQuery(api.workspaceUnits.listWorkspaceUnits, {});
-
-  const filteredProjects = useMemo(
+  const allUnits = useMemo(
     () =>
-      projects.filter((project: WorkspaceProject) => {
-        return true; // Simplified, now handled by projects vs units view
-      }),
+      projects.flatMap((project) =>
+        project.units.map((unit) => ({
+          ...unit,
+          projectId: project.id,
+          projectTitle: project.title,
+        })),
+      ),
     [projects],
   );
 
+  const filteredProjects = useMemo(() => projects, [projects]);
+
   return (
-    <div className="mx-auto flex w-full max-w-[1500px] flex-col px-6 py-6 lg:px-16 lg:py-10">
+    <div className="flex w-full flex-col gap-6 px-6 py-6 lg:px-8 lg:py-8">
       
       {/* ── Header: Portfolio Engine ── */}
       <div className="mb-10 flex flex-col justify-between gap-6 lg:mb-12 lg:flex-row lg:items-end">
@@ -100,26 +102,21 @@ export default function ProjectsWorkspace({
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-             {allUnits === undefined ? (
-               <div className="col-span-full py-12 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">
-                  Loading available context...
-               </div>
-             ) : (
-               <>
-                 {allUnits.map((unit: any) => (
+             <>
+                 {allUnits.map((unit) => (
                     <AgUnitCard
-                      key={unit._id}
-                      id={unit._id}
+                      key={`${unit.projectId}-${unit.id}`}
+                      id={unit.id}
                       label={unit.label}
-                      unitType={unit.unitType}
-                      typeLabel={(dictionary.units as any)[unit.unitType] ?? unit.unitType}
-                      floor={unit.floor}
+                      unitType="apartment"
+                      typeLabel={unit.projectTitle}
+                      floor={null}
                       bedrooms={unit.bedrooms}
                       bathrooms={unit.bathrooms}
-                      area={unit.area}
+                      area={typeof unit.area === "number" ? `${unit.area}` : unit.area}
                       priceLabel={unit.priceLabel}
-                      status={unit.status}
-                      statusLabel={(dictionary.units as any)[unit.status] ?? unit.status}
+                      status="available"
+                      statusLabel={dictionary.units.available}
                     />
                  ))}
                  {allUnits.length === 0 && (
@@ -130,7 +127,6 @@ export default function ProjectsWorkspace({
                    </div>
                  )}
                </>
-             )}
           </div>
         )}
       </div>

@@ -15,7 +15,7 @@ import {
   validateSupportedAttachmentFiles,
 } from "@/app/(ws)/ws/_components/attachments/attachmentPresentation";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { useUploadThing } from "@/lib/uploadthing";
 import type { UploadedFileReference } from "@/server/contracts/files";
 import type { ConversationDetail } from "@/server/contracts/inbox";

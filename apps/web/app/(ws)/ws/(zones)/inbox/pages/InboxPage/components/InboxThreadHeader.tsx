@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Archive, ArrowRight, Building2, FileUp, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Tag } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { resolveAvatarImageUrl } from "@/lib/avatarImage";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { ConversationDetail } from "@/server/contracts/inbox";
 import type { InboxShareAction } from "./InboxComposerActions";
 

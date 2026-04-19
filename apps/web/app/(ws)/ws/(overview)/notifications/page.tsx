@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import Link from "next/link";
 import ZonePageIntro from "../../_components/ZoneShell/ZonePageIntro";
-import { getLocaleDateFormat } from "@/lib/locale";
+import { getLocaleDateFormat } from "@/lib/i18n";
 import { getWorkspaceLocaleContext } from "../../_lib/workspaceLocale";
 import { demoNotifications } from "../../_lib/demoData";
 import NotificationOpenLink from "../../_components/NotificationOpenLink";

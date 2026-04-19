@@ -1,5 +1,5 @@
 import { getWebDictionary } from "@/lib/i18n";
-import type { AppLocale } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
 import type { WorkspaceZoneKey } from "@/server/contracts/workspace";
 import { getWorkspaceZonesForKeys } from "./zones";
 

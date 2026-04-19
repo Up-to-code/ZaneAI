@@ -1,15 +1,12 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { SidebarProps } from "./types";
-import { PenSquare, LifeBuoy, MessageSquare, Moon, Globe, Check } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getWorkspaceZonesForKeys } from "../../_lib/zones";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import ThemeToggle from "@/app/_components/ThemeToggle";
-import WebLocaleSwitcher from "@/app/_components/WebLocaleSwitcher";
 
 export default function SidebarContent({
-  user,
   organization,
   visibleZoneKeys,
   recentAssistantThreads,
@@ -28,12 +25,13 @@ export default function SidebarContent({
   void onNavigate;
   const zones = getWorkspaceZonesForKeys(visibleZoneKeys ?? ["overview"], locale);
 
-  const threads = (recentAssistantThreads || []).slice(0, 4).map(t => ({
-    id: String("_id" in t ? t._id : (t as any).id),
-    title: ("title" in t ? (t as any).title : null) || "Assistant Thread",
+  const threads = (recentAssistantThreads || []).slice(0, 4).map((thread) => ({
+    id: thread.id,
+    title: thread.title || "Assistant Thread",
   }));
 
-  const SIDEBAR_SHELL_CLASS = "bg-[var(--zane-ai-background)] text-[var(--zane-ai-deep)] dark:bg-black dark:text-white";
+  const SIDEBAR_SHELL_CLASS =
+    "bg-[var(--workspace-chrome-sidebar-bg)] text-foreground";
   const searchParams = useSearchParams();
   void searchParams;
   const router = useRouter();
@@ -50,13 +48,13 @@ export default function SidebarContent({
   return (
     <div
       className={cn(
-        "flex min-h-full flex-col",
+        "flex h-full min-h-0 flex-col",
         SIDEBAR_SHELL_CLASS,
         mode === "desktop" ? "h-full" : "w-full overflow-y-auto overflow-x-hidden",
       )}
     >
       {/* ── Mode Switcher & Header ───────────────────────────── */}
-      <div className="flex h-16 lg:h-20 shrink-0 items-center justify-between border-b border-[var(--zane-ai-line)] px-4 lg:px-6 dark:border-white/10">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-[color:var(--workspace-border)] px-4 lg:h-[72px] lg:px-6">
         <div className="flex min-w-0 items-center gap-3 lg:gap-4">
           {mode === "desktop" ? headerAction : null}
           <div className="min-w-0 flex flex-col justify-center pt-1">
@@ -72,7 +70,7 @@ export default function SidebarContent({
           <Link
             href="/ws"
             prefetch={false}
-            className="flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center border border-[var(--zane-ai-line)] bg-transparent text-[var(--zane-ai-deep)] transition-all hover:bg-[var(--zane-ai-deep)] hover:text-white active:scale-95 dark:border-white/10 dark:text-white dark:hover:bg-white dark:hover:text-black"
+            className="flex h-9 w-9 items-center justify-center border border-[color:var(--workspace-border)] bg-transparent text-foreground transition-all hover:bg-foreground hover:text-background active:scale-95 lg:h-10 lg:w-10"
             title="New Context"
           >
             <MessageSquare className="h-4 w-4" />
@@ -82,7 +80,7 @@ export default function SidebarContent({
 
       {/* ── Mode Switcher & Header ───────────────────────────── */}
       <div className="px-4 lg:px-6 py-4">
-        <div className="flex h-10 w-full items-center rounded-full border border-[var(--zane-ai-line)] bg-[var(--zane-ai-background)] p-1 dark:border-white/10 dark:bg-black">
+        <div className="flex h-10 w-full items-center rounded-full border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-1">
           <button
             onClick={() => handleModeToggle(false)}
             className={cn(
@@ -118,20 +116,20 @@ export default function SidebarContent({
       {/* ── Navigation ────────────────────────────────────── */}
       <nav
         aria-label={dictionary.nav.workspaceNavigation}
-        className="flex-1 overflow-y-auto px-4 lg:px-6 py-2 flex flex-col gap-8 lg:gap-10 pb-10"
+        className="min-h-0 flex-1 overflow-y-auto px-4 lg:px-6 py-2 flex flex-col gap-8 lg:gap-10 pb-10"
       >
         <div className="flex flex-col">
           <h3 className="mb-3 lg:mb-4 text-[9px] font-black uppercase tracking-[0.24em] text-[var(--zane-ai-text-muted)] dark:text-white/40">
             {dictionary.nav.operationsLabel}
           </h3>
-          <ul className="flex flex-col border-t border-[var(--zane-ai-line)] dark:border-white/10">
+          <ul className="flex flex-col border-t border-[color:var(--workspace-border)]">
             {zones.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
               const isComingSoon = item.comingSoon;
 
               return (
-                <li key={item.label} className="flex flex-col border-b border-[var(--zane-ai-line)] dark:border-white/10 w-full">
+                <li key={item.label} className="flex w-full flex-col border-b border-[color:var(--workspace-border)]">
                   {isComingSoon ? (
                     <div
                       className="flex items-center gap-3 lg:gap-4 px-2 py-3 lg:py-4 transition-all w-full leading-none opacity-40 cursor-not-allowed"
@@ -148,7 +146,7 @@ export default function SidebarContent({
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 lg:gap-4 px-2 py-3 lg:py-4 transition-all w-full leading-none group",
+                        "group relative flex w-full items-center gap-3 px-2 py-3 leading-none transition-all lg:gap-4 lg:py-4",
                         isActive
                           ? "bg-transparent text-[var(--zane-ai-deep)] dark:text-white"
                           : "bg-transparent text-[var(--zane-ai-deep)] dark:text-white hover:opacity-70 active:scale-[0.98]"
@@ -158,7 +156,7 @@ export default function SidebarContent({
                       <span className={cn("flex-1 truncate text-[11px] font-black uppercase tracking-[0.2em] transition-colors", isActive ? "text-[var(--zane-ai-accent)]" : "")}>
                         {item.label}
                       </span>
-                      {isActive && <div className="h-1.5 w-1.5 rounded-full bg-[var(--zane-ai-accent)] absolute right-4 lg:right-6 mix-blend-difference" />}
+                      {isActive && <div className="absolute end-2 h-1.5 w-1.5 rounded-full bg-[var(--zane-ai-accent)] mix-blend-difference" />}
                     </Link>
                   )}
                 </li>
@@ -172,9 +170,9 @@ export default function SidebarContent({
             <h3 className="mb-3 lg:mb-4 text-[9px] font-black uppercase tracking-[0.24em] text-[var(--zane-ai-text-muted)] dark:text-white/40">
               {dictionary.nav.contextsAndThreads}
             </h3>
-            <ul className="flex flex-col border-t border-[var(--zane-ai-line)] dark:border-white/10">
+            <ul className="flex flex-col border-t border-[color:var(--workspace-border)]">
               {threads.map((thread) => (
-                <li key={thread.id} className="flex flex-col border-b border-[var(--zane-ai-line)] dark:border-white/10 w-full">
+                <li key={thread.id} className="flex w-full flex-col border-b border-[color:var(--workspace-border)]">
                   <Link
                     href={`/ws/c/${thread.id}`}
                     className="flex items-center gap-3 lg:gap-4 px-2 py-3 lg:py-4 transition-all w-full leading-none group tooltip"

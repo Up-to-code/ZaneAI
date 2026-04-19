@@ -10,8 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getLocaleLabel, WEB_SUPPORTED_LOCALES } from "@/lib/locale";
-import { cn } from "@/lib/utils";
+import { getLocaleLabel, WEB_SUPPORTED_LOCALES } from "@/lib/i18n";
+import { cn } from "@/lib/i18n";
 import { useWebLocale } from "./WebLocaleProvider";
 
 export default function WebLocaleSwitcher({

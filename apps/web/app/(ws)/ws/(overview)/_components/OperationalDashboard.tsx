@@ -2,9 +2,21 @@
 
 import Link from "next/link";
 import { Building2, ArrowRight, Zap, ShieldCheck, Globe, LifeBuoy } from "lucide-react";
-import { cn } from "@/lib/utils";
+import type { WorkspaceAudience } from "@/server/contracts/workspace";
 
-export default function OperationalDashboard({ workspaceState }: { workspaceState: any }) {
+type OperationalDashboardState = {
+  audience: Extract<WorkspaceAudience, "broker" | "developer">;
+  organization: {
+    name: string;
+  } | null;
+  metrics: {
+    propertyCount: number;
+    publishedPropertyCount: number;
+    draftPropertyCount: number;
+  };
+};
+
+export default function OperationalDashboard({ workspaceState }: { workspaceState: OperationalDashboardState }) {
   const isDeveloper = workspaceState.audience === "developer";
   const headline = isDeveloper
     ? "Distribute high-fidelity inventory across the partner network."
@@ -14,7 +26,7 @@ export default function OperationalDashboard({ workspaceState }: { workspaceStat
     : "Real estate brokers and teams coordinate inventory access, relationship movement, and automated offer sequences in real-time.";
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col px-6 py-12 lg:px-16 lg:py-24 animate-in fade-in duration-700">
+    <div className="flex w-full flex-col px-6 py-10 lg:px-16 lg:py-20 animate-in fade-in duration-700">
       
       {/* ── Meta-Information Header ───────────────────────────── */}
       <div className="mb-16 flex flex-col items-start gap-8 lg:mb-24">
@@ -27,7 +39,7 @@ export default function OperationalDashboard({ workspaceState }: { workspaceStat
           <h1 className="text-6xl font-black uppercase tracking-[-0.02em] text-[var(--zane-ai-deep)] dark:text-white sm:text-7xl lg:text-[120px] leading-[0.9] transition-all">
             {workspaceState.organization?.name}
           </h1>
-          <div className="flex max-w-5xl flex-col items-start gap-8 lg:flex-row lg:items-center">
+          <div className="flex w-full flex-col items-start gap-8 lg:flex-row lg:items-center">
             <p className="flex-1 text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white/90 lg:text-3xl lg:leading-tight">
               {headline}
             </p>

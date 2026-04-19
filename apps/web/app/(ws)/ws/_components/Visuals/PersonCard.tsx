@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { PersonBadge, PersonCardType, PersonRelation } from "../../_lib/entities";
 import type { BrokerPresence } from "./BrokerPresenceChip";
 

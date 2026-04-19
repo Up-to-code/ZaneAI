@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { PersonBadge, PersonCardType, PersonRelation } from "../../_lib/entities";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 export type BrokerPresence = {
   id: string;

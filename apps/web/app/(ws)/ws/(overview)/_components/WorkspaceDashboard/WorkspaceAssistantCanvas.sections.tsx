@@ -16,7 +16,7 @@ import type { SessionUser } from "@/server/contracts/session";
 import type { WorkspaceAudience } from "@/server/contracts/workspace";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { BrainCircuit, Target, CheckSquare, Wand2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { StickToBottomContext } from "use-stick-to-bottom";
 import { getWorkspaceAssistantLandingCopy } from "./WorkspaceAssistantCanvas.copy";

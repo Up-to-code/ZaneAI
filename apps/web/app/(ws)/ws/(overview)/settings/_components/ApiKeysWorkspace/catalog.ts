@@ -11,7 +11,7 @@ import {
 import {
   formatLocaleDateTime,
   type AppLocale,
-} from "@/lib/locale";
+} from "@/lib/i18n";
 
 const resourceIcons: Record<OrganizationApiKeyResource, LucideIcon> = {
   clients: Users,

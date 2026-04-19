@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getWebDictionary } from "@/lib/i18n";
-import { resolveLocale, type AppLocale, WORKSPACE_LOCALE_COOKIE } from "@/lib/locale";
+import { resolveLocale, type AppLocale, WORKSPACE_LOCALE_COOKIE } from "@/lib/i18n";
 
 /**
  * WHY:   Workspace routes should not inherit the public site's locale preference unless the user explicitly changes the workspace language.

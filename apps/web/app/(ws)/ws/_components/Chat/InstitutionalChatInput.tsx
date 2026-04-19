@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef } from "react";
 import { ArrowUp, Mic, Search, Sparkles, Loader2, Paperclip } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 

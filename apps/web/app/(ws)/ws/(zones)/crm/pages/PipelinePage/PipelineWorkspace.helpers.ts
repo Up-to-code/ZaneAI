@@ -1,5 +1,5 @@
-import type { AppLocale } from "@/lib/locale";
-import { formatLocaleDateTime } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
+import { formatLocaleDateTime } from "@/lib/i18n";
 import type { PipelineStage } from "../../types/crmTypes";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;

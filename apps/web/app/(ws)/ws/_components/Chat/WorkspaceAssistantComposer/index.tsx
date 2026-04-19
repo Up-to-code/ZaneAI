@@ -12,7 +12,7 @@ import {
   getAttachmentPresentationMeta,
   validateSupportedAttachmentFiles,
 } from "@/app/(ws)/ws/_components/attachments/attachmentPresentation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { motion, AnimatePresence } from "framer-motion";
 import type { UploadedFileReference } from "@/server/contracts/files";
 import { finalizeAssistantUploads, getAssistantUploadUrl } from "@/app/(ws)/ws/(overview)/_components/WorkspaceDashboard/actions";

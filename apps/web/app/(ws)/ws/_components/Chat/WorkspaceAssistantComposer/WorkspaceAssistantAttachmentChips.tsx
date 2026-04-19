@@ -5,7 +5,7 @@ import {
   formatAttachmentSize,
   getAttachmentPresentationMeta,
 } from "@/app/(ws)/ws/_components/attachments/attachmentPresentation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 
 export type PendingWorkspaceAttachment = {

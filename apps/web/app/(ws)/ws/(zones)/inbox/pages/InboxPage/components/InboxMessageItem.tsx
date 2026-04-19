@@ -2,7 +2,7 @@
 
 import { Clock3 } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import {
   dealShareMetadataSchema,
   fileShareMetadataSchema,

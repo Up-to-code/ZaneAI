@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 const ACCENT_STYLES = {
   blue: {

@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { ShieldCheck, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { BrokerPresence } from "./BrokerPresenceChip";
 
 const STATE_ACCENT: Record<BrokerPresence["state"], { border: string; dot: string; label: string; text: string }> = {

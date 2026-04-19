@@ -4,7 +4,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { Copy, KeyRound, Plus, X } from "lucide-react";
 import type { FormEvent } from "react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { OrganizationApiKeyPermission } from "@/lib/auth/organizationPermissions";
 import { getActionCatalog, getPermissionCatalog, permissionKey } from "./catalog";
 

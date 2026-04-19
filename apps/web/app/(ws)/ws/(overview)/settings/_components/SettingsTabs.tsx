@@ -1,14 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import { Building2, KeyRound, PlugZap, ShieldCheck, Users } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
+
+type SettingsTabIcon = "building" | "shield" | "users" | "plug" | "key";
+
+const settingsTabIcons: Record<SettingsTabIcon, React.ComponentType<{ className?: string }>> = {
+  building: Building2,
+  shield: ShieldCheck,
+  users: Users,
+  plug: PlugZap,
+  key: KeyRound,
+};
 
 type SettingsTabItem = {
   key: string;
   label: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: SettingsTabIcon;
 };
 
 interface SettingsTabsProps {
@@ -42,7 +53,7 @@ export default function SettingsTabs({ tabs, defaultTab }: SettingsTabsProps) {
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
           const href = buildSettingsHref(pathname, searchParams, tab.key);
-          const Icon = tab.icon;
+          const Icon = tab.icon ? settingsTabIcons[tab.icon] : null;
           return (
             <Link
               key={tab.key}

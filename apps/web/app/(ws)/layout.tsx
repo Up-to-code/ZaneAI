@@ -1,9 +1,6 @@
 import { WebLocaleProvider } from "../_components/WebLocaleProvider";
 import { getWebDictionary } from "@/lib/i18n";
 import { getWorkspaceLocale } from "./ws/_lib/workspaceLocale";
-import WorkspaceHeader from "../../components/WorkspaceHeader";
-import ThemeToggle from "../_components/ThemeToggle";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +17,9 @@ export default async function WorkspaceGroupLayout({ children }: { children: Rea
     <WebLocaleProvider locale={locale} dictionary={dictionary}>
       <div
         data-slot="workspace-group-layout"
-        className="flex h-full min-h-screen min-h-dvh min-w-0 w-full flex-1 basis-0 flex-col"
+        className="flex h-dvh max-h-dvh min-h-dvh w-full flex-col overflow-hidden"
       >
-        <WorkspaceHeader />
-        <main className="flex-1 overflow-auto">
+        <main className="min-h-0 flex-1 w-full overflow-hidden">
           {children}
         </main>
       </div>

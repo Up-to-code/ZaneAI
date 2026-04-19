@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import styles from "./AIMotionLogo.module.css";
 import type { AIMotionSize, AIMotionState } from "./types";
 

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
-import type { AppLocale } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
 import { getWebDictionary } from "@/lib/i18n";
 import { isWebAuthConfigured } from "@/lib/auth/runtime";
 import { authClient, useSession, signIn, signUp } from "@/lib/auth/webAuthClient";

@@ -1,5 +1,5 @@
-import type { AppLocale } from "@/lib/locale";
-import { getLocaleNumberFormat } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
+import { getLocaleNumberFormat } from "@/lib/i18n";
 import { parsePropertyBody, type PropertyDetail } from "@/server/contracts/properties";
 import type { OfferPropertyOption, WorkspaceOfferSummary } from "../../types/offerTypes";
 

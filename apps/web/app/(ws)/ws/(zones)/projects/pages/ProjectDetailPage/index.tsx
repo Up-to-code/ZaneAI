@@ -376,7 +376,7 @@ export default function ProjectDetailPage({
 
   return (
     <div className="min-h-full bg-background/60 pb-24">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-6 lg:px-8 lg:py-8">
+      <div className="flex w-full flex-col gap-6 px-6 py-6 lg:px-8 lg:py-8">
         <nav className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/ws/projects"

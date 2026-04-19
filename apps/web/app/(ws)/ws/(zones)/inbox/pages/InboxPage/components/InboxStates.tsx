@@ -3,7 +3,7 @@
 import { memo } from "react"
 import { MessageCircleMore } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 /**
  * WHY:   Inbox users need a calm default state when no thread is currently opened in the thread panel.

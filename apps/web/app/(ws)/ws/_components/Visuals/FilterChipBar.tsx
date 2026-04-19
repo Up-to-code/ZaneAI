@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 export type FilterChip = {
   key: string;

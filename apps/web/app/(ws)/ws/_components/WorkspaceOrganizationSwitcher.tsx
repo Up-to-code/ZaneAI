@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 
 /**

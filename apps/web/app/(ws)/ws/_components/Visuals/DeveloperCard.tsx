@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Building2, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 export type DeveloperCardData = {
   id: string;

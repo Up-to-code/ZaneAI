@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { authClient } from "@/lib/auth/webAuthClient";
 
 type WorkspaceSignOutActionProps = {

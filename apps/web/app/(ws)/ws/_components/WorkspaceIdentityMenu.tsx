@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { resolveAvatarImageUrl } from "@/lib/avatarImage";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import type { WorkspaceOrganizationDisplay } from "../_lib/organizationDisplay";
 import type { SidebarUser } from "./Sidebar/types";

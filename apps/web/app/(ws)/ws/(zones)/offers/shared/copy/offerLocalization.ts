@@ -1,5 +1,5 @@
-import type { AppLocale } from "@/lib/locale";
-import { formatLocaleNumber } from "@/lib/locale";
+import type { AppLocale } from "@/lib/i18n";
+import { formatLocaleNumber } from "@/lib/i18n";
 
 type OfferUiCopy = {
   overview: {

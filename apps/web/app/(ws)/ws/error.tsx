@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { isRtlLocale } from "@/lib/locale";
+import { isRtlLocale } from "@/lib/i18n";
 import { ShieldAlert, RotateCcw, Home, Terminal } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 /**
  * WHY:   System failures must be handled with the same precision as the primary UI.

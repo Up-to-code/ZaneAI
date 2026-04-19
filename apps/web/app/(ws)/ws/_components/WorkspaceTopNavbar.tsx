@@ -7,7 +7,7 @@ import WebLocaleSwitcher from "@/app/_components/WebLocaleSwitcher";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import type { WorkspaceZoneKey } from "@/server/contracts/workspace";
 import type { WorkspaceOrganizationDisplay } from "../_lib/organizationDisplay";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { SidebarUser } from "./Sidebar/types";
 import ThemeToggle from "@/app/_components/ThemeToggle";
 import type { ComplianceBanner } from "../_lib/complianceBanner";
@@ -21,7 +21,7 @@ const HEADER_ACTION_BASE_CLASS_NAME =
 const HEADER_ICON_ACTION_CLASS_NAME = HEADER_ACTION_BASE_CLASS_NAME;
 
 const DEFAULT_HEADER_CLASS_NAME =
-  "h-16 lg:h-18 border-b border-[color:var(--zane-ai-line)] bg-background/80 backdrop-blur-md px-4 lg:px-8 dark:border-white/5 dark:bg-black/80";
+  "h-16 lg:h-[72px] border-b border-[color:var(--workspace-border)] bg-[var(--workspace-chrome-header-bg)] px-4 backdrop-blur-xl lg:px-8";
 
 export default function WorkspaceTopNavbar({
   user,
@@ -62,8 +62,30 @@ export default function WorkspaceTopNavbar({
         DEFAULT_HEADER_CLASS_NAME
       )}
     >
-      <div className="flex min-w-0 items-center gap-3 lg:gap-4">
+      <div className="flex min-w-0 items-center gap-3 lg:gap-6">
         {mobileNavigation ? <div className="lg:hidden">{mobileNavigation}</div> : null}
+        
+        {/* Brand Identity: Pure Canvas Anchor */}
+        <Link 
+          href="/ws" 
+          className="group relative hidden items-center gap-3 transition-all hover:opacity-100 lg:flex"
+        >
+          {/* Subtle Branding Glow */}
+          <div className="absolute -inset-1.5 -z-10 bg-[var(--zane-ai-accent)]/5 blur-xl transition-all duration-500 group-hover:bg-[var(--zane-ai-accent)]/10" />
+          
+          <div className="relative flex items-center gap-3">
+            <img 
+              src="/brand-logo.svg" 
+              alt="ZANE-AI" 
+              className="h-[20px] w-auto transition-transform duration-500 group-hover:scale-110" 
+            />
+            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--zane-ai-deep)] transition-colors duration-300 group-hover:text-[var(--zane-ai-accent)] dark:text-white">
+              Zane-AI
+            </span>
+          </div>
+          
+          <span className="mx-4 h-4 w-px bg-[var(--zane-ai-line)] transition-colors dark:bg-white/10" aria-hidden="true" />
+        </Link>
         {isAssistantVariant ? (
           <div className={cn("flex min-w-0 items-center gap-2 lg:gap-3", isRtl ? "flex-row-reverse" : "flex-row")}>
             <h1 className="truncate text-[11px] lg:text-[12px] font-extrabold uppercase tracking-[0.2em] text-[var(--zane-ai-deep)] dark:text-white">{resolvedTitle}</h1>
@@ -97,7 +119,6 @@ export default function WorkspaceTopNavbar({
             count={signalCounts.notificationCount}
             href="/ws/notifications"
             icon={<Bell className="h-4 w-4" />}
-            variant={variant}
           />
           {canUseInbox ? (
             <SignalButton
@@ -106,7 +127,6 @@ export default function WorkspaceTopNavbar({
               href="/ws/inbox"
               isActive={isInboxActive}
               icon={<Mail className="h-4 w-4" />}
-              variant={variant}
             />
           ) : null}
         </div>
@@ -140,17 +160,13 @@ function SignalButton({
   href,
   icon,
   isActive,
-  variant = "default",
 }: {
   label: string;
   count: number;
   href: string;
   icon: React.ReactNode;
   isActive?: boolean;
-  variant?: WorkspaceShellVariant;
 }) {
-  const isAssistantVariant = variant === "assistant";
-
   return (
     <Link
       href={href}

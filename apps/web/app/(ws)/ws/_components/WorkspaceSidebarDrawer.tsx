@@ -9,7 +9,7 @@ import type { WorkspaceOrganizationDisplay } from "../_lib/organizationDisplay";
 import type { WorkspaceZoneKey } from "@/server/contracts/workspace";
 import type { ZaneAiProThreadSummary } from "@/server/contracts/zaneAiPro";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 
 /**
  * WHY:   Small screens need reliable access to workspace navigation without depending on the desktop sidebar rail.

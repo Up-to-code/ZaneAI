@@ -6,8 +6,8 @@ import type { ChangeEvent, Dispatch, MutableRefObject, SetStateAction } from "re
 import { AttachmentStageCard } from "@/app/(ws)/ws/_components/attachments/AttachmentStageCard";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { formatWebCopy } from "@/lib/i18n";
-import { formatLocaleNumber } from "@/lib/locale";
-import { cn } from "@/lib/utils";
+import { formatLocaleNumber } from "@/lib/i18n";
+import { cn } from "@/lib/i18n";
 import {
   getQuickActionUnavailableMessage,
   resolveComposerLanguage,

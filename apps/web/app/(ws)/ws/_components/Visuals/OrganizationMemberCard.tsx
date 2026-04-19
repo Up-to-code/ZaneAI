@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Mail } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/i18n";
 import type { OrganizationSummary } from "@/server/contracts/organizations";
 import type { OrganizationMemberDisplay } from "../../_lib/entities";
 import {

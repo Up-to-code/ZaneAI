@@ -14,7 +14,7 @@ import {
   RequirementsChecklist,
 } from "../../../_components/OrganizationOnboarding/VerificationDocsStep.parts";
 import { filterRequirements } from "../../../_components/OrganizationOnboarding/requirements";
-import { formatLocaleDateTime } from "@/lib/locale";
+import { formatLocaleDateTime } from "@/lib/i18n";
 import { formatWebCopy } from "@/lib/i18n";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 
