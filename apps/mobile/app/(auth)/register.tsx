@@ -137,7 +137,7 @@ export default function RegisterScreen() {
               <Text style={styles.subtitle}>
                 {canUpgrade
                   ? "Create account. Anonymous chats and saved properties move with you."
-                  : "Create your Zane-ai account for seamless synchronization."}
+                  : "Create your ZaneAI account for seamless synchronization."}
               </Text>
             </Animated.View>
 

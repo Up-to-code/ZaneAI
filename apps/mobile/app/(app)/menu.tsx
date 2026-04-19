@@ -1,13 +1,12 @@
 import { StyleSheet, View, Pressable, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
-import { ArrowRight, Search, Settings, Bookmark, Scale, User, MapPin, Plus, ChevronRight, X } from "lucide-react-native";
+import { AlertTriangle, ArrowRight, Search, Settings, Bookmark, Scale, Plus, ChevronRight, X } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { createE2EThread } from "@/e2e/store";
 import { api } from "@/persistence/convex/api";
@@ -171,6 +170,14 @@ export default function MenuScreen() {
               <Pressable style={styles.listItem} onPress={() => router.navigate("/(app)/profile")}>
                 <View style={styles.itemIconBox}><Settings size={18} color={colors.textPrimary} /></View>
                 <Text variant="body" style={styles.itemLabel}>User Settings</Text>
+                <ChevronRight size={14} color={colors.textMuted} />
+              </Pressable>
+
+              <View style={styles.divider} />
+
+              <Pressable style={styles.listItem} onPress={() => router.navigate("/(app)/errors")}>
+                <View style={styles.itemIconBox}><AlertTriangle size={18} color={colors.textPrimary} /></View>
+                <Text variant="body" style={styles.itemLabel}>Error Screens</Text>
                 <ChevronRight size={14} color={colors.textMuted} />
               </Pressable>
             </View>

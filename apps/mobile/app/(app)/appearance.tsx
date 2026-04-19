@@ -46,7 +46,7 @@ export default function AppearanceScreen() {
         <View style={styles.hero}>
           <Text variant="display" style={styles.heroTitle}>Choose your viewing mode</Text>
           <Text tone="secondary" style={styles.heroCopy}>
-            Apply changes instantly across the app. Select System to keep Zane-ai synced with your device setting.
+            Apply changes instantly across the app. Select System to keep ZaneAI synced with your device setting.
           </Text>
         </View>
 

@@ -1,18 +1,17 @@
 import { ScrollView, StyleSheet, View, Pressable, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Search, SlidersHorizontal, MapPin, BedDouble, Bath } from "lucide-react-native";
+import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Image } from "expo-image";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
+import { EmptyPropertiesState } from "@/decision/components/EmptyPropertiesState";
+import { PropertyCard } from "@/decision/components/PropertyCard";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useCandidateProperties } from "@/persistence/convex/usePropertyData";
-import type { PropertyCardVM } from "@/types/domain";
-import { Building2 } from "lucide-react-native";
 
 const FILTERS = ["All", "For Sale", "For Rent", "Villas", "Apartments", "Studios"];
 
@@ -106,63 +105,23 @@ export default function ListingScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40, paddingTop: insets.top + 120 }]}
         showsVerticalScrollIndicator={false}
       >
-        {properties.map((property, index) => (
-          <Animated.View 
-            key={property.id} 
-            entering={FadeInDown.delay(index * 100).duration(400)}
-          >
-            <HorizontalPropertyCard property={property} colors={colors} styles={styles} router={router} />
-          </Animated.View>
-        ))}
+        {properties.length === 0 ? (
+          <EmptyPropertiesState
+            title="No properties found"
+            body="Try a different search or filter to see more homes."
+          />
+        ) : (
+          properties.map((property, index) => (
+            <Animated.View
+              key={property.id}
+              entering={FadeInDown.delay(index * 100).duration(400)}
+            >
+              <PropertyCard property={property} style={styles.propertyCard} />
+            </Animated.View>
+          ))
+        )}
       </ScrollView>
     </Screen>
-  );
-}
-
-function HorizontalPropertyCard({ property, colors, styles, router }: { property: PropertyCardVM; colors: any; styles: any; router: any }) {
-  return (
-    <Pressable 
-      testID={`property.card.${property.id}`}
-      style={styles.hzCard}
-      onPress={() => router.push(`/(app)/property/${property.id}`)}
-    >
-      <Image source={property.heroUrl} style={styles.hzImage} contentFit="cover" />
-      
-      <View style={styles.hzContent}>
-        <View style={styles.hzHeader}>
-          <Text variant="title" style={{ color: colors.textPrimary, fontSize: 16 }}>{property.priceLabel}</Text>
-          <View style={[styles.hzMatchBadge, { backgroundColor: colors.accent }]}>
-            <Text style={styles.hzMatchText}>{property.matchScore}%</Text>
-          </View>
-        </View>
-        
-        <Text tone="secondary" variant="caption" numberOfLines={1} style={styles.hzTitle}>{property.title}</Text>
-        
-        <View style={styles.hzLocationRow}>
-          <MapPin size={10} color={colors.accent} />
-          <Text tone="muted" variant="caption" style={{ fontSize: 10 }}>{property.locationLabel}</Text>
-        </View>
-
-        <View style={styles.hzBrokerBadge}>
-          <Building2 size={10} color={colors.textSecondary} />
-          <Text tone="secondary" variant="caption" style={{ fontSize: 9 }}>Zane-ai Realty</Text>
-        </View>
-
-        <View style={styles.hzMetricsRow}>
-          <View style={styles.hzMetric}>
-            <BedDouble size={12} color={colors.textSecondary} />
-            <Text tone="secondary" variant="caption">{property.beds}</Text>
-          </View>
-          <View style={styles.hzMetric}>
-            <Bath size={12} color={colors.textSecondary} />
-            <Text tone="secondary" variant="caption">{property.baths}</Text>
-          </View>
-          <View style={styles.hzAreaBlock}>
-            <Text tone="secondary" variant="caption" style={{ fontSize: 10 }}>{property.area} sqft</Text>
-          </View>
-        </View>
-      </View>
-    </Pressable>
   );
 }
 
@@ -201,7 +160,10 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   scrollContent: {
     paddingTop: 180, // Space for larger header with search
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: 0,
+  },
+  propertyCard: {
+    marginHorizontal: theme.spacing.lg,
   },
   searchBox: {
     flex: 1,
@@ -239,79 +201,5 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   filterText: {
     color: colors.textPrimary,
-  },
-  hzCard: {
-    flexDirection: "row",
-    backgroundColor: colors.surface,
-    borderRadius: theme.radii.lg,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    marginBottom: theme.spacing.md,
-    overflow: "hidden",
-    height: 140, // Increased for comfortable height
-  },
-  hzImage: {
-    width: 140, // Match width to height
-    height: "100%",
-  },
-  hzContent: {
-    flex: 1,
-    padding: theme.spacing.md, // increased padding
-    justifyContent: "space-between",
-  },
-  hzHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  hzMatchBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  hzMatchText: {
-    color: colors.background,
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  hzTitle: {
-    marginVertical: 2,
-  },
-  hzLocationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 4,
-  },
-  hzBrokerBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.surfaceRaised,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-    marginBottom: 4,
-  },
-  hzMetricsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    paddingTop: theme.spacing.xs,
-  },
-  hzMetric: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  hzAreaBlock: {
-    marginLeft: "auto",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: 4,
   },
 });

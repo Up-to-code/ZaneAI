@@ -37,7 +37,7 @@ export const mockProperties: PropertyCardVM[] = [
     broker: {
       id: "brk-01",
       name: "Tariq Mansour",
-      agency: "Zane-ai Elite Realty",
+      agency: "ZaneAI Elite Realty",
       avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&h=256&q=80",
       rating: 4.9,
       activeListingsCount: 14,
@@ -134,7 +134,7 @@ export const mockProperties: PropertyCardVM[] = [
     broker: {
       id: "brk-01",
       name: "Tariq Mansour",
-      agency: "Zane-ai Elite Realty",
+      agency: "ZaneAI Elite Realty",
       avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&h=256&q=80",
       rating: 4.9,
       activeListingsCount: 14,

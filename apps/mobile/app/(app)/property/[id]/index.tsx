@@ -271,7 +271,7 @@ export default function PropertyDetailScreen() {
         )}
 
         <View style={styles.sectionHeader}>
-          <Text variant="title" style={styles.sectionTitle}>Zane-ai Intelligence</Text>
+          <Text variant="title" style={styles.sectionTitle}>ZaneAI Intelligence</Text>
         </View>
 
         <View style={styles.cardGroup}>

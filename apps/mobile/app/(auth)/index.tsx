@@ -96,7 +96,7 @@ export default function AuthScreen() {
           <View style={styles.typewriterWrap}>
             <TypewriterText
               phrases={[
-                "Zane-ai searching...",
+                "ZaneAI searching...",
                 "Comparing properties.",
                 "And more in the app.",
               ]}

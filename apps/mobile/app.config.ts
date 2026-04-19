@@ -56,21 +56,39 @@ const authUrl = normalizeUrlEnvValue(
 ) ?? "";
 
 const config: ExpoConfig = {
-  name: "Zane-ai",
+  name: "ZaneAI",
   slug: "zane-ai-mobile",
   scheme: "zane-ai",
   version: "0.1.0",
   orientation: "portrait",
   userInterfaceStyle: "automatic",
+  icon: "./assets/brand/zaneai-mobile-icon.png",
+  splash: {
+    image: "./assets/brand/zaneai-splash-icon.png",
+    resizeMode: "contain",
+    backgroundColor: "#EC2D35",
+    dark: {
+      image: "./assets/brand/zaneai-splash-icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#EC2D35",
+    },
+  },
   experiments: {
     typedRoutes: true,
   },
   ios: {
     supportsTablet: false,
-    bundleIdentifier: "com.zayon.mobile",
+    bundleIdentifier: "com.zaneai.mobile",
   },
   android: {
-    package: "com.zayon.mobile",
+    package: "com.zaneai.mobile",
+    adaptiveIcon: {
+      foregroundImage: "./assets/brand/zaneai-adaptive-icon.png",
+      backgroundColor: "#EC2D35",
+    },
+  },
+  web: {
+    favicon: "./assets/brand/favicon.png",
   },
   plugins: [
     "expo-font",
@@ -78,8 +96,8 @@ const config: ExpoConfig = {
     [
       "expo-speech-recognition",
       {
-        microphonePermission: "Allow Zane-ai to use the microphone for voice search and guided prompts.",
-        speechRecognitionPermission: "Allow Zane-ai to transcribe your speech into real estate prompts.",
+        microphonePermission: "Allow ZaneAI to use the microphone for voice search and guided prompts.",
+        speechRecognitionPermission: "Allow ZaneAI to transcribe your speech into real estate prompts.",
       },
     ],
   ],
@@ -87,7 +105,7 @@ const config: ExpoConfig = {
     convexUrl,
     authUrl,
     brand: {
-      name: "Zane-ai",
+      name: "ZaneAI",
       tagline: "The intelligent center of real estate.",
     },
   },

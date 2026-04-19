@@ -41,6 +41,7 @@ export default function AppLayout() {
       <Stack.Screen name="appearance" />
       <Stack.Screen name="compare" />
       <Stack.Screen name="listing" />
+      <Stack.Screen name="errors" />
       <Stack.Screen name="property/[id]" />
       <Stack.Screen name="broker/[id]" />
     </Stack>

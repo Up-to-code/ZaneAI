@@ -1,24 +1,22 @@
 import { ScrollView, StyleSheet, View, Pressable, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { PropertyCard } from "@/decision/components/PropertyCard";
-import { Bookmark, Search, ArrowLeft } from "lucide-react-native";
+import { Search, ArrowLeft } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
+import { EmptyPropertiesState } from "@/decision/components/EmptyPropertiesState";
+import { PropertyCard } from "@/decision/components/PropertyCard";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useSavedProperties } from "@/persistence/convex/usePropertyData";
-import { useAuthSession } from "@/auth/useAuthSession";
 import type { PropertyCardVM } from "@/types/domain";
 
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { user } = useAuthSession();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -67,15 +65,10 @@ export default function SavedScreen() {
         showsVerticalScrollIndicator={false}
       >
         {filteredProperties.length === 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIconWrap}>
-              <Bookmark size={48} color={colors.accent} strokeWidth={1} />
-            </View>
-            <Text variant="title" style={styles.emptyTitle}>No Favorites Yet</Text>
-            <Text variant="body" tone="muted" style={styles.emptySub}>
-              Properties you bookmark will materialize here as a curated collection.
-            </Text>
-          </View>
+          <EmptyPropertiesState
+            title="No favorites yet"
+            body="Save properties from the heart button and they will appear here."
+          />
         ) : (
           <View style={styles.list}>
             {filteredProperties.map((p: PropertyCardVM, i: number) => (
@@ -84,7 +77,7 @@ export default function SavedScreen() {
                 entering={FadeInDown.delay(i * 100).springify()}
                 style={styles.cardItem}
               >
-                <PropertyCard property={p} />
+                <PropertyCard property={p} style={styles.propertyCard} />
               </Animated.View>
             ))}
           </View>
@@ -161,30 +154,8 @@ const createStyles = (colors: any) => StyleSheet.create({
   cardItem: {
     width: "100%",
   },
-  emptyState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 80,
-    gap: 12,
-  },
-  emptyIconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.accent + "10",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-  emptySub: {
-    textAlign: "center",
-    maxWidth: 260,
-    lineHeight: 22,
+  propertyCard: {
+    marginHorizontal: 0,
+    marginBottom: 0,
   },
 });

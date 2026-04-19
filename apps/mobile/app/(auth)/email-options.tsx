@@ -46,7 +46,7 @@ export default function EmailOptionsScreen() {
               Welcome Back
             </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Securely sign in to your Zane-ai account or create a new one to get started.
+              Securely sign in to your ZaneAI account or create a new one to get started.
             </Text>
           </Animated.View>
 
