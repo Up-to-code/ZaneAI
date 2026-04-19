@@ -92,8 +92,8 @@ export default function WorkspaceShell({
       <div
         data-slot="workspace-sidebar-rail"
         className={cn(
-          "sticky inset-y-0 top-0 z-20 hidden h-dvh max-h-dvh min-h-0 shrink-0 overflow-hidden lg:flex motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-out",
-          sidebarCollapsed ? "w-24" : WORKSPACE_SIDEBAR_WIDTH_CLASS,
+          "sticky inset-y-0 top-0 z-20 hidden h-dvh max-h-dvh min-h-0 shrink-0 lg:flex motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-out",
+          sidebarCollapsed ? "w-[72px]" : WORKSPACE_SIDEBAR_WIDTH_CLASS,
         )}
       >
         <div
@@ -128,7 +128,7 @@ export default function WorkspaceShell({
         ) : null}
         <div
           className={cn(
-            "hidden h-full w-full flex-col items-center border-e border-[color:var(--workspace-border)] bg-[var(--workspace-chrome-sidebar-bg)] px-2 pb-4 lg:flex motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out",
+            "hidden h-full w-full flex-col items-center border-e border-[color:var(--workspace-border)] bg-[var(--workspace-chrome-sidebar-bg)] px-1.5 pb-4 lg:flex motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out",
             collapsedRailPaddingTopClassName,
             sidebarCollapsed
               ? "translate-x-0 opacity-100"
@@ -136,17 +136,17 @@ export default function WorkspaceShell({
           )}
           aria-hidden={!sidebarCollapsed}
         >
-          <div className="flex w-full flex-col items-center gap-2">
+          <div className="flex w-full flex-col items-center gap-1.5">
             <Link
               href="/ws"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-transparent text-foreground transition hover:bg-[var(--workspace-elevated)] active:scale-95"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-transparent text-foreground transition hover:bg-[var(--workspace-elevated)] active:scale-95"
               aria-label={dictionary.nav.newChat}
               title={dictionary.nav.newChat}
             >
-              <PenSquare className="h-4 w-4" />
+              <PenSquare className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <nav aria-label={dictionary.nav.workspaceNavigation} className="mt-8 flex w-full flex-1 flex-col items-center gap-4">
+          <nav aria-label={dictionary.nav.workspaceNavigation} className="mt-4 flex w-full min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto overflow-x-hidden">
             {visibleZones.map((item) => {
               const Icon = item.icon;
               const isActive = matchesWorkspacePath(pathname, item.href);
@@ -156,11 +156,11 @@ export default function WorkspaceShell({
                 return (
                   <div
                     key={item.href}
-                    className="relative inline-flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-transparent text-foreground opacity-30"
+                    className="relative inline-flex h-10 w-10 shrink-0 cursor-not-allowed items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-transparent text-foreground opacity-30"
                     title={`${item.label} (Coming Soon)`}
                   >
-                    <Icon className="h-4 w-4" />
-                    <div className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-[var(--zane-ai-accent)]" />
+                    <Icon className="h-3.5 w-3.5" />
+                    <div className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-[var(--zane-ai-accent)]" />
                   </div>
                 );
               }
@@ -170,7 +170,7 @@ export default function WorkspaceShell({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "inline-flex h-11 w-11 items-center justify-center rounded-xl border transition-all active:scale-95",
+                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all active:scale-95",
                     isActive
                       ? "border-foreground bg-foreground text-background"
                       : "border-[color:var(--workspace-border)] bg-transparent text-foreground hover:bg-[var(--workspace-elevated)]",
@@ -178,7 +178,7 @@ export default function WorkspaceShell({
                   aria-label={item.label}
                   title={item.label}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5" />
                 </Link>
               );
             })}
@@ -209,8 +209,8 @@ export default function WorkspaceShell({
         <main
           data-slot="workspace-route-scrollport"
           className={cn(
-            "min-h-0 min-w-0 flex-1",
-            chrome.isAssistantHome ? "overflow-hidden" : "overflow-auto",
+            "min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden",
+            chrome.isAssistantHome && "bg-[var(--workspace-shell)]",
           )}
         >
           <div

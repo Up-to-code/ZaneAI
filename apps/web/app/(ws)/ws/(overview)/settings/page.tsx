@@ -5,9 +5,10 @@ import { formatWebCopy } from "@/lib/i18n";
 import { listCurrentOrganizationApiKeysForCurrentUser } from "@/server/domains/auth/organizationApiKeys/service";
 import { listAuthorizedAppsForCurrentOrganization } from "@/server/domains/auth/oauth/service";
 import { getComplianceRulesetForCurrentOrg } from "@/server/domains/compliance/service";
+import type { OrganizationApiKeySummary } from "@/server/contracts/organizationApiKeys";
+import type { OAuthAuthorizedAppSummary } from "@/server/contracts/oauth";
 import SettingsHeader from "./_components/SettingsHeader";
 import SettingsTabs from "./_components/SettingsTabs";
-import SettingsOverviewStrip from "./_components/SettingsOverviewStrip";
 import OrganizationSettingsWorkspace from "./_components/OrganizationSettingsWorkspace";
 import MembersWorkspace from "./_components/MembersWorkspace";
 import ApiKeysWorkspace from "./_components/ApiKeysWorkspace";
@@ -44,32 +45,7 @@ function resolveTabKey(value: string | undefined): SettingsTabKey {
   return settingsTabs.some((tab) => tab.key === value) ? (value as SettingsTabKey) : "org";
 }
 
-function getOverviewLabels(locale: "ar" | "en" | "fr") {
-  if (locale === "fr") {
-    return {
-      currentSection: "Section",
-      members: "Membres",
-      invites: "Invitations",
-      currentRole: "Role actuel",
-    };
-  }
 
-  if (locale === "en") {
-    return {
-      currentSection: "Current section",
-      members: "Members",
-      invites: "Invites",
-      currentRole: "Current role",
-    };
-  }
-
-  return {
-    currentSection: "القسم الحالي",
-    members: "الأعضاء",
-    invites: "الدعوات",
-    currentRole: "الدور الحالي",
-  };
-}
 
 function isManagerRole(role: string | null | undefined) {
   return role === "manager";
@@ -106,9 +82,26 @@ export default async function WorkspaceSettingsPage({
   const canRevokeApiKeys = canManage;
   const showLegacyNotice = readSearchParam(resolvedSearchParams, "source") === "legacy-account-apps";
 
-  const apiKeys = activeTab === "api-keys" ? await listCurrentOrganizationApiKeysForCurrentUser() : [];
-  const apps = activeTab === "apps" ? await listAuthorizedAppsForCurrentOrganization() : [];
-  const complianceRuleset = activeTab === "verification" ? await getComplianceRulesetForCurrentOrg() : null;
+  let apiKeys: OrganizationApiKeySummary[] = [];
+  try {
+    apiKeys = activeTab === "api-keys" ? await listCurrentOrganizationApiKeysForCurrentUser() : [];
+  } catch (error) {
+    console.error("API Keys fetch failed:", error);
+  }
+
+  let apps: OAuthAuthorizedAppSummary[] = [];
+  try {
+    apps = activeTab === "apps" ? await listAuthorizedAppsForCurrentOrganization() : [];
+  } catch (error) {
+    console.error("Apps fetch failed:", error);
+  }
+
+  let complianceRuleset = null;
+  try {
+    complianceRuleset = activeTab === "verification" ? await getComplianceRulesetForCurrentOrg() : null;
+  } catch (error) {
+    console.error("Compliance fetch failed:", error);
+  }
 
   const roleLabel =
     team.currentMembershipRole === "manager" ||
@@ -131,23 +124,47 @@ export default async function WorkspaceSettingsPage({
         onUpdateRole={updateOrganizationMemberRoleAction}
       />
     ) : activeTab === "api-keys" ? (
-      <ApiKeysWorkspace
-        initialKeys={apiKeys}
-        canCreate={canCreateApiKeys}
-        canRevoke={canRevokeApiKeys}
-        canView={canViewApiKeys}
-        hasOrganization={Boolean(organization)}
-        onCreateKey={createOrganizationApiKeyAction}
-        onRevokeKey={revokeOrganizationApiKeyAction}
-      />
+      <div className="relative min-h-[400px]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-[var(--workspace-shell)]/40 backdrop-blur-xl transition-all">
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-[11px] font-black uppercase tracking-[0.4em] text-[var(--zane-ai-deep)] dark:text-white">
+              {locale === "ar" ? "قادم قريباً" : "Coming Soon"}
+            </span>
+            <div className="h-0.5 w-12 bg-[var(--zane-ai-accent)]" />
+          </div>
+        </div>
+        <div className="pointer-events-none select-none opacity-50 contrast-75 saturate-50">
+          <ApiKeysWorkspace
+            initialKeys={apiKeys}
+            canCreate={canCreateApiKeys}
+            canRevoke={canRevokeApiKeys}
+            canView={canViewApiKeys}
+            hasOrganization={Boolean(organization)}
+            onCreateKey={createOrganizationApiKeyAction}
+            onRevokeKey={revokeOrganizationApiKeyAction}
+          />
+        </div>
+      </div>
     ) : activeTab === "apps" ? (
-      <OrganizationAppsWorkspace
-        initialApps={apps}
-        canManage={canManage}
-        hasOrganization={Boolean(organization)}
-        showLegacyNotice={showLegacyNotice}
-        onRevokeApp={revokeOrganizationConnectedAppAction}
-      />
+      <div className="relative min-h-[400px]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-[var(--workspace-shell)]/40 backdrop-blur-xl transition-all">
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-[11px] font-black uppercase tracking-[0.4em] text-[var(--zane-ai-deep)] dark:text-white">
+              {locale === "ar" ? "قادم قريباً" : "Coming Soon"}
+            </span>
+            <div className="h-0.5 w-12 bg-[var(--zane-ai-accent)]" />
+          </div>
+        </div>
+        <div className="pointer-events-none select-none opacity-50 contrast-75 saturate-50">
+          <OrganizationAppsWorkspace
+            initialApps={apps}
+            canManage={canManage}
+            hasOrganization={Boolean(organization)}
+            showLegacyNotice={showLegacyNotice}
+            onRevokeApp={revokeOrganizationConnectedAppAction}
+          />
+        </div>
+      </div>
     ) : activeTab === "verification" ? (
       <OrganizationVerificationWorkspace
         organization={organization}
@@ -165,7 +182,7 @@ export default async function WorkspaceSettingsPage({
     );
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="flex w-full flex-col p-6 lg:p-10 animate-in fade-in duration-500 gap-6">
       <SettingsHeader
         title={dictionary.settings.title}
         description={formatWebCopy(dictionary.settings.membersSummary, {
@@ -177,13 +194,7 @@ export default async function WorkspaceSettingsPage({
         dir={locale === "ar" ? "rtl" : "ltr"}
       />
       <SettingsTabs tabs={tabs} defaultTab="org" />
-      <SettingsOverviewStrip
-        currentTabLabel={dictionary.settings[currentTab.labelKey]}
-        membersCount={members.length}
-        invitesCount={invites.length}
-        roleLabel={roleLabel}
-        labels={getOverviewLabels(locale)}
-      />
+
       <div className="min-h-0">{content}</div>
     </div>
   );

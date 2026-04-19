@@ -17,16 +17,16 @@ const PageHeaderComponent = function PageHeader({
   actions,
 }: PageHeaderProps) {
   return (
-    <header className={cn("flex items-start justify-between gap-4 border-b-2 border-slate-100 pb-6 dark:border-slate-800", className)}>
+    <header className={cn("flex items-start justify-between gap-4 border-b border-[color:var(--workspace-border)] pb-6", className)}>
       <div className="space-y-3">
-        <div className="text-xs font-black uppercase tracking-widest text-blue-600">
+        <div className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--zane-ai-accent)]">
           {eyebrow}
         </div>
-        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+        <h1 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-3xl">
           {title}
         </h1>
         {description && (
-          <div className="max-w-xl text-sm font-semibold leading-relaxed text-slate-700 dark:text-slate-300">
+          <div className="max-w-xl text-[12px] font-medium leading-relaxed tracking-wider text-[var(--zane-ai-text-muted)] dark:text-white/50">
             {description}
           </div>
         )}

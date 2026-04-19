@@ -5,7 +5,7 @@ import { v } from "convex/values";
 import { internal } from "../../_generated/api";
 import type { Doc } from "../../_generated/dataModel";
 import { query } from "../../_generated/server";
-import { requireAuthUserId } from "../../auth/requireAuth";
+import { getOptionalAuthUserId } from "../../auth/requireAuth";
 import { agentComponent } from "../lib/component";
 import { findThreadAccess } from "../lib/threadAccess";
 
@@ -47,7 +47,11 @@ function emptyPaginationResult<T>(cursor: string | null): PaginationResult<T> {
 export const getThreadMessages = query({
   args: { threadId: v.string(), paginationOpts: paginationOptsValidator },
   handler: async (ctx, args): Promise<PaginationResult<ThreadMessageWithMetadata>> => {
-    const authUserId = await requireAuthUserId(ctx);
+    const authUserId = await getOptionalAuthUserId(ctx);
+    if (!authUserId) {
+      return emptyPaginationResult(args.paginationOpts.cursor);
+    }
+
     const thread = await findThreadAccess(ctx, args.threadId, authUserId);
     if (!thread) {
       return emptyPaginationResult(args.paginationOpts.cursor);

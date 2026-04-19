@@ -16,7 +16,7 @@ import type { WorkspaceShellVariant } from "../_lib/workspaceChrome";
 
 
 const DEFAULT_HEADER_CLASS_NAME =
-  "sticky top-0 z-30 h-16 lg:h-[72px] border-b border-[color:var(--workspace-border)] bg-[var(--workspace-chrome-header-bg)] px-4 backdrop-blur-xl lg:px-8";
+  "sticky top-0 z-30 h-14 lg:h-16 border-b border-[color:var(--workspace-border)] bg-[var(--workspace-chrome-header-bg)] px-4 backdrop-blur-xl lg:px-8";
 
 export default function WorkspaceTopNavbar({
   user,
@@ -70,7 +70,7 @@ export default function WorkspaceTopNavbar({
               height={20}
               className="h-[20px] w-auto transition-transform duration-500 group-hover:scale-110" 
             />
-            <span className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--zane-ai-deep)] transition-colors duration-300 group-hover:text-[var(--zane-ai-accent)] dark:text-white">
+            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[var(--zane-ai-deep)] transition-colors duration-300 group-hover:text-[var(--zane-ai-accent)] dark:text-white">
               Zane-AI
             </span>
           </div>
@@ -79,8 +79,8 @@ export default function WorkspaceTopNavbar({
         </Link>
         {isAssistantVariant ? (
           <div className={cn("flex min-w-0 items-center gap-2 lg:gap-3", isRtl ? "flex-row-reverse" : "flex-row")}>
-            <h1 className="truncate text-[11px] lg:text-[12px] font-extrabold uppercase tracking-[0.2em] text-[var(--zane-ai-deep)] dark:text-white">{resolvedTitle}</h1>
-            <span className="h-2 w-px shrink-0 bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
+            <h1 className="truncate text-[10px] lg:text-[11px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-deep)] dark:text-white">{resolvedTitle}</h1>
+            <span className="h-3 w-px shrink-0 bg-[var(--zane-ai-line)] dark:bg-white/10" aria-hidden="true" />
             <p
               className={cn(
                 "hidden max-w-[20rem] truncate text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--zane-ai-text-muted)] sm:block dark:text-white/40",
@@ -92,7 +92,7 @@ export default function WorkspaceTopNavbar({
             </p>
           </div>
         ) : (
-          <h1 className="truncate text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--zane-ai-deep)] dark:text-white lg:text-[13px]">{resolvedTitle}</h1>
+          <h1 className="truncate text-[10px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-deep)] dark:text-white lg:text-[11px]">{resolvedTitle}</h1>
         )}
       </div>
 

@@ -8,7 +8,7 @@ import { cn } from "@/lib/i18n";
 
 type SettingsTabIcon = "building" | "shield" | "users" | "plug" | "key";
 
-const settingsTabIcons: Record<SettingsTabIcon, React.ComponentType<{ className?: string }>> = {
+const settingsTabIcons: Record<SettingsTabIcon, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   building: Building2,
   shield: ShieldCheck,
   users: Users,
@@ -46,10 +46,10 @@ export default function SettingsTabs({ tabs, defaultTab }: SettingsTabsProps) {
 
   return (
     <div
-      className="pb-1"
+      className="mt-2"
       dir={locale === "ar" ? "rtl" : "ltr"}
     >
-      <nav className="flex flex-wrap gap-2" aria-label="Tabs">
+      <nav className="flex flex-wrap gap-8 border-b border-[color:var(--workspace-border)]" aria-label="Tabs">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
           const href = buildSettingsHref(pathname, searchParams, tab.key);
@@ -60,14 +60,17 @@ export default function SettingsTabs({ tabs, defaultTab }: SettingsTabsProps) {
               href={href}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-bold transition-all",
+                "relative inline-flex items-center gap-2 px-1 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all",
                 isActive
-                  ? "bg-[var(--workspace-panel)] text-[var(--workspace-highlight)]"
-                  : "text-muted-foreground hover:bg-[var(--workspace-panel)] hover:text-foreground",
+                  ? "text-[var(--zane-ai-deep)] dark:text-white font-black"
+                  : "text-[var(--zane-ai-text-muted)] hover:text-[var(--zane-ai-deep)] dark:text-white/40 dark:hover:text-white",
               )}
             >
-              {Icon ? <Icon className="h-4 w-4" /> : null}
+              {Icon ? <Icon className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-[var(--zane-ai-accent)]" : "")} strokeWidth={2} /> : null}
               {tab.label}
+              {isActive && (
+                <div className="absolute -bottom-px left-0 right-0 h-0.5 bg-[var(--zane-ai-accent)]" />
+              )}
             </Link>
           );
         })}

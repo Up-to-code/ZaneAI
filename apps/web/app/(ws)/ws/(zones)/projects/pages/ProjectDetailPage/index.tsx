@@ -546,7 +546,7 @@ export default function ProjectDetailPage({
               </div>
             </SurfaceCard>
 
-            <ProjectUnitsManager projectId={project.id} />
+            <ProjectUnitsManager projectId={project.id} initialUnits={project.units} />
 
             {project.brokers.length > 0 ? (
               <SurfaceCard title="الوسطاء المرتبطون" description="الجهات أو الوسطاء الذين يتحركون حالياً على المشروع أو لديهم علاقة مباشرة به.">

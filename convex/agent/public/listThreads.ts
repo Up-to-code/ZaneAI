@@ -1,12 +1,26 @@
 import { query } from "../../_generated/server";
-import { requireAuthUserId } from "../../auth/requireAuth";
+import { getOptionalAuthUserId } from "../../auth/requireAuth";
 import { agentComponent } from "../lib/component";
+
+function emptyThreadList() {
+  return {
+    page: [],
+    isDone: true,
+    continueCursor: "",
+  };
+}
 
 export const listThreads = query({
   args: {},
-  handler: async (ctx) =>
-    await ctx.runQuery(agentComponent.threads.listThreadsByUserId, {
-      userId: await requireAuthUserId(ctx),
+  handler: async (ctx) => {
+    const userId = await getOptionalAuthUserId(ctx);
+    if (!userId) {
+      return emptyThreadList();
+    }
+
+    return await ctx.runQuery(agentComponent.threads.listThreadsByUserId, {
+      userId,
       order: "desc",
-    }),
+    });
+  },
 });

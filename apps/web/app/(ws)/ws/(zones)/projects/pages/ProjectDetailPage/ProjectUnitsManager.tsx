@@ -7,7 +7,8 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { Plus, Pencil, Trash2, Building2, X } from "lucide-react";
-import type { UnitType, UnitStatus } from "@/app/(ws)/ws/_lib/entities";
+import type { UnitReference, UnitType, UnitStatus } from "@/app/(ws)/ws/_lib/entities";
+import type { Id } from "@convex/dataModel";
 
 const UNIT_TYPES: UnitType[] = ["apartment", "villa", "duplex", "studio", "penthouse", "townhouse", "commercial"];
 const UNIT_STATUSES: UnitStatus[] = ["available", "reserved", "sold"];
@@ -16,6 +17,16 @@ const STATUS_BADGE: Record<UnitStatus, string> = {
   available: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
   reserved: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300",
   sold: "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300",
+};
+
+type DisplayUnit = UnitReference & {
+  _id: string;
+  unitType: UnitType;
+  status: UnitStatus;
+};
+
+type UnitDictionary = {
+  units: Partial<Record<UnitType | UnitStatus, string>>;
 };
 
 type UnitFormData = {
@@ -42,17 +53,37 @@ const emptyForm: UnitFormData = {
   description: "",
 };
 
-function getUnitTypeLabel(type: UnitType, dictionary: any): string {
+function getUnitTypeLabel(type: UnitType, dictionary: UnitDictionary): string {
   return dictionary.units[type] ?? type;
 }
 
-function getUnitStatusLabel(status: UnitStatus, dictionary: any): string {
+function getUnitStatusLabel(status: UnitStatus, dictionary: UnitDictionary): string {
   return dictionary.units[status] ?? status;
 }
 
-export default function ProjectUnitsManager({ projectId }: { projectId: string }) {
+function mapReferenceToDisplayUnit(unit: UnitReference): DisplayUnit {
+  return {
+    ...unit,
+    _id: unit.id,
+    unitType: unit.unitType ?? "apartment",
+    status: unit.status ?? "available",
+  };
+}
+
+export default function ProjectUnitsManager({
+  projectId,
+  initialUnits,
+}: {
+  projectId: string;
+  initialUnits?: UnitReference[];
+}) {
   const { dictionary } = useWebLocale();
-  const units = useQuery(api.workspaceUnits.listProjectUnits, { projectId: projectId as any });
+  const usesInitialUnits = initialUnits !== undefined && projectId.startsWith("property-");
+  const liveUnits = useQuery(
+    api.workspaceUnits.listProjectUnits,
+    usesInitialUnits ? "skip" : { projectId: projectId as Id<"projects"> },
+  );
+  const units = usesInitialUnits ? initialUnits.map(mapReferenceToDisplayUnit) : liveUnits;
   const createUnit = useMutation(api.workspaceUnits.createUnit);
   const updateUnit = useMutation(api.workspaceUnits.updateUnit);
   const deleteUnit = useMutation(api.workspaceUnits.deleteUnit);
@@ -69,7 +100,7 @@ export default function ProjectUnitsManager({ projectId }: { projectId: string }
     setShowForm(true);
   }
 
-  function openEditForm(unit: any) {
+  function openEditForm(unit: DisplayUnit) {
     setEditingUnitId(unit._id);
     setForm({
       label: unit.label,
@@ -96,20 +127,28 @@ export default function ProjectUnitsManager({ projectId }: { projectId: string }
     try {
       const payload = {
         label: form.label.trim(),
-        unitType: form.unitType as any,
+        unitType: form.unitType,
         floor: form.floor.trim() || undefined,
         bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
         area: form.area.trim() || undefined,
         priceLabel: form.priceLabel.trim() || undefined,
-        status: form.status as any,
+        status: form.status,
         description: form.description.trim() || undefined,
       };
 
       if (editingUnitId) {
-        await updateUnit({ unitId: editingUnitId as any, data: payload });
+        if (usesInitialUnits) {
+          closeForm();
+          return;
+        }
+        await updateUnit({ unitId: editingUnitId as Id<"units">, data: payload });
       } else {
-        await createUnit({ projectId: projectId as any, ...payload });
+        if (usesInitialUnits) {
+          closeForm();
+          return;
+        }
+        await createUnit({ projectId: projectId as Id<"projects">, ...payload });
       }
       closeForm();
     } finally {
@@ -118,9 +157,12 @@ export default function ProjectUnitsManager({ projectId }: { projectId: string }
   }
 
   async function handleDelete(unitId: string) {
+    if (usesInitialUnits) {
+      return;
+    }
     setDeletingId(unitId);
     try {
-      await deleteUnit({ unitId: unitId as any });
+      await deleteUnit({ unitId: unitId as Id<"units"> });
     } finally {
       setDeletingId(null);
     }
@@ -312,7 +354,7 @@ export default function ProjectUnitsManager({ projectId }: { projectId: string }
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {units.map((unit: any) => (
+            {units.map((unit: DisplayUnit) => (
               <AgUnitCard
                 key={unit._id}
                 id={unit._id}

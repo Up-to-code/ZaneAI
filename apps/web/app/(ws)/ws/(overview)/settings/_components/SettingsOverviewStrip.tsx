@@ -31,14 +31,14 @@ export default function SettingsOverviewStrip({
   ];
 
   return (
-    <section className="rounded-[22px] border border-border/70 bg-[var(--workspace-panel)] px-4 py-3 sm:px-5">
-      <div className="flex flex-wrap items-center gap-3 sm:gap-5">
+    <section className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] px-8 py-5 shadow-sm">
+      <div className="flex flex-wrap items-center gap-10">
         {items.map((item) => (
-          <div key={item.label} className="min-w-[120px]">
-            <div className="text-[10px] font-black tracking-[0.18em] text-muted-foreground uppercase">
+          <div key={item.label} className="flex flex-col min-w-[140px]">
+            <div className="text-[9px] font-black tracking-[0.35em] text-[var(--zane-ai-text-muted)] uppercase">
               {item.label}
             </div>
-            <div className="mt-1 text-[13px] font-bold text-foreground">{item.value}</div>
+            <div className="mt-2 text-[13px] font-black uppercase tracking-[0.1em] text-[var(--zane-ai-deep)] dark:text-white">{item.value}</div>
           </div>
         ))}
       </div>

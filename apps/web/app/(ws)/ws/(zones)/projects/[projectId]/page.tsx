@@ -1,21 +1,30 @@
 "use client";
 
+import { use } from "react";
 import ProjectDetailPage from "../pages/ProjectDetailPage";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
+import { getDemoProject } from "../../../_lib/demoData";
+import type { Id } from "@convex/dataModel";
 
 type WorkspaceProjectDetailRouteProps = {
-  params: {
+  params: Promise<{
     projectId: string;
-  };
+  }>;
 };
 
 export default function WorkspaceProjectDetailRoute({
   params,
 }: WorkspaceProjectDetailRouteProps) {
-  const project = useQuery(api.partnerProperties.getWorkspaceProperty, { propertyId: params.projectId as any });
+  const { projectId } = use(params);
+  const demoProject = getDemoProject(projectId);
+  const liveProject = useQuery(
+    api.partnerProperties.getWorkspaceProperty,
+    demoProject ? "skip" : { propertyId: projectId as Id<"projects"> },
+  );
   const publishProperty = useMutation(api.partnerProperties.setWorkspacePropertyPublicationState);
   const deleteProperty = useMutation(api.partnerProperties.deleteWorkspaceProperty);
+  const project = demoProject ?? liveProject;
 
   if (project === undefined) {
     return (
@@ -41,11 +50,17 @@ export default function WorkspaceProjectDetailRoute({
     <ProjectDetailPage
       project={project}
       onPublishProject={async () => {
-        await publishProperty({ propertyId: params.projectId as any, publicationState: "published" });
-        return { ok: true, redirectTo: `/ws/projects/${params.projectId}` };
+        if (demoProject) {
+          return { ok: true, redirectTo: `/ws/projects/${projectId}` };
+        }
+        await publishProperty({ propertyId: projectId as Id<"projects">, publicationState: "published" });
+        return { ok: true, redirectTo: `/ws/projects/${projectId}` };
       }}
       onDeleteProject={async () => {
-        await deleteProperty({ propertyId: params.projectId as any });
+        if (demoProject) {
+          return { ok: true, redirectTo: "/ws/projects" };
+        }
+        await deleteProperty({ propertyId: projectId as Id<"projects"> });
         return { ok: true, redirectTo: "/ws/projects" };
       }}
       onTrackProjectEvent={async () => ({ ok: true })}

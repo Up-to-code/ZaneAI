@@ -1,19 +1,21 @@
 "use client";
 
+import { use } from "react";
 import type { ProjectFormData } from "@/app/(ws)/ws/public";
 import ProjectFormScreen from "../../shared/forms/ProjectFormScreen";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
+import { getDemoProject } from "../../../../_lib/demoData";
+import type { Id } from "@convex/dataModel";
+import type { WorkspaceProject } from "../../types/projectTypes";
 
 type EditProjectRouteProps = {
-  params: {
+  params: Promise<{
     projectId: string;
-  };
+  }>;
 };
 
-type WorkspaceProjectForForm = any;
-
-function mapProjectToFormData(project: WorkspaceProjectForForm) {
+function mapProjectToFormData(project: WorkspaceProject) {
   return {
     name: project.title,
     price: project.priceLabel,
@@ -41,9 +43,15 @@ function mapProjectToFormData(project: WorkspaceProjectForForm) {
 }
 
 export default function EditProjectRoute({ params }: EditProjectRouteProps) {
-  const project = useQuery(api.partnerProperties.getWorkspaceProperty, { propertyId: params.projectId as any });
+  const { projectId } = use(params);
+  const demoProject = getDemoProject(projectId);
+  const liveProject = useQuery(
+    api.partnerProperties.getWorkspaceProperty,
+    demoProject ? "skip" : { propertyId: projectId as Id<"projects"> },
+  );
   const updateProperty = useMutation(api.partnerProperties.updateWorkspaceProperty);
   const deleteProperty = useMutation(api.partnerProperties.deleteWorkspaceProperty);
+  const project = demoProject ?? liveProject;
 
   if (project === undefined) {
     return (
@@ -67,20 +75,25 @@ export default function EditProjectRoute({ params }: EditProjectRouteProps) {
 
   return (
     <ProjectFormScreen
-      projectId={params.projectId}
+      projectId={projectId}
       initialData={mapProjectToFormData(project)}
       title="Edit property"
       description="Update the partner record, revise the media pack, and keep publishing under your control."
       submitLabel="Save property"
       onSave={async (data) => {
+        if (demoProject) {
+          return { ok: true, redirectTo: `/ws/projects/${projectId}` };
+        }
         await updateProperty({
-          propertyId: params.projectId as any,
-          data: data as any,
+          propertyId: projectId as Id<"projects">,
+          data,
         });
-        return { ok: true, redirectTo: `/ws/projects/${params.projectId}` };
+        return { ok: true, redirectTo: `/ws/projects/${projectId}` };
       }}
       onDelete={async () => {
-        await deleteProperty({ propertyId: params.projectId as any });
+        if (!demoProject) {
+          await deleteProperty({ propertyId: projectId as Id<"projects"> });
+        }
         return { redirectTo: "/ws/projects" };
       }}
     />

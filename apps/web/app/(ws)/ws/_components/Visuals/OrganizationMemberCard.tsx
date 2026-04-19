@@ -10,7 +10,7 @@ import {
 } from "../../_lib/organizationMembers";
 
 /**
- * Simplified member card — clean row layout with avatar, name, email, role, and optional footer.
+ * Institutional member card — High-precision row layout with technical typography and validated context indicators.
  */
 const OrganizationMemberCardComponent = function OrganizationMemberCard({
   member,
@@ -33,66 +33,72 @@ const OrganizationMemberCardComponent = function OrganizationMemberCard({
     <article
       dir="rtl"
       className={cn(
-        "rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted/30",
-        theme.borderClassName,
+        "group relative flex flex-col gap-5 rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-6 transition-all hover:bg-[var(--workspace-panel-hover)] shadow-sm shadow-black/5",
         className,
       )}
     >
-      <div className="flex items-center gap-3">
-        {/* Avatar */}
-        <div
-          className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-black",
-            theme.avatarClassName,
+      <div className="flex items-center gap-6">
+        {/* Profile Avatar & Precise Status Bit */}
+        <div className="relative">
+          <div
+            className={cn(
+              "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[18px] font-black uppercase text-white transition-transform duration-300 group-hover:scale-105",
+              theme.avatarClassName,
+            )}
+          >
+            {avatarLabel}
+          </div>
+          {isActive && (
+            <div className="absolute -right-1 -top-1 ring-4 ring-[var(--workspace-panel)] rounded-full">
+              <div className="h-3.5 w-3.5 rounded-full bg-[var(--zane-ai-accent)]" />
+            </div>
           )}
-        >
-          {avatarLabel}
         </div>
 
-        {/* Info */}
+        {/* Identity & Technical Metadata */}
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black",
-                theme.roleClassName,
-              )}
-            >
-              <span className={cn("h-1.5 w-1.5 rounded-full", theme.accentDotClassName)} aria-hidden="true" />
-              {theme.accentLabel}
-            </span>
-            {usernameLabel ? (
-              <span className="text-[11px] font-semibold text-muted-foreground">{usernameLabel}</span>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="text-[18px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+              {member.name}
+            </h3>
+            {usernameLabel && (
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-40">
+                {usernameLabel}
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-[14px] font-bold text-foreground">{member.name}</h3>
-            <span
-              className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
-                isActive
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
-              {member.statusLabel}
-            </span>
+          
+          <div className="mt-2.5 flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 text-[11px] font-bold text-[var(--zane-ai-text-muted)] dark:text-white/40" dir="ltr">
+              <Mail className="h-3.5 w-3.5 opacity-60" />
+              <span className="truncate">{member.email}</span>
+            </div>
+            
+            <div className="hidden sm:block h-1 w-1 rounded-full bg-[color:var(--workspace-border)] opacity-60" />
+            
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-accent)]">
+                {roleLabel}
+              </span>
+              <span className={cn(
+                "rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em]",
+                theme.roleClassName
+              )}>
+                {theme.accentLabel}
+              </span>
+            </div>
           </div>
-          <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground" dir="ltr">
-            <Mail className="h-3 w-3 shrink-0" />
-            <span className="truncate">{member.email}</span>
-          </p>
         </div>
-
-        {/* Role */}
-        <span className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
-          {roleLabel}
-        </span>
       </div>
 
-      {footer ? <div className="mt-3 border-t border-border pt-3">{footer}</div> : null}
+      {footer && (
+        <div className="mt-2 border-t border-[color:var(--workspace-border)] pt-5">
+          {footer}
+        </div>
+      )}
     </article>
   );
-}
+};
 
 export default memo(OrganizationMemberCardComponent);
+

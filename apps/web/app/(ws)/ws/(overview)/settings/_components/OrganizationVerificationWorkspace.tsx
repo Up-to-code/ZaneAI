@@ -85,9 +85,13 @@ function SummaryCard({
   value: ReactNode;
 }) {
   return (
-    <div className="rounded-[18px] bg-background/65 px-4 py-3">
-      <div className="text-[11px] font-semibold text-muted-foreground">{label}</div>
-      <div className="mt-2 text-sm font-bold text-foreground">{value}</div>
+    <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5 shadow-sm shadow-black/5 transition-all hover:bg-[var(--workspace-shell)]/60">
+      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-50">
+        {label}
+      </div>
+      <div className="mt-2 text-[15px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+        {value}
+      </div>
     </div>
   );
 }
@@ -220,22 +224,26 @@ export default function OrganizationVerificationWorkspace({
   }
 
   return (
-    <section className="space-y-5 pb-12" dir={direction}>
-      <div className="rounded-[24px] bg-[var(--workspace-panel)] p-5 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-2">
-            <div className="text-[11px] font-semibold text-muted-foreground">{dictionary.settings.verificationCurrentStatus}</div>
-            <h2 className="text-lg font-bold text-foreground">{dictionary.settings.verificationTitle}</h2>
-            <p className="max-w-2xl text-sm font-medium leading-7 text-muted-foreground">
+    <section className="space-y-8 pb-12" dir={direction}>
+      <div className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div className="space-y-4">
+            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-60">
+              {dictionary.settings.verificationCurrentStatus}
+            </div>
+            <h2 className="text-3xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-4xl">
+              {dictionary.settings.verificationTitle}
+            </h2>
+            <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
               {formatWebCopy(dictionary.settings.verificationSubmitDescription, { organizationType: organizationTypeLabel })}
             </p>
           </div>
-          <span className={`rounded-full border px-3 py-1 text-[11px] font-black ${verificationStatusTone(summary.currentRequestStatus)}`}>
+          <span className={`rounded-full border px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] ${verificationStatusTone(summary.currentRequestStatus)}`}>
             {verificationStatusLabel(summary.currentRequestStatus, locale)}
           </span>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryCard
             label={dictionary.settings.publishingStatus}
             value={summary.publishingBlocked ? dictionary.settings.publishingBlocked : dictionary.settings.publishingAllowed}
@@ -255,36 +263,54 @@ export default function OrganizationVerificationWorkspace({
         </div>
 
         {summary.reviewerNotes ? (
-          <div className="mt-4 rounded-[18px] bg-background/65 p-4">
-            <div className="text-[11px] font-semibold text-muted-foreground">{dictionary.settings.reviewNotes}</div>
-            <p className="mt-2 text-sm font-medium leading-relaxed text-foreground">{summary.reviewerNotes}</p>
+          <div className="mt-6 rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-6">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-60">
+              {dictionary.settings.reviewNotes}
+            </div>
+            <p className="mt-3 text-[14px] font-medium leading-relaxed text-[var(--zane-ai-deep)] dark:text-white/80">
+              {summary.reviewerNotes}
+            </p>
           </div>
         ) : null}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="rounded-[24px] bg-[var(--workspace-panel)] p-5 sm:p-6">
-          <h3 className="text-sm font-bold text-foreground">{dictionary.settings.verificationTimeline}</h3>
-          <div className="mt-4 space-y-3">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        {/* Timeline */}
+        <div className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
+          <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-60">
+            {dictionary.settings.verificationTimeline}
+          </h3>
+          <div className="mt-6 space-y-4">
             {timeline.length > 0 ? (
               timeline.map((item) => (
-                <div key={item.id} className="rounded-[18px] bg-background/65 p-4">
-                  <div className="text-sm font-bold text-foreground">{item.label}</div>
-                  <div className="mt-1 text-xs font-medium text-muted-foreground">{formatDateLabel(item.at)}</div>
-                  {item.note ? <p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground">{item.note}</p> : null}
+                <div key={item.id} className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5">
+                  <div className="text-[15px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+                    {item.label}
+                  </div>
+                  <div className="mt-1.5 text-[11px] font-black uppercase tracking-[0.15em] text-[var(--zane-ai-text-muted)] opacity-60">
+                    {formatDateLabel(item.at)}
+                  </div>
+                  {item.note ? (
+                    <p className="mt-4 text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/60">
+                      {item.note}
+                    </p>
+                  ) : null}
                 </div>
               ))
             ) : (
-              <div className="rounded-[18px] bg-background/65 p-5 text-sm font-medium text-muted-foreground">
+              <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-6 text-[13px] font-medium text-[var(--zane-ai-text-muted)] opacity-60">
                 {dictionary.settings.verificationNoTimeline}
               </div>
             )}
           </div>
         </div>
 
-        <div className="rounded-[24px] bg-[var(--workspace-panel)] p-5 sm:p-6">
-          <h3 className="text-sm font-bold text-foreground">{dictionary.settings.latestDocuments}</h3>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {/* Latest Documents */}
+        <div className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
+          <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-60">
+            {dictionary.settings.latestDocuments}
+          </h3>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
             {summary.attachedDocuments.length > 0 ? (
               summary.attachedDocuments.map((document) => (
                 <a
@@ -292,16 +318,18 @@ export default function OrganizationVerificationWorkspace({
                   href={document.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-[18px] bg-background/65 p-4 transition hover:bg-background/85"
+                  className="group rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5 transition-all hover:bg-[var(--workspace-shell)]/70"
                 >
-                  <div className="text-sm font-bold text-foreground">{document.name}</div>
-                  <div className="mt-1 text-xs font-medium text-muted-foreground">
+                  <div className="text-[14px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white transition-colors group-hover:text-[var(--zane-ai-accent)]">
+                    {document.name}
+                  </div>
+                  <div className="mt-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[var(--zane-ai-text-muted)] opacity-60">
                     {document.mime ?? dictionary.settings.unknownDocumentType}{document.size ? ` • ${Math.ceil(document.size / 1024)} KB` : ""}
                   </div>
                 </a>
               ))
             ) : (
-              <div className="rounded-[18px] bg-background/65 p-5 text-sm font-medium text-muted-foreground md:col-span-2">
+              <div className="md:col-span-2 rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-6 text-[13px] font-medium text-[var(--zane-ai-text-muted)] opacity-60">
                 {dictionary.settings.verificationNoTimeline}
               </div>
             )}
@@ -309,10 +337,12 @@ export default function OrganizationVerificationWorkspace({
         </div>
       </div>
 
-      <div className="space-y-4 rounded-[24px] bg-[var(--workspace-panel)] p-5 sm:p-6">
-        <div className="space-y-2">
-          <h3 className="text-lg font-bold text-foreground">{dictionary.settings.verificationSubmitTitle}</h3>
-          <p className="max-w-2xl text-sm font-medium leading-7 text-muted-foreground">
+      <div className="space-y-8 rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
+        <div className="space-y-4">
+          <h3 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+            {dictionary.settings.verificationSubmitTitle}
+          </h3>
+          <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
             {formatWebCopy(dictionary.settings.verificationSubmitDescription, { organizationType: organizationTypeLabel })}
           </p>
         </div>
@@ -370,18 +400,18 @@ export default function OrganizationVerificationWorkspace({
         </div>
 
         {errorMessage ? (
-          <div className="rounded-[18px] bg-red-500/10 p-4 text-sm font-bold text-red-700 dark:text-red-300">
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-[13px] font-black uppercase tracking-tight text-red-700 dark:text-red-400">
             {errorMessage}
           </div>
         ) : null}
         {statusMessage ? (
-          <div className="rounded-[18px] bg-background/65 p-4 text-sm font-bold text-foreground">
+          <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5 text-[13px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
             {statusMessage}
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <p className="text-xs font-medium text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-6 pt-2 border-t border-[color:var(--workspace-border)] pt-8">
+          <p className="max-w-md text-[11px] font-black uppercase tracking-[0.1em] text-[var(--zane-ai-text-muted)] opacity-60">
             {canManage
               ? dictionary.settings.managerOnlySubmissionHint
               : dictionary.settings.viewerSubmissionHint}
@@ -430,7 +460,7 @@ export default function OrganizationVerificationWorkspace({
                 setIsSubmitting(false);
               }
             }}
-            className="rounded-[18px] bg-[var(--workspace-highlight)] px-5 py-3 text-[13px] font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-12 items-center justify-center rounded-2xl bg-[var(--zane-ai-deep)] px-8 text-[12px] font-black uppercase tracking-[0.15em] text-white transition hover:opacity-95 dark:bg-white dark:text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--zane-ai-accent)]/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting
               ? dictionary.settings.verificationSubmitting
