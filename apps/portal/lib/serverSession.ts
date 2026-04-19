@@ -1,4 +1,15 @@
-export type { SessionUser } from "@/server/contracts/session";
+export type SessionUser = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  username?: string | null;
+  organizationId?: string | null;
+  organizationSlug?: string | null;
+  organizationRole?: string | null;
+  organizationPermissions?: string[];
+  isActive?: boolean;
+};
 
 /**
  * WHY:   Workspace and public layouts need one lightweight auth lookup for chrome-level decisions.
@@ -28,7 +39,7 @@ export async function getAuthenticatedSession() {
   // For immediate redirect logic in the sign-in loader, the presence of the token is a sufficient hint.
   return {
     token,
-    user: { id: "authenticated" } as any,
+    user: { id: "authenticated" } satisfies SessionUser,
     role: "authenticated",
   };
 }
