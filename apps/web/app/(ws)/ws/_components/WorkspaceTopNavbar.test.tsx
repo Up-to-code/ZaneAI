@@ -35,7 +35,7 @@ vi.mock("@/app/ConvexClientProvider", () => ({
 import WorkspaceTopNavbar from "./WorkspaceTopNavbar";
 
 describe("WorkspaceTopNavbar", () => {
-  it("renders the organization context control with signal actions", () => {
+  it("renders the persistent organization controls without signal actions", () => {
     const html = renderToStaticMarkup(
       <WebLocaleProvider locale="fr" dictionary={getWebDictionary("fr")}>
         <WorkspaceTopNavbar
@@ -60,15 +60,13 @@ describe("WorkspaceTopNavbar", () => {
     );
 
     expect(html).toContain("شركة الواحة");
-    expect(html).toContain("Espace promoteur");
-    expect(html).toContain("Boîte de réception");
     expect(html).toContain("data-slot=\"workspace-identity-menu\"");
     expect(html).toContain("data-slot=\"workspace-organization-settings-trigger\"");
     expect(html).toContain("href=\"/ws/settings?tab=org\"");
     expect(html).toContain("data-slot=\"workspace-user-settings-trigger\"");
     expect(html).not.toContain("href=\"/ws/settings\"");
-    expect(html).toContain("href=\"/ws/notifications\"");
-    expect(html).toContain("href=\"/ws/inbox\"");
+    expect(html).not.toContain("href=\"/ws/notifications\"");
+    expect(html).not.toContain("href=\"/ws/inbox\"");
     expect(html).toContain("data-slot=\"workspace-compliance-badge\"");
     expect(html).toContain("Complete verification");
     expect(html).toContain("href=\"/ws/settings?tab=verification\"");

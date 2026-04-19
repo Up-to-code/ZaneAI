@@ -36,6 +36,7 @@ export default function SidebarContent({
   void searchParams;
   const router = useRouter();
   const isAiMode = pathname === "/ws/ai";
+  const showAssistantThreads = isAiMode && threads.length > 0;
 
   const handleModeToggle = (ai: boolean) => {
     if (ai) {
@@ -66,16 +67,18 @@ export default function SidebarContent({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/ws"
-            prefetch={false}
-            className="flex h-9 w-9 items-center justify-center border border-[color:var(--workspace-border)] bg-transparent text-foreground transition-all hover:bg-foreground hover:text-background active:scale-95 lg:h-10 lg:w-10"
-            title="New Context"
-          >
-            <MessageSquare className="h-4 w-4" />
-          </Link>
-        </div>
+        {isAiMode ? (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/ws"
+              prefetch={false}
+              className="flex h-9 w-9 items-center justify-center border border-[color:var(--workspace-border)] bg-transparent text-foreground transition-all hover:bg-foreground hover:text-background active:scale-95 lg:h-10 lg:w-10"
+              title="New Context"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </Link>
+          </div>
+        ) : null}
       </div>
 
       {/* ── Mode Switcher & Header ───────────────────────────── */}
@@ -165,7 +168,7 @@ export default function SidebarContent({
           </ul>
         </div>
 
-        {threads.length > 0 && (
+        {showAssistantThreads ? (
           <div className="flex flex-col">
             <h3 className="mb-3 lg:mb-4 text-[9px] font-black uppercase tracking-[0.24em] text-[var(--zane-ai-text-muted)] dark:text-white/40">
               {dictionary.nav.contextsAndThreads}
@@ -187,7 +190,7 @@ export default function SidebarContent({
               ))}
             </ul>
           </div>
-        )}
+        ) : null}
       </nav>
     </div>
   );

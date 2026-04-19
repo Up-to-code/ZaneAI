@@ -90,8 +90,9 @@ export default function WorkspaceShell({
       )}
     >
       <div
+        data-slot="workspace-sidebar-rail"
         className={cn(
-          "relative hidden h-dvh max-h-dvh min-h-0 shrink-0 overflow-hidden lg:flex motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-out",
+          "sticky inset-y-0 top-0 z-20 hidden h-dvh max-h-dvh min-h-0 shrink-0 overflow-hidden lg:flex motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-out",
           sidebarCollapsed ? "w-24" : WORKSPACE_SIDEBAR_WIDTH_CLASS,
         )}
       >
@@ -206,8 +207,9 @@ export default function WorkspaceShell({
         />
 
         <main
+          data-slot="workspace-route-scrollport"
           className={cn(
-            "min-h-0 min-w-0 flex-1 motion-safe:animate-zone-page-enter",
+            "min-h-0 min-w-0 flex-1",
             chrome.isAssistantHome ? "overflow-hidden" : "overflow-auto",
           )}
         >

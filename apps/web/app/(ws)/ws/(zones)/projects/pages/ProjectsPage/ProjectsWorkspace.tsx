@@ -110,7 +110,7 @@ export default function ProjectsWorkspace({
                       label={unit.label}
                       unitType="apartment"
                       typeLabel={unit.projectTitle}
-                      floor={null}
+                      floor={undefined}
                       bedrooms={unit.bedrooms}
                       bathrooms={unit.bathrooms}
                       area={typeof unit.area === "number" ? `${unit.area}` : unit.area}

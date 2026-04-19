@@ -27,11 +27,14 @@ vi.mock("next-themes", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ href, children, prefetch: _prefetch, ...props }: React.ComponentProps<"a"> & { href: string }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+  default: ({ href, children, prefetch: _prefetch, ...props }: React.ComponentProps<"a"> & { href: string }) => {
+    void _prefetch;
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 vi.mock("../(zones)/inbox/pages/InboxPage/useRealtimeInbox", () => ({
@@ -78,10 +81,11 @@ describe("WorkspaceShell", () => {
     expect(markup).toContain("data-slot=\"theme-toggle\"");
     expect(markup).toContain("Body");
     expect(markup).toContain("Alpha");
-    expect(markup).toContain("/ws/notifications");
-    expect(markup).toContain("/ws/inbox");
+    expect(markup).not.toContain("/ws/notifications");
+    expect(markup).not.toContain("/ws/inbox");
+    expect(markup).toContain("data-slot=\"workspace-route-scrollport\"");
     expect(markup).toContain("data-slot=\"workspace-content\"");
-    expect(markup).toContain("flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col");
+    expect(markup).not.toContain("animate-zone-page-enter");
   });
 
   it("renders assistant-first chrome when the overview variant is requested", () => {
@@ -104,7 +108,7 @@ describe("WorkspaceShell", () => {
     expect(markup).toContain("data-slot=\"workspace-top-navbar\"");
     expect(markup).toContain("مساعد Zane-ai");
     expect(markup).toContain("Assistant Body");
-    expect(markup).toContain("app-shell-fixed-height");
+    expect(markup).toContain("sticky top-0 z-30");
     expect(markup).toContain("lg:flex-row");
     expect(markup).toContain("data-slot=\"workspace-sidebar-desktop\"");
     expect(markup).toContain("data-slot=\"workspace-sidebar-trigger\"");
