@@ -1,289 +1,197 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { Search, UserPlus } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { cn } from "@/lib/i18n";
 import type { DirectorySearchResult } from "@/server/contracts/organizations";
 
-type DirectoryResult = DirectorySearchResult;
-function MembershipStateBadge({ state }: { state: DirectoryResult["membershipState"] }) {
-  const { dictionary } = useWebLocale();
-  const toneClass =
-    state === "member"
-      ? "border-green-100 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-300"
-      : state === "pending-invite"
-        ? "border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
-        : "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300";
-  const label =
-    state === "member"
-      ? dictionary.settings.currentMember
-      : state === "pending-invite"
-        ? dictionary.inbox.pendingInvite
-        : dictionary.settings.nonMember;
-
-  return (
-    <span className={cn("shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest", toneClass)}>
-      {label}
-    </span>
-  );
-}
-
-function InviteResultActions({
-  result,
-  canManage,
-  isSubmitting,
-  onInvite,
-  onMessage,
-}: {
-  result: DirectoryResult;
+type InviteMemberFormProps = {
   canManage: boolean;
-  isSubmitting: boolean;
-  onInvite: (email: string) => Promise<void>;
-  onMessage: (targetUserId: string, conversationId?: string | null) => Promise<void>;
-}) {
-  const { dictionary } = useWebLocale();
-
-  return (
-    <div className="mt-4 flex flex-wrap gap-2">
-      {result.membershipState === "not-member" && canManage ? (
-        <button
-          type="button"
-          onClick={() => void onInvite(result.email)}
-          disabled={isSubmitting}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-[11px] font-black tracking-widest uppercase text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {dictionary.settings.sendInvite}
-        </button>
-      ) : null}
-      {result.canMessage ? (
-        <button
-          type="button"
-          onClick={() => void onMessage(result.authUserId, result.conversationId)}
-          className="rounded-xl border border-border bg-background px-4 py-2 text-[11px] font-black tracking-widest uppercase text-foreground shadow-sm transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {dictionary.settings.openConversation}
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
-function InviteResultRow({
-  result,
-  canManage,
-  isSubmitting,
-  onInvite,
-  onMessage,
-}: {
-  result: DirectoryResult;
-  canManage: boolean;
-  isSubmitting: boolean;
-  onInvite: (email: string) => Promise<void>;
-  onMessage: (targetUserId: string, conversationId?: string | null) => Promise<void>;
-}) {
-  return (
-    <div className="p-4 transition hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="truncate text-sm font-black text-slate-950 dark:text-slate-100">{result.name}</div>
-          <div className="mt-1 truncate text-[11px] font-medium text-slate-500 dark:text-slate-400" dir="ltr">
-            {result.email}
-          </div>
-          {result.username ? (
-            <div className="mt-1 text-[10px] font-bold text-slate-400 dark:text-slate-500" dir="ltr">
-              @{result.username}
-            </div>
-          ) : null}
-        </div>
-        <MembershipStateBadge state={result.membershipState} />
-      </div>
-      <InviteResultActions
-        result={result}
-        canManage={canManage}
-        isSubmitting={isSubmitting}
-        onInvite={onInvite}
-        onMessage={onMessage}
-      />
-    </div>
-  );
-}
-/**
- * WHY:   The workspace settings area needs a simple invite flow that stays inside the app boundary.
- * WHAT:  Renders exact-match directory search plus invite/message actions for the current organization.
- * HOW:   Searches only by full email or username, uses local demo actions for team operations, and links message actions into the static inbox route.
- */
-export default function InviteMemberForm({
-  canManage = true,
-  showHeader = true,
-  hasOrganization = true,
-  onCreateInvite,
-  onSearchDirectory,
-}: {
-  canManage?: boolean;
+  hasOrganization: boolean;
   showHeader?: boolean;
-  hasOrganization?: boolean;
   onCreateInvite: (input: {
     email: string;
     role: "manager" | "member" | "viewer";
   }) => Promise<{ ok: true; message: string; inviteId?: string } | { ok: false; message: string }>;
-  onSearchDirectory: (query: string) => Promise<{ ok: true; results: DirectoryResult[] } | { ok: false; message: string }>;
-}) {
+  onSearchDirectory: (query: string) => Promise<{ ok: true; results: DirectorySearchResult[] } | { ok: false; message: string }>;
+};
+
+const roles = ["manager", "member", "viewer"] as const;
+
+export default function InviteMemberForm({
+  canManage,
+  hasOrganization,
+  showHeader = true,
+  onCreateInvite,
+  onSearchDirectory,
+}: InviteMemberFormProps) {
   const { dictionary, direction } = useWebLocale();
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-  const [role, setRole] = useState<"manager" | "member" | "viewer">("member");
-  const [results, setResults] = useState<DirectoryResult[]>([]);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<(typeof roles)[number]>("member");
   const [status, setStatus] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [searchResults, setSearchResults] = useState<DirectorySearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleInvite(email: string) {
-    if (!canManage) {
-      setStatus(dictionary.settings.managerPermissionRequired);
+  const getRoleLabel = (r: (typeof roles)[number]) => {
+    if (r === "manager") return dictionary.settings.manager;
+    if (r === "member") return dictionary.settings.member;
+    return dictionary.settings.viewer;
+  };
+
+  const handleSearch = useMemo(() => {
+    let timer: NodeJS.Timeout;
+    return (query: string) => {
+      setEmail(query);
+      if (query.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        setIsSearching(true);
+        const result = await onSearchDirectory(query);
+        setIsSearching(false);
+        if (result.ok) {
+          setSearchResults(result.results);
+        }
+      }, 300);
+    };
+  }, [onSearchDirectory]);
+
+  if (!hasOrganization) return null;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.includes("@")) {
+      setStatus(dictionary.settings.inviteFailed);
       return;
     }
-
-    setIsSubmitting(true);
     setStatus(dictionary.settings.inviteSending);
-    const result = await onCreateInvite({ email, role });
-    if (!result.ok) {
+    startTransition(async () => {
+      const result = await onCreateInvite({ email, role });
       setStatus(result.message);
-      setIsSubmitting(false);
-      return;
-    }
-    setStatus(result.message);
-    setResults((current) =>
-      current.map((result) =>
-        result.email === email ? { ...result, membershipState: "pending-invite" } : result,
-      ),
-    );
-    setIsSubmitting(false);
-  }
-
-  async function handleMessage(targetUserId: string, conversationId?: string | null) {
-    const nextConversationId = conversationId ?? `demo-direct-${targetUserId}`;
-    router.push(`/ws/inbox?conversationId=${encodeURIComponent(nextConversationId)}`);
+      if (result.ok) {
+        setEmail("");
+        setSearchResults([]);
+      }
+    });
   }
 
   return (
-    <form
-      className="flex flex-col gap-6 p-5"
-      dir={direction}
-      onSubmit={async (event) => {
-        event.preventDefault();
-
-        if (!hasOrganization) {
-          setStatus(dictionary.settings.noOrganizationLinked);
-          return;
-        }
-
-        setIsSearching(true);
-        setStatus(dictionary.settings.searchingDirectory);
-        const result = await onSearchDirectory(query.trim());
-        if (!result.ok) {
-          setResults([]);
-          setStatus(result.message);
-          setIsSearching(false);
-          return;
-        }
-        setResults(result.results);
-        setStatus(result.results.length === 0 ? dictionary.settings.noMatchingDirectoryResult : null);
-        setIsSearching(false);
-      }}
-    >
-      {showHeader ? (
-        <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-black tracking-tight text-slate-950 dark:text-slate-100">{dictionary.settings.inviteMemberTitle}</h2>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-300">
+    <div className="space-y-10" dir={direction}>
+      {showHeader && (
+        <div className="space-y-3 px-1">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-3xl">
+            {dictionary.settings.inviteMemberTitle}
+          </h2>
+          <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
             {dictionary.settings.inviteMemberDescription}
           </p>
         </div>
-      ) : null}
-
-      {!hasOrganization ? (
-        <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-          {dictionary.settings.cannotInviteWithoutOrganization}
-        </div>
-      ) : null}
-
-      <div className="space-y-2">
-        <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">{dictionary.settings.inviteSearchLabel}</label>
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          className="w-full rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm font-medium text-foreground transition focus:bg-background focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder={dictionary.settings.inviteSearchPlaceholder}
-          type="text"
-          dir="ltr"
-          disabled={!hasOrganization}
-        />
-        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{dictionary.settings.inviteSearchHint}</p>
-      </div>
-
-      <div className="space-y-3">
-        <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{dictionary.settings.roleLabel}</label>
-        <div className="flex flex-wrap gap-2">
-          {(["manager", "member", "viewer"] as const).map((entry) => (
-            <button
-              key={entry}
-              type="button"
-              onClick={() => setRole(entry)}
-              disabled={isSubmitting || !hasOrganization}
-              className={cn(
-                "rounded-xl border px-4 py-2 text-xs font-black tracking-widest uppercase transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                role === entry
-                  ? "border-foreground bg-foreground text-background shadow-sm"
-                  : "border-border bg-background text-muted-foreground hover:bg-muted",
-              )}
-            >
-              {entry === "manager" ? dictionary.settings.manager : entry === "viewer" ? dictionary.settings.viewer : dictionary.settings.member}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={isSearching || !hasOrganization}
-        className="inline-flex w-fit items-center justify-center rounded-xl bg-foreground px-6 py-3 text-xs font-black tracking-[0.18em] text-background shadow-sm transition hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isSearching ? dictionary.settings.searchingDirectory : dictionary.assistant.search}
-      </button>
-
-      {results.length > 0 ? (
-        <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-          {results.map((result) => (
-            <InviteResultRow
-              key={result.id}
-              result={result}
-              canManage={canManage}
-              isSubmitting={isSubmitting}
-              onInvite={handleInvite}
-              onMessage={handleMessage}
-            />
-          ))}
-        </div>
-      ) : null}
-
-      {!results.length && query.includes("@") && canManage && hasOrganization ? (
-        <button
-          type="button"
-          onClick={() => void handleInvite(query.trim())}
-          disabled={isSubmitting}
-          className="inline-flex w-fit items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-xs font-black tracking-[0.18em] text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {isSubmitting ? dictionary.settings.inviteSending : dictionary.settings.sendInvite}
-        </button>
-      ) : null}
+      )}
 
       {status ? (
-        <div className="border-t border-slate-100 pt-4 dark:border-slate-800">
-          <div aria-live="polite" className="text-xs font-bold text-slate-500 dark:text-slate-300">
-            {status}
-          </div>
+        <div className="px-1 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-accent)]">
+          {status}
         </div>
       ) : null}
-    </form>
+
+      <form onSubmit={handleSubmit} className="space-y-10 px-1">
+        <div className="space-y-8">
+          <div className="relative space-y-4">
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--zane-ai-text-muted)] opacity-70">
+              {dictionary.settings.inviteSearchLabel}
+            </label>
+            <div className="relative">
+              <input
+                type="email"
+                autoComplete="off"
+                value={email}
+                onChange={(e) => handleSearch(e.target.value)}
+                disabled={isPending || !canManage}
+                placeholder="identity@institutional.id"
+                dir="ltr"
+                className="w-full border-b border-[color:var(--workspace-border)] bg-transparent py-3 pr-10 text-lg font-black uppercase tracking-tight text-[var(--zane-ai-deep)] transition-all placeholder:opacity-40 focus-visible:border-[var(--zane-ai-accent)] focus-visible:outline-none dark:text-white disabled:opacity-40"
+              />
+              <Search className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--zane-ai-text-muted)] opacity-40" />
+            </div>
+
+            {/* Search Results Dropdown */}
+            {searchResults.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-10 mt-4 overflow-hidden rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] shadow-2xl shadow-black/40 ring-1 ring-black/5 dark:ring-white/10">
+                <div className="divide-y divide-[color:var(--workspace-border)]">
+                  {searchResults.map((result) => (
+                    <button
+                      key={result.id}
+                      type="button"
+                      onClick={() => {
+                        setEmail(result.email);
+                        setSearchResults([]);
+                      }}
+                      className="flex w-full items-center gap-6 p-6 transition-all hover:bg-[var(--zane-ai-accent)] hover:text-white group"
+                    >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--workspace-shell)]/50 text-lg font-black uppercase text-[var(--zane-ai-deep)] dark:text-white group-hover:bg-white group-hover:text-[var(--zane-ai-accent)]">
+                        {result.name[0]}
+                      </div>
+                      <div className="flex flex-col items-start min-w-0">
+                        <div className="truncate text-[15px] font-black uppercase tracking-tight">{result.name}</div>
+                        <div className="truncate text-[11px] font-medium opacity-50 transition-opacity group-hover:opacity-100">{result.email}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-5">
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--zane-ai-text-muted)] opacity-70">
+              {dictionary.settings.roleLabel}
+            </label>
+            <div className="flex flex-wrap gap-2.5">
+              {roles.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  disabled={isPending || !canManage}
+                  onClick={() => setRole(r)}
+                  className={cn(
+                    "h-10 rounded-full px-8 text-[11px] font-black uppercase tracking-[0.15em] transition-all",
+                    role === r
+                      ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black shadow-lg shadow-black/10"
+                      : "bg-transparent border border-[color:var(--workspace-border)] text-[var(--zane-ai-deep)] dark:text-white/60 hover:bg-[var(--workspace-shell)]/50 hover:text-[var(--zane-ai-deep)] dark:hover:text-white disabled:opacity-40",
+                  )}
+                >
+                  {getRoleLabel(r)}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--zane-ai-text-muted)] opacity-60">
+              {dictionary.settings.managerGuardrail}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-10 pt-10 border-t border-[color:var(--workspace-border)]">
+          <p className="max-w-md text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-60">
+            {canManage
+              ? dictionary.settings.managerOnlySubmissionHint
+              : dictionary.settings.viewerSubmissionHint}
+          </p>
+          <button
+            type="submit"
+            disabled={isPending || !canManage || !email.includes("@")}
+            className="group relative inline-flex h-13 items-center gap-4 overflow-hidden rounded-full bg-[var(--zane-ai-accent)] px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-[var(--zane-ai-accent)]/20 transition-all hover:bg-[var(--zane-ai-accent)]/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <UserPlus className="relative z-10 h-5 w-5" strokeWidth={3} />
+            <span className="relative z-10">
+              {isPending ? dictionary.settings.inviteSending : dictionary.settings.inviteMember}
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
-import { Plus, Pencil, Trash2, Building2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Building2, X, Search } from "lucide-react";
 import type { UnitReference, UnitType, UnitStatus } from "@/app/(ws)/ws/_lib/entities";
 import type { Id } from "@convex/dataModel";
 
@@ -73,9 +73,13 @@ function mapReferenceToDisplayUnit(unit: UnitReference): DisplayUnit {
 export default function ProjectUnitsManager({
   projectId,
   initialUnits,
+  projectImage,
+  projectLocation,
 }: {
   projectId: string;
   initialUnits?: UnitReference[];
+  projectImage?: string;
+  projectLocation?: string;
 }) {
   const { dictionary } = useWebLocale();
   const usesInitialUnits = initialUnits !== undefined && projectId.startsWith("property-");
@@ -168,31 +172,78 @@ export default function ProjectUnitsManager({
     }
   }
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<UnitType | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<UnitStatus | "all">("all");
+
+  const filteredUnits = units?.filter((u: DisplayUnit) => {
+    if (typeFilter !== "all" && u.unitType !== typeFilter) return false;
+    if (statusFilter !== "all" && u.status !== statusFilter) return false;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      return (
+        u.label.toLowerCase().includes(query) ||
+        (u.description && u.description.toLowerCase().includes(query))
+      );
+    }
+    return true;
+  });
+
   if (units === undefined) {
     return (
-      <section className="rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-5 lg:p-6">
-        <div className="text-right">
-          <h2 className="text-lg font-black text-foreground">{dictionary.units.title}</h2>
+      <div className="w-full">
+        <div className="mt-5 flex min-h-[40vh] items-center justify-center py-8">
+          <div className="text-[13px] font-semibold text-[var(--workspace-muted)]">Loading units...</div>
         </div>
-        <div className="mt-5 flex items-center justify-center py-8">
-          <div className="text-[13px] font-semibold text-[var(--workspace-muted)]">Loading...</div>
-        </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-5 lg:p-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-black text-foreground">{dictionary.units.manageUnits}</h2>
+    <div className="w-full space-y-6">
+      {/* ── Header Controls ── */}
+      <div className="flex flex-col flex-wrap gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 items-center gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search units by reference or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-2xl border border-[var(--workspace-border)] bg-[var(--workspace-panel)] py-3 pl-10 pr-4 text-[13px] font-semibold text-foreground outline-none transition focus:border-[var(--workspace-highlight)] focus:ring-1 focus:ring-[var(--workspace-highlight)]/30"
+            />
+          </div>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as any)}
+            className="rounded-2xl border border-[var(--workspace-border)] bg-[var(--workspace-panel)] px-4 py-3 text-[13px] font-bold text-foreground outline-none transition focus:border-[var(--workspace-highlight)]"
+          >
+            <option value="all">All Types</option>
+            {UNIT_TYPES.map((t) => (
+              <option key={t} value={t}>{getUnitTypeLabel(t, dictionary)}</option>
+            ))}
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="rounded-2xl border border-[var(--workspace-border)] bg-[var(--workspace-panel)] px-4 py-3 text-[13px] font-bold text-foreground outline-none transition focus:border-[var(--workspace-highlight)]"
+          >
+            <option value="all">All Statuses</option>
+            {UNIT_STATUSES.map((s) => (
+              <option key={s} value={s}>{getUnitStatusLabel(s, dictionary)}</option>
+            ))}
+          </select>
+        </div>
+
         <motion.button
           type="button"
           onClick={openCreateForm}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.95 }}
-          className="inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-[11px] font-black uppercase tracking-widest text-background transition-colors"
+          className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-[var(--workspace-border)] bg-foreground px-6 py-3 text-[13px] font-black uppercase tracking-widest text-background shadow-lg transition-colors hover:bg-foreground/90"
         >
-          <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
           {dictionary.units.addUnit}
         </motion.button>
       </div>
@@ -205,26 +256,37 @@ export default function ProjectUnitsManager({
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-5 overflow-hidden rounded-2xl border border-[color:var(--workspace-border)] bg-background p-5"
+          className="mt-2 overflow-hidden rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-6 shadow-sm"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[14px] font-black text-foreground">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-[16px] font-black tracking-tight text-foreground">
               {editingUnitId ? dictionary.units.edit : dictionary.units.create}
             </h3>
-            <button type="button" onClick={closeForm} className="text-muted-foreground hover:text-foreground transition">
+            <button type="button" onClick={closeForm} className="flex h-8 w-8 items-center justify-center rounded-full bg-background transition hover:bg-muted text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {/* Label */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 lg:col-span-2">
               <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{dictionary.units.label}</label>
               <input
                 value={form.label}
                 onChange={(e) => setForm({ ...form, label: e.target.value })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-semibold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
                 placeholder="e.g. Unit A-101"
+              />
+            </div>
+
+            {/* Price */}
+            <div className="flex flex-col gap-1.5 lg:col-span-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{dictionary.units.price}</label>
+              <input
+                value={form.priceLabel}
+                onChange={(e) => setForm({ ...form, priceLabel: e.target.value })}
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-semibold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
+                placeholder="e.g. EGP 4,200,000"
               />
             </div>
 
@@ -234,23 +296,12 @@ export default function ProjectUnitsManager({
               <select
                 value={form.unitType}
                 onChange={(e) => setForm({ ...form, unitType: e.target.value as UnitType })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-bold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
               >
                 {UNIT_TYPES.map((t) => (
                   <option key={t} value={t}>{getUnitTypeLabel(t, dictionary)}</option>
                 ))}
               </select>
-            </div>
-
-            {/* Floor */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{dictionary.units.floor}</label>
-              <input
-                value={form.floor}
-                onChange={(e) => setForm({ ...form, floor: e.target.value })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
-                placeholder="e.g. 3rd Floor"
-              />
             </div>
 
             {/* Status */}
@@ -259,7 +310,7 @@ export default function ProjectUnitsManager({
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as UnitStatus })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-bold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
               >
                 {UNIT_STATUSES.map((s) => (
                   <option key={s} value={s}>{getUnitStatusLabel(s, dictionary)}</option>
@@ -274,7 +325,7 @@ export default function ProjectUnitsManager({
                 type="number"
                 value={form.bedrooms}
                 onChange={(e) => setForm({ ...form, bedrooms: e.target.value })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-semibold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
                 min={0}
               />
             </div>
@@ -286,50 +337,50 @@ export default function ProjectUnitsManager({
                 type="number"
                 value={form.bathrooms}
                 onChange={(e) => setForm({ ...form, bathrooms: e.target.value })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-semibold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
                 min={0}
               />
             </div>
-
+            
+            {/* Floor */}
+            <div className="flex flex-col gap-1.5 lg:col-span-2">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{dictionary.units.floor}</label>
+              <input
+                value={form.floor}
+                onChange={(e) => setForm({ ...form, floor: e.target.value })}
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-semibold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
+                placeholder="e.g. 3rd Floor"
+              />
+            </div>
+            
             {/* Area */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 lg:col-span-2">
               <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{dictionary.units.area}</label>
               <input
                 value={form.area}
                 onChange={(e) => setForm({ ...form, area: e.target.value })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-semibold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition"
                 placeholder="e.g. 185 sqm"
               />
             </div>
 
-            {/* Price */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{dictionary.units.price}</label>
-              <input
-                value={form.priceLabel}
-                onChange={(e) => setForm({ ...form, priceLabel: e.target.value })}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition"
-                placeholder="e.g. EGP 4,200,000"
-              />
-            </div>
-
             {/* Description (full width) */}
-            <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <div className="flex flex-col gap-1.5 lg:col-span-4">
               <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{dictionary.units.description}</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={2}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-[13px] font-semibold text-foreground outline-none focus:border-foreground/30 transition resize-none"
+                rows={3}
+                className="rounded-2xl border border-[var(--workspace-border)] bg-background px-4 py-3 text-[13px] font-semibold text-foreground outline-none focus:border-[var(--workspace-highlight)] transition resize-none"
               />
             </div>
           </div>
 
-          <div className="mt-5 flex items-center justify-end gap-3">
+          <div className="mt-6 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={closeForm}
-              className="rounded-xl border border-border bg-background px-4 py-2 text-[12px] font-bold text-foreground transition hover:bg-muted"
+              className="rounded-2xl border border-[var(--workspace-border)] bg-background px-6 py-3 text-[13px] font-bold text-foreground transition hover:bg-[var(--workspace-panel)]"
             >
               {dictionary.units.cancel}
             </button>
@@ -337,7 +388,7 @@ export default function ProjectUnitsManager({
               type="button"
               onClick={handleSave}
               disabled={saving || !form.label.trim()}
-              className="rounded-xl bg-[var(--zane-ai-deep)] px-5 py-2 text-[12px] font-bold text-white transition hover:opacity-90 disabled:opacity-50 dark:bg-white dark:text-black"
+              className="rounded-2xl bg-foreground px-8 py-3 text-[13px] font-black tracking-tight text-background shadow-lg transition hover:bg-foreground/90 disabled:opacity-50"
             >
               {saving ? "..." : dictionary.units.saveUnit}
             </button>
@@ -345,16 +396,26 @@ export default function ProjectUnitsManager({
         </motion.div>
       )}
       </AnimatePresence>
-      {/* ── Units List ────────────────────────────────────── */}
-      <div className="mt-5">
-        {units.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-4 py-10 text-center">
-            <Building2 className="mx-auto h-8 w-8 text-muted-foreground/40" />
-            <p className="mt-3 text-[13px] font-semibold text-muted-foreground">{dictionary.units.noUnits}</p>
+      
+      {/* ── Units Grid ────────────────────────────────────── */}
+      <div className="mt-2">
+        {!filteredUnits || filteredUnits.length === 0 ? (
+          <div className="flex min-h-[40vh] w-full flex-col items-center justify-center rounded-[32px] border border-dashed border-[var(--workspace-border)] bg-[var(--workspace-panel)] px-8 py-16 text-center">
+            <Building2 className="mb-4 h-12 w-12 text-[var(--workspace-highlight)]/40" />
+            <h3 className="text-xl font-black text-foreground">
+              {searchQuery || typeFilter !== "all" || statusFilter !== "all" 
+                ? "No matching units found" 
+                : dictionary.units.noUnits}
+            </h3>
+            <p className="mt-2 text-[14px] text-muted-foreground">
+              {searchQuery || typeFilter !== "all" || statusFilter !== "all" 
+                ? "Adjust your filters or clear search to see results." 
+                : "Get started by adding your first unit to this project."}
+            </p>
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {units.map((unit: DisplayUnit) => (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredUnits.map((unit: DisplayUnit) => (
               <AgUnitCard
                 key={unit._id}
                 id={unit._id}
@@ -369,6 +430,8 @@ export default function ProjectUnitsManager({
                 description={unit.description}
                 status={unit.status}
                 statusLabel={getUnitStatusLabel(unit.status, dictionary)}
+                fallbackImage={projectImage}
+                location={projectLocation}
                 onEdit={() => openEditForm(unit)}
                 onDelete={() => handleDelete(unit._id)}
                 isDeleting={deletingId === unit._id}
@@ -377,6 +440,6 @@ export default function ProjectUnitsManager({
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }

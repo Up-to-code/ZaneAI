@@ -6,6 +6,7 @@
 
 export type UnitType = "apartment" | "villa" | "duplex" | "studio" | "penthouse" | "townhouse" | "chalet" | "commercial";
 export type ListingType = "sale" | "rent";
+export type RentalPeriod = "day" | "week" | "month" | "year";
 export type UnitStatus = "available" | "reserved" | "sold";
 
 export type UnitReference = {
@@ -22,6 +23,7 @@ export type UnitReference = {
   description?: string;
   image?: string;
   listingType?: ListingType;
+  rentalPeriod?: RentalPeriod;
   finishingLevel?: "core_shell" | "semi_finished" | "fully_finished" | "extra_super_lux" | "furnished";
   paymentMethod?: "cash" | "installments" | "cash_or_installments";
   downPayment?: string;
@@ -93,6 +95,7 @@ export type OrganizationMemberDisplay = {
   username?: string;
   role: "manager" | "member" | "viewer";
   statusLabel: string;
+  joinedAtLabel: string;
 };
 
 export type OrganizationInviteDisplay = {

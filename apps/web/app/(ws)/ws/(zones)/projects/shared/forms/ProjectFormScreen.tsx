@@ -26,15 +26,15 @@ function ProjectDeleteModal({
   onClose: () => void;
   onConfirm: () => void;
 }) {
-  const { locale } = useWebLocale();
+  const { dictionary } = useWebLocale();
   return (
     <AgDeleteConfirmModal
       open={open}
       onClose={onClose}
       onConfirm={onConfirm}
-      title={locale === "fr" ? "Supprimer le projet" : locale === "en" ? "Delete project" : "حذف المشروع"}
-      description={locale === "fr" ? "Ce projet sera supprimé définitivement avec toutes ses données liées." : locale === "en" ? "This project will be permanently deleted with all of its related data." : "سيتم حذف المشروع نهائياً مع جميع بياناته المرتبطة."}
-      confirmLabel={locale === "fr" ? "Supprimer le projet" : locale === "en" ? "Delete project" : "حذف المشروع"}
+      title={dictionary.projects.deleteTitle}
+      description={dictionary.projects.deleteDescription}
+      confirmLabel={dictionary.projects.deleteConfirm}
     />
   );
 }
@@ -91,30 +91,26 @@ function ProjectFormLayout(args: {
   onDeleteClose: () => void;
   onDeleteConfirm: () => void;
 }) {
-  const { locale } = useWebLocale();
+  const { dictionary } = useWebLocale();
 
   return (
-    <div className="min-h-full bg-background/60 pb-20">
-      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <div className="overflow-hidden rounded-[28px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] shadow-sm">
-          <AgPropertyForm
-            propertyId={args.projectId}
-            initialData={args.initialData}
-            title={args.title}
-            description={args.description}
-            submitLabel={args.pending ? (locale === "fr" ? "Enregistrement..." : locale === "en" ? "Saving..." : "جارٍ الحفظ...") : args.submitLabel}
-            onSave={args.onSave}
-            onCancel={args.onCancel}
-            cancelHref={args.cancelHref}
-            onDelete={args.onDelete}
-            onRevokeViewer={args.onRevokeViewer}
-          />
-        </div>
-      </div>
+    <>
+      <AgPropertyForm
+        propertyId={args.projectId}
+        initialData={args.initialData}
+        title={args.title}
+        description={args.description}
+        submitLabel={args.pending ? dictionary.projectForm.saving : args.submitLabel}
+        onSave={args.onSave}
+        onCancel={args.onCancel}
+        cancelHref={args.cancelHref}
+        onDelete={args.onDelete}
+        onRevokeViewer={args.onRevokeViewer}
+      />
       {args.onDelete ? (
         <ProjectDeleteModal open={args.showDeleteModal} onClose={args.onDeleteClose} onConfirm={args.onDeleteConfirm} />
       ) : null}
-    </div>
+    </>
   );
 }
 

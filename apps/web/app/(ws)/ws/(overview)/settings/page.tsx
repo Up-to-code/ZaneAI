@@ -182,20 +182,21 @@ export default async function WorkspaceSettingsPage({
     );
 
   return (
-    <div className="flex w-full flex-col p-6 lg:p-10 animate-in fade-in duration-500 gap-6">
-      <SettingsHeader
-        title={dictionary.settings.title}
-        description={formatWebCopy(dictionary.settings.membersSummary, {
-          members: members.length,
-          invites: invites.length,
-          roleLabel,
-        })}
-        workspaceLabel={dictionary.settings.workspaceLabel}
-        dir={locale === "ar" ? "rtl" : "ltr"}
-      />
-      <SettingsTabs tabs={tabs} defaultTab="org" />
+    <div className="flex min-h-full w-full flex-col p-6 lg:p-10 animate-in fade-in duration-500 gap-12">
+      <div className="shrink-0 space-y-6">
+        <SettingsHeader
+          description={formatWebCopy(dictionary.settings.membersSummary, {
+            members: members.length,
+            invites: invites.length,
+            roleLabel,
+          })}
+          workspaceLabel={dictionary.settings.workspaceLabel}
+          dir={locale === "ar" ? "rtl" : "ltr"}
+        />
+        <SettingsTabs tabs={tabs} defaultTab="org" />
+      </div>
 
-      <div className="min-h-0">{content}</div>
+      <div className="min-h-0 flex-1">{content}</div>
     </div>
   );
 }

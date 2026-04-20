@@ -26,7 +26,8 @@ export default function ProjectsWorkspace({
   initialProjects,
   onTrackProjectEvent,
 }: ProjectsWorkspaceProps) {
-  const { dictionary } = useWebLocale();
+  const { dictionary, locale } = useWebLocale();
+  const isRtl = locale === "ar";
   const [projects] = useState(initialProjects);
   const [filterKey, setFilterKey] = useState("projects"); // Default to projects view
 
@@ -37,6 +38,7 @@ export default function ProjectsWorkspace({
           ...unit,
           projectId: project.id,
           projectTitle: project.title,
+          projectImage: project.image,
         })),
       ),
     [projects],
@@ -45,7 +47,7 @@ export default function ProjectsWorkspace({
   const filteredProjects = useMemo(() => projects, [projects]);
 
   return (
-    <div className="flex w-full flex-col gap-6 px-6 py-6 lg:px-8 lg:py-8">
+    <div dir={isRtl ? "rtl" : "ltr"} className="flex w-full flex-col gap-6 px-6 py-6 lg:px-8 lg:py-8">
       
       {/* ── Header: Portfolio Engine ── */}
       <div className="mb-10 flex flex-col justify-between gap-6 lg:mb-12 lg:flex-row lg:items-end">
@@ -54,11 +56,13 @@ export default function ProjectsWorkspace({
             <Building2 className="h-5 w-5 text-[var(--zane-ai-accent)]" />
           </div>
           <div className="flex flex-col">
-            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--zane-ai-text-muted)] dark:text-white/40">Portfolio Management</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--zane-ai-text-muted)] dark:text-white/40">
+              {dictionary.projects.portfolioManagement}
+            </div>
             <h1 className="mt-1 text-3xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-4xl">
               {dictionary.projects.title}
             </h1>
-            <p className="mt-4 max-w-2xl text-[12px] font-medium leading-relaxed tracking-wider text-[var(--zane-ai-text-muted)] dark:text-white/50">
+            <p className={`mt-4 max-w-2xl text-[12px] font-medium leading-relaxed tracking-wider text-[var(--zane-ai-text-muted)] dark:text-white/50 ${isRtl ? "text-right" : "text-left"}`}>
               {dictionary.projects.description}
             </p>
           </div>
@@ -76,8 +80,8 @@ export default function ProjectsWorkspace({
       <div className="flex flex-col gap-8">
         <FilterChipBar
           chips={[
-            { key: "projects", label: "المشاريع" },
-            { key: "units", label: "الوحدات" },
+            { key: "projects", label: dictionary.projects.title },
+            { key: "units", label: dictionary.projects.unitsLabel },
           ]}
           activeKey={filterKey}
           onChange={setFilterKey}
@@ -95,7 +99,7 @@ export default function ProjectsWorkspace({
             {filteredProjects.length === 0 && (
               <div className="col-span-2 flex min-h-[40vh] items-center justify-center rounded-[32px] border border-dashed border-[var(--zane-ai-line)] bg-[var(--zane-ai-surface)] p-12 text-center dark:border-white/10 dark:bg-black/20">
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] dark:text-white/40">
-                   No properties identified within this parameter.
+                   {dictionary.projects.noProjectsFound}
                 </span>
               </div>
             )}
@@ -103,29 +107,30 @@ export default function ProjectsWorkspace({
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
              <>
-                 {allUnits.map((unit) => (
+                  {allUnits.map((unit) => (
                     <AgUnitCard
                       key={`${unit.projectId}-${unit.id}`}
                       id={unit.id}
                       label={unit.label}
-                      unitType="apartment"
+                      unitType={unit.unitType ?? "apartment"}
                       typeLabel={unit.projectTitle}
-                      floor={undefined}
+                      floor={unit.floor}
                       bedrooms={unit.bedrooms}
                       bathrooms={unit.bathrooms}
                       area={typeof unit.area === "number" ? `${unit.area}` : unit.area}
                       priceLabel={unit.priceLabel}
-                      status="available"
-                      statusLabel={dictionary.units.available}
+                      status={unit.status ?? "available"}
+                      statusLabel={unit.status === "available" ? dictionary.units.available : unit.status === "sold" ? dictionary.units.sold : unit.status === "reserved" ? dictionary.units.reserved : undefined}
+                      image={unit.image ?? unit.projectImage}
                     />
-                 ))}
-                 {allUnits.length === 0 && (
-                   <div className="col-span-full py-12 text-center">
-                     <span className="text-xs font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] dark:text-white/40">
-                        No individual units found across projects.
-                     </span>
-                   </div>
-                 )}
+                  ))}
+                  {allUnits.length === 0 && (
+                    <div className="col-span-full py-12 text-center">
+                      <span className="text-xs font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] dark:text-white/40">
+                         {dictionary.projects.noUnitsFound}
+                      </span>
+                    </div>
+                  )}
                </>
           </div>
         )}

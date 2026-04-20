@@ -2,6 +2,8 @@
 
 import { useState, useTransition, useMemo, useRef } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { useWebLocale } from "@/app/_components/WebLocaleProvider";
+import { formatWebCopy } from "@/lib/i18n";
 import { 
   Building, Home, Layers, Layout, Building2, Store, Palmtree, 
   Bed, Bath, Move, ChevronUp, Car, Sparkles, Receipt, Calendar, 
@@ -39,6 +41,7 @@ export type UnitPropertyFormData = {
   downPayment: string;
   installmentYears: string;
   deliveryDate: string;
+  rentalPeriod: "day" | "week" | "month" | "year";
   /* Step 4: Amenities & Nearby */
   unitAmenities: string[];
   nearbyPlaces: { name: string; distance: string }[];
@@ -67,85 +70,6 @@ export type AgUnitFormProps = {
    CONSTANTS
    ═══════════════════════════════════════════════════════════ */
 
-const UNIT_TYPES: { value: UnitType; label: string; icon: LucideIcon }[] = [
-  { value: "apartment", label: "شقة", icon: Building },
-  { value: "villa", label: "فيلا", icon: Home },
-  { value: "duplex", label: "دوبلكس", icon: Layers },
-  { value: "studio", label: "ستوديو", icon: Layout },
-  { value: "penthouse", label: "بنتهاوس", icon: Building2 },
-  { value: "townhouse", label: "تاون هاوس", icon: Home },
-  { value: "chalet", label: "شاليه", icon: Palmtree },
-  { value: "commercial", label: "تجاري", icon: Store },
-];
-
-const LISTING_TYPES = [
-  { value: "sale", label: "للبيع" },
-  { value: "rent", label: "للإيجار" },
-] as const;
-
-const FINISHING_LEVELS = [
-  { value: "core_shell", label: "على الطوب الأحمر" },
-  { value: "semi_finished", label: "نصف تشطيب" },
-  { value: "fully_finished", label: "تشطيب كامل" },
-  { value: "extra_super_lux", label: "سوبر لوكس" },
-  { value: "furnished", label: "مفروشة" },
-] as const;
-
-const PAYMENT_METHODS = [
-  { value: "cash", label: "كاش" },
-  { value: "installments", label: "تقسيط" },
-  { value: "cash_or_installments", label: "كاش أو تقسيط" },
-] as const;
-
-const REGISTRATION_OPTIONS = [
-  { value: "registered", label: "مسجل (شهر عقاري)" },
-  { value: "not_registered", label: "غير مسجل" },
-  { value: "pending", label: "قيد التسجيل" },
-] as const;
-
-const DISTANCE_OPTIONS = [
-  "أقل من 5 دقائق",
-  "5 – 10 دقائق",
-  "10 – 20 دقيقة",
-  "أكثر من 20 دقيقة",
-] as const;
-
-const SHARED_AMENITIES = [
-  { label: "تكييف مركزي", icon: Wind },
-  { label: "بلكونة", icon: Layout },
-  { label: "غرفة ملابس", icon: DoorClosed },
-  { label: "مطبخ مجهز", icon: Utensils },
-  { label: "سخان مركزي", icon: Sparkles },
-  { label: "شبكة إنترنت", icon: Wifi },
-  { label: "إنتركم", icon: Mic2 },
-  { label: "أسانسير", icon: ArrowUpDown },
-  { label: "كاميرات مراقبة", icon: Camera },
-  { label: "باب مصفح", icon: ShieldCheck },
-  { label: "طاقة شمسية", icon: Sun },
-  { label: "نادي رياضي / جيم", icon: Dumbbell },
-];
-
-const VILLA_AMENITIES = [
-  "حمام سباحة خاص", "حديقة خاصة", "بدروم", "روف",
-  "غرفة سائق", "غرفة خدم", "مدخل خاص", "ملعب خاص",
-];
-const APARTMENT_AMENITIES = [
-  "تراس", "غرفة غسيل", "حراسة خاصة", "جراج خاص", "دش مركزي",
-];
-const CHALET_AMENITIES = [
-  "إطلالة على البحر", "شاطئ خاص", "حمام سباحة مشترك", "ملعب أطفال", "لاند سكيب",
-];
-const COMMERCIAL_AMENITIES = [
-  "واجهة زجاج", "تهوية مركزية", "مدخل مستقل", "أرضيات بورسلين", "عداد تجاري",
-];
-
-const NEARBY_PLACE_NAMES = [
-  "محطة مترو", "مركز تجاري / مول", "مدرسة دولية", "جامعة",
-  "مستشفى", "صيدلية", "مسجد", "كنيسة", "سوبر ماركت",
-  "نادي رياضي", "حديقة عامة", "محطة بنزين", "مطار",
-  "طريق دائري", "أوتوستراد", "كورنيش", "بنك", "مطعم / كافيه",
-];
-
 const TOTAL_STEPS = 7;
 
 /* ═══════════════════════════════════════════════════════════
@@ -163,11 +87,7 @@ const staggerItem: Variants = {
   center: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
 };
 
-/* ═══════════════════════════════════════════════════════════
-   COMPONENT
-   ═══════════════════════════════════════════════════════════ */
-
-export default function AgUnitCreateForm({
+ export default function AgUnitCreateForm({
   initialData,
   title,
   description,
@@ -176,6 +96,85 @@ export default function AgUnitCreateForm({
   onCancel,
   cancelHref,
 }: AgUnitFormProps) {
+  const { dictionary, isRtl } = useWebLocale();
+  const uc = dictionary.unitCreate;
+
+  /* ═══════════════════════════════════════════════════════════
+     LOCALE-AWARE CONSTANTS
+     ═══════════════════════════════════════════════════════════ */
+
+  const UNIT_TYPES: { value: UnitType; label: string; icon: LucideIcon }[] = [
+    { value: "apartment", label: dictionary.units.apartment, icon: Building },
+    { value: "villa", label: dictionary.units.villa, icon: Home },
+    { value: "duplex", label: dictionary.units.duplex, icon: Layers },
+    { value: "studio", label: dictionary.units.studio, icon: Layout },
+    { value: "penthouse", label: dictionary.units.penthouse, icon: Building2 },
+    { value: "townhouse", label: dictionary.units.townhouse, icon: Home },
+    { value: "chalet", label: dictionary.units.chalet, icon: Palmtree },
+    { value: "commercial", label: dictionary.units.commercial, icon: Store },
+  ];
+
+  const LISTING_TYPES = [
+    { value: "sale", label: dictionary.homeSearch.buy },
+    { value: "rent", label: dictionary.homeSearch.rent },
+  ] as const;
+
+  const RENTAL_PERIODS = [
+    { value: "day", label: uc.rentalPeriods.day },
+    { value: "week", label: uc.rentalPeriods.week },
+    { value: "month", label: uc.rentalPeriods.month },
+    { value: "year", label: uc.rentalPeriods.year },
+  ] as const;
+
+  const FINISHING_LEVELS = [
+    { value: "core_shell", label: uc.finishingLevels.core_shell },
+    { value: "semi_finished", label: uc.finishingLevels.semi_finished },
+    { value: "fully_finished", label: uc.finishingLevels.fully_finished },
+    { value: "extra_super_lux", label: uc.finishingLevels.extra_super_lux },
+    { value: "furnished", label: uc.finishingLevels.furnished },
+  ] as const;
+
+  const PAYMENT_METHODS = [
+    { value: "cash", label: uc.paymentMethods.cash },
+    { value: "installments", label: uc.paymentMethods.installments },
+    { value: "cash_or_installments", label: uc.paymentMethods.cash_or_installments },
+  ] as const;
+
+  const REGISTRATION_OPTIONS = [
+    { value: "registered", label: uc.registrationOptions.registered },
+    { value: "not_registered", label: uc.registrationOptions.not_registered },
+    { value: "pending", label: uc.registrationOptions.pending },
+  ] as const;
+
+  const DISTANCE_OPTIONS = [
+    uc.distances.less_than_5,
+    uc.distances.five_to_ten,
+    uc.distances.ten_to_twenty,
+    uc.distances.more_than_twenty,
+  ] as const;
+
+  const AMENITY_ICONS: Record<string, LucideIcon> = {
+    [uc.amenities.ac]: Wind,
+    [uc.amenities.balcony]: Layout,
+    [uc.amenities.dressing]: DoorClosed,
+    [uc.amenities.kitchen]: Utensils,
+    [uc.amenities.heater]: Sparkles,
+    [uc.amenities.internet]: Wifi,
+    [uc.amenities.intercom]: Mic2,
+    [uc.amenities.elevator]: ArrowUpDown,
+    [uc.amenities.security_cameras]: Camera,
+    [uc.amenities.armored_door]: ShieldCheck,
+    [uc.amenities.solar_power]: Sun,
+    [uc.amenities.gym]: Dumbbell,
+  };
+
+  const SHARED_AMENITY_LABELS = [
+    uc.amenities.ac, uc.amenities.balcony, uc.amenities.dressing,
+    uc.amenities.kitchen, uc.amenities.heater, uc.amenities.internet,
+    uc.amenities.intercom, uc.amenities.elevator, uc.amenities.security_cameras,
+    uc.amenities.armored_door, uc.amenities.solar_power, uc.amenities.gym
+  ];
+
   const [pending, startTransition] = useTransition();
   const [activeStep, setActiveStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -198,6 +197,7 @@ export default function AgUnitCreateForm({
     downPayment: initialData?.downPayment ?? "",
     installmentYears: initialData?.installmentYears?.toString() ?? "",
     deliveryDate: initialData?.deliveryDate ?? "",
+    rentalPeriod: (initialData as any)?.rentalPeriod ?? "month",
     unitAmenities: initialData?.unitAmenities ?? [],
     nearbyPlaces: initialData?.nearbyPlaces ?? [],
     images: initialData?.images ?? [],
@@ -213,15 +213,15 @@ export default function AgUnitCreateForm({
 
   /* Dynamic amenities base */
   const availableAmenities = useMemo(() => {
-    const base = SHARED_AMENITIES.map(a => a.label);
+    const base = SHARED_AMENITY_LABELS;
     switch (formData.unitType) {
-      case "villa": case "townhouse": return [...base, ...VILLA_AMENITIES];
-      case "apartment": case "duplex": case "penthouse": case "studio": return [...base, ...APARTMENT_AMENITIES];
-      case "chalet": return [...base, ...CHALET_AMENITIES];
-      case "commercial": return [...base, ...COMMERCIAL_AMENITIES];
+      case "villa": case "townhouse": return [...base, ...uc.amenities.villa];
+      case "apartment": case "duplex": case "penthouse": case "studio": return [...base, ...uc.amenities.apartment];
+      case "chalet": return [...base, ...uc.amenities.chalet];
+      case "commercial": return [...base, ...uc.amenities.commercial];
       default: return base;
     }
-  }, [formData.unitType]);
+  }, [formData.unitType, uc.amenities, SHARED_AMENITY_LABELS]);
 
   const canPublish = Boolean(
     formData.name.trim() &&
@@ -233,7 +233,7 @@ export default function AgUnitCreateForm({
 
   const handleNext = () => {
     if (activeStep === 1 && !formData.name.trim()) {
-      setFeedback("يرجى إدخال عنوان الوحدة على الأقل."); return;
+      setFeedback(uc.feedbackEmptyName); return;
     }
     setFeedback(null);
     setDirection(1);
@@ -245,7 +245,7 @@ export default function AgUnitCreateForm({
     setFeedback(null);
     startTransition(async () => {
       const result = await onSave(formData);
-      if (!result.ok) setFeedback(result.feedback?.message ?? "حدث خطأ غير متوقع.");
+      if (!result.ok) setFeedback(result.feedback?.message ?? uc.feedbackUnexpectedError);
     });
   };
 
@@ -301,15 +301,15 @@ export default function AgUnitCreateForm({
   /* ═══════════════ RENDER ═══════════════ */
 
   return (
-    <div className="relative flex min-h-full w-full flex-col pb-12">
+    <div className="relative flex h-full w-full flex-col pb-12">
       <ZonePageIntro
-        eyebrow="إنشاء وحدة عقارية"
-        title={title ?? "بيانات الوحدة العقارية"}
-        description={description ?? "أكمل البيانات لنشر وحدتك العقارية بأفضل شكل ممكن."}
+        eyebrow={uc.eyebrow}
+        title={title ?? uc.title}
+        description={description ?? uc.description}
         actions={<AgPropertyFormHeaderActions onCancel={onCancel} cancelHref={cancelHref} />}
       />
 
-      <div className="mx-auto mt-6 flex w-full max-w-3xl items-center justify-center gap-2" dir="rtl">
+      <div className={`mx-auto mt-6 flex w-full max-w-3xl items-center justify-center gap-2 ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
         {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => (
           <motion.div
             key={n}
@@ -321,10 +321,10 @@ export default function AgUnitCreateForm({
         ))}
       </div>
 
-      <div className="mx-auto mt-8 w-full max-w-3xl pb-36 pt-4 overflow-hidden" dir="rtl">
+      <div className="mx-auto mt-8 w-full max-w-3xl flex-1 pb-36 pt-4 overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
         <AnimatePresence mode="wait" initial={false}>
           {feedback && (
-            <motion.div key="fb" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mb-8 rounded-[24px] bg-rose-500/10 px-6 py-4 text-right text-[15px] font-bold text-rose-500 border border-rose-500/20">
+            <motion.div key="fb" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className={`mb-8 rounded-[24px] bg-rose-500/10 px-6 py-4 text-[15px] font-bold text-rose-500 border border-rose-500/20 ${isRtl ? "text-right" : "text-left"}`}>
               {feedback}
             </motion.div>
           )}
@@ -334,20 +334,20 @@ export default function AgUnitCreateForm({
           {/* ═══ STEP 1: Identity ═══ */}
           {activeStep === 1 && (
             <motion.div key="s1" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ١ من ٧</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">تعريف الوحدة</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">العنوان والموقع ونوع الوحدة وهل هي للبيع أو للإيجار.</p>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "1", total: "7" })}</FieldLabel>
+                  <h2 className="text-2xl font-black uppercase tracking-tight text-foreground lg:text-3xl">{uc.unitDefinition}</h2>
+                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.unitDefinitionDesc}</p>
                 </motion.div>
 
                 <motion.div className="space-y-4" variants={staggerItem}>
-                  <TextInput placeholder="عنوان الوحدة (مثال: شقة 185م² في الرحاب)" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} disabled={pending} />
-                  <TextInput placeholder="الموقع بالتفصيل (مثال: التجمع الخامس، القاهرة الجديدة)" value={formData.location} onChange={(v) => setFormData({ ...formData, location: v })} disabled={pending} />
+                  <TextInput placeholder={uc.unitTitlePlaceholder} value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} disabled={pending} />
+                  <TextInput placeholder={uc.locationPlaceholder} value={formData.location} onChange={(v) => setFormData({ ...formData, location: v })} disabled={pending} />
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>نوع الإعلان</FieldLabel>
+                  <FieldLabel>{uc.listingTypeLabel}</FieldLabel>
                   <div className="flex gap-3">
                     {LISTING_TYPES.map((lt) => {
                       const active = formData.listingType === lt.value;
@@ -362,7 +362,7 @@ export default function AgUnitCreateForm({
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>نوع الوحدة</FieldLabel>
+                  <FieldLabel>{uc.unitTypeLabel}</FieldLabel>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {UNIT_TYPES.map((ut, idx) => {
                       const active = formData.unitType === ut.value;
@@ -386,27 +386,27 @@ export default function AgUnitCreateForm({
           {/* ═══ STEP 2: Specs ═══ */}
           {activeStep === 2 && (
             <motion.div key="s2" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٢ من ٧</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">مواصفات الوحدة</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">الغرف، الحمامات، المساحة، الدور، الباركينج، ومستوى التشطيب.</p>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "2", total: "7" })}</FieldLabel>
+                  <h2 className="text-2xl font-black uppercase tracking-tight text-foreground lg:text-3xl">{uc.unitSpecs}</h2>
+                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.unitSpecsDesc}</p>
                 </motion.div>
 
                 <motion.div className="grid grid-cols-2 gap-4 sm:grid-cols-3" variants={staggerItem}>
                   {formData.unitType !== "studio" && (
-                    <div className="relative"><Bed className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="number" placeholder="عدد الغرف" value={formData.rooms} onChange={(v) => setFormData({ ...formData, rooms: v })} disabled={pending} className="pr-11" /></div>
+                    <div className="relative"><Bed className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.roomsPlaceholder} value={formData.rooms} onChange={(v) => setFormData({ ...formData, rooms: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                   )}
-                  <div className="relative"><Bath className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="number" placeholder="عدد الحمامات" value={formData.baths} onChange={(v) => setFormData({ ...formData, baths: v })} disabled={pending} className="pr-11" /></div>
-                  <div className="relative"><Move className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="text" placeholder="المساحة (م²)" value={formData.area} onChange={(v) => setFormData({ ...formData, area: v })} disabled={pending} className="pr-11" /></div>
+                  <div className="relative"><Bath className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.bathsPlaceholder} value={formData.baths} onChange={(v) => setFormData({ ...formData, baths: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                  <div className="relative"><Move className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.areaPlaceholder} value={formData.area} onChange={(v) => setFormData({ ...formData, area: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                   {formData.unitType !== "villa" && formData.unitType !== "townhouse" && (
-                    <div className="relative"><ChevronUp className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="text" placeholder="الدور (مثال: الخامس)" value={formData.floor} onChange={(v) => setFormData({ ...formData, floor: v })} disabled={pending} className="pr-11" /></div>
+                    <div className="relative"><ChevronUp className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.floorPlaceholder} value={formData.floor} onChange={(v) => setFormData({ ...formData, floor: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                   )}
-                  <div className="relative"><Car className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="number" placeholder="أماكن الباركينج" value={formData.parking} onChange={(v) => setFormData({ ...formData, parking: v })} disabled={pending} className="pr-11" /></div>
+                  <div className="relative"><Car className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.parkingPlaceholder} value={formData.parking} onChange={(v) => setFormData({ ...formData, parking: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>مستوى التشطيب</FieldLabel>
+                  <FieldLabel>{uc.finishingLevelLabel}</FieldLabel>
                   <div className="flex flex-wrap gap-3">
                     {FINISHING_LEVELS.map((fl) => {
                       const active = formData.finishingLevel === fl.value;
@@ -427,23 +427,62 @@ export default function AgUnitCreateForm({
           {/* ═══ STEP 3: Pricing ═══ */}
           {activeStep === 3 && (
             <motion.div key="s3" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٣ من ٧</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">السعر وطريقة الدفع</h2>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "3", total: "7" })}</FieldLabel>
+                  <h2 className="text-2xl font-black uppercase tracking-tight text-foreground lg:text-3xl">{uc.pricingTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">
-                    {formData.listingType === "rent" ? "حدد الإيجار الشهري." : "حدد السعر ونظام الدفع."}
+                    {formData.listingType === "rent" ? uc.pricingDescRent : uc.pricingDescSale}
                   </p>
                 </motion.div>
 
                 <motion.div className="space-y-4" variants={staggerItem}>
-                  <div className="relative"><CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="text" placeholder={formData.listingType === "rent" ? "الإيجار الشهري (مثال: 15,000 ج.م)" : "السعر الإجمالي (مثال: 3,500,000 ج.م)"} value={formData.price} onChange={(v) => setFormData({ ...formData, price: v })} disabled={pending} className="pr-11 text-xl font-black" /></div>
+                  <div className="relative">
+                    <CreditCard className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
+                    <TextInput 
+                      type="text" 
+                      placeholder={
+                        formData.listingType === "rent" 
+                          ? formatWebCopy(uc.pricePlaceholderRent, { period: RENTAL_PERIODS.find(p => p.value === formData.rentalPeriod)?.label || "" })
+                          : uc.pricePlaceholderSale
+                      } 
+                      value={formData.price} 
+                      onChange={(v) => setFormData({ ...formData, price: v })} 
+                      disabled={pending} 
+                      className={`${isRtl ? "pr-11" : "pl-11"} text-xl font-black`} 
+                    />
+                  </div>
                 </motion.div>
+
+                {formData.listingType === "rent" && (
+                  <motion.div variants={staggerItem}>
+                    <FieldLabel>{uc.rentalPeriodLabel}</FieldLabel>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {RENTAL_PERIODS.map((rp, idx) => {
+                        const active = formData.rentalPeriod === rp.value;
+                        return (
+                          <motion.button 
+                            key={rp.value} 
+                            type="button" 
+                            onClick={() => setFormData({ ...formData, rentalPeriod: rp.value })} 
+                            disabled={pending}
+                            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04, duration: 0.35 }}
+                            whileHover={{ scale: 1.04, y: -2 }} 
+                            whileTap={{ scale: 0.93 }} 
+                            className={`flex flex-col items-center justify-center rounded-[24px] py-6 text-[14px] font-black tracking-tight transition-all border-2 ${active ? "bg-foreground text-background border-foreground shadow-xl shadow-foreground/10" : "border-[var(--workspace-border)] bg-[var(--workspace-panel)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
+                            <Calendar size={20} className={`mb-2 ${active ? "text-background" : "text-[var(--workspace-highlight)]"}`} />
+                            {rp.label}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
 
                 {formData.listingType === "sale" && (
                   <>
                     <motion.div variants={staggerItem}>
-                      <FieldLabel>طريقة الدفع</FieldLabel>
+                      <FieldLabel>{uc.paymentMethodLabel}</FieldLabel>
                       <div className="flex flex-wrap gap-3">
                         {PAYMENT_METHODS.map((pm) => {
                           const active = formData.paymentMethod === pm.value;
@@ -462,8 +501,8 @@ export default function AgUnitCreateForm({
                       {(formData.paymentMethod === "installments" || formData.paymentMethod === "cash_or_installments") && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
                           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
-                            <div className="relative"><Receipt className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="text" placeholder="المقدم (مثال: 500,000 ج.م)" value={formData.downPayment} onChange={(v) => setFormData({ ...formData, downPayment: v })} disabled={pending} className="pr-11" /></div>
-                            <div className="relative"><Calendar className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="number" placeholder="سنوات التقسيط (مثال: 7)" value={formData.installmentYears} onChange={(v) => setFormData({ ...formData, installmentYears: v })} disabled={pending} className="pr-11" /></div>
+                            <div className="relative"><Receipt className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.downPaymentPlaceholder} value={formData.downPayment} onChange={(v) => setFormData({ ...formData, downPayment: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                            <div className="relative"><Calendar className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.installmentYearsPlaceholder} value={formData.installmentYears} onChange={(v) => setFormData({ ...formData, installmentYears: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                           </div>
                         </motion.div>
                       )}
@@ -472,7 +511,7 @@ export default function AgUnitCreateForm({
                 )}
 
                 <motion.div variants={staggerItem}>
-                  <div className="relative"><Calendar className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} /><TextInput type="text" placeholder="موعد التسليم أو الاستلام (مثال: يناير 2027)" value={formData.deliveryDate} onChange={(v) => setFormData({ ...formData, deliveryDate: v })} disabled={pending} className="pr-11" /></div>
+                  <div className="relative"><Calendar className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.deliveryDatePlaceholder} value={formData.deliveryDate} onChange={(v) => setFormData({ ...formData, deliveryDate: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -483,18 +522,17 @@ export default function AgUnitCreateForm({
             <motion.div key="s4" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
               <motion.div className="space-y-10 text-right" variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٤ من ٧</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">المميزات والأماكن القريبة</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">حدد مميزات الوحدة والأماكن القريبة مع المسافة المقدرة.</p>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "4", total: "7" })}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.amenitiesTitle}</h2>
+                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.amenitiesDesc}</p>
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>مميزات الوحدة ({formData.unitAmenities.length} مختار)</FieldLabel>
+                  <FieldLabel>{formatWebCopy(uc.selectedAmenitiesCount, { count: formData.unitAmenities.length.toString() })}</FieldLabel>
                   <div className="flex flex-wrap gap-2.5">
                     {availableAmenities.map((amenityLabel, idx) => {
                       const active = formData.unitAmenities.includes(amenityLabel);
-                      const amenDef = SHARED_AMENITIES.find(a => a.label === amenityLabel);
-                      const Icon = amenDef?.icon || Sparkles;
+                      const Icon = AMENITY_ICONS[amenityLabel] || Sparkles;
                       
                       return (
                         <motion.button 
@@ -517,9 +555,9 @@ export default function AgUnitCreateForm({
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>أماكن قريبة</FieldLabel>
+                  <FieldLabel>{uc.nearbyPlacesLabel}</FieldLabel>
                   <div className="flex flex-wrap gap-2.5">
-                    {NEARBY_PLACE_NAMES.map((place, idx) => {
+                    {uc.nearbyPlaceNames.map((place, idx) => {
                       const entry = formData.nearbyPlaces.find((p) => p.name === place);
                       const active = Boolean(entry);
                       return (
@@ -528,7 +566,7 @@ export default function AgUnitCreateForm({
                           transition={{ delay: idx * 0.02, duration: 0.35 }}
                           whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.92 }}
                           className={`rounded-[20px] px-5 py-3 text-[13px] font-black tracking-tight transition-all border-2 ${active ? "bg-[color:color-mix(in_srgb,var(--workspace-highlight)_12%,transparent)] border-[var(--workspace-highlight)] text-foreground" : "border-[var(--workspace-border)] bg-[var(--workspace-panel)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
-                          {active && <MapPin size={14} className="inline ml-2" />} {place}
+                          {active && <MapPin size={14} className={`inline ${isRtl ? "ml-2" : "mr-2"}`} />} {place}
                         </motion.button>
                       );
                     })}
@@ -537,9 +575,9 @@ export default function AgUnitCreateForm({
                   <AnimatePresence>
                     {formData.nearbyPlaces.length > 0 && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35 }} className="mt-8 space-y-3 overflow-hidden">
-                        <FieldLabel>المسافة المقدّرة</FieldLabel>
+                        <FieldLabel>{uc.estimatedDistanceLabel}</FieldLabel>
                         {formData.nearbyPlaces.map((np) => (
-                          <motion.div key={np.name} layout className="flex items-center gap-4 rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-4 pr-6">
+                          <motion.div key={np.name} layout className={`flex items-center gap-4 rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-4 ${isRtl ? "pr-6" : "pl-6"}`}>
                             <div className="flex-1 text-[14px] font-black text-foreground flex items-center gap-3"><MapPin size={16} className="text-[var(--workspace-highlight)]" /> {np.name}</div>
                             <select value={np.distance} onChange={(e) => setNearbyDistance(np.name, e.target.value)} className="rounded-2xl border border-[color:var(--workspace-border)] bg-background px-4 py-2 text-[12px] font-black text-foreground outline-none focus:border-foreground/30 shadow-sm transition-all">
                               {DISTANCE_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
@@ -557,15 +595,15 @@ export default function AgUnitCreateForm({
           {/* ═══ STEP 5: Media Gallery ═══ */}
           {activeStep === 5 && (
             <motion.div key="s5" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className="space-y-10 text-right" variants={staggerContainer} initial="enter" animate="center">
+              <motion.div className={`space-y-10 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٥ من ٧</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">معرض الصور والفيديو</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">أضف صوراً عالية الجودة للوحدة. الصور الأولى هي التي تظهر في نتائج البحث.</p>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "5", total: "7" })}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.mediaTitle}</h2>
+                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.mediaDesc}</p>
                 </motion.div>
 
                 <motion.div variants={staggerItem} className="space-y-6">
-                  <FieldLabel>صور الوحدة (بحد أدنى ٣ صور)</FieldLabel>
+                  <FieldLabel>{uc.unitImagesCountHint}</FieldLabel>
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                     <motion.button 
                       type="button"
@@ -585,7 +623,7 @@ export default function AgUnitCreateForm({
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background shadow-sm transition-transform group-hover:scale-110">
                         <Plus size={24} />
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-widest opacity-60">إضافة صور</span>
+                      <span className="text-[11px] font-black uppercase tracking-widest opacity-60">{uc.addImagesLabel}</span>
                     </motion.button>
                     
                     {formData.images.map((img) => (
@@ -594,8 +632,8 @@ export default function AgUnitCreateForm({
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                         
                         {img.isCover && (
-                          <div className="absolute left-3 top-3 rounded-full bg-[var(--workspace-highlight)] px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-lg">
-                            صورة الغلاف
+                          <div className={`absolute ${isRtl ? "left-3" : "right-3"} top-3 rounded-full bg-[var(--workspace-highlight)] px-3 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-lg`}>
+                            {uc.coverPhotoLabel}
                           </div>
                         )}
                         
@@ -604,7 +642,7 @@ export default function AgUnitCreateForm({
                             type="button"
                             onClick={() => removeImage(img.id)} 
                             className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500 text-white shadow-lg shadow-rose-500/20 active:scale-90"
-                            title="حذف الصورة"
+                            title={uc.delete}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -614,7 +652,7 @@ export default function AgUnitCreateForm({
                               type="button"
                               onClick={() => setFormData({ ...formData, images: formData.images.map(i => ({ ...i, isCover: i.id === img.id })) })}
                               className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-black shadow-lg hover:scale-110 active:scale-90 transition-transform"
-                              title="جعل هذه الصورة هي الغلاف"
+                              title={uc.setAsCover}
                             >
                               <Image size={14} />
                             </button>
@@ -624,7 +662,7 @@ export default function AgUnitCreateForm({
                             type="button"
                             onClick={() => setSelectedPreview(img.url)}
                             className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-md border border-white/30 hover:bg-white hover:text-black transition-all active:scale-90"
-                            title="تكبير الصورة"
+                            title={uc.enlargeImage}
                           >
                             <Maximize2 size={14} />
                           </button>
@@ -636,16 +674,16 @@ export default function AgUnitCreateForm({
                   {formData.images.length > 0 && formData.images.length < 3 && (
                     <div className="flex items-center gap-3 rounded-[20px] bg-amber-500/5 px-4 py-3 text-[12px] font-bold text-amber-600/80">
                       <AlertCircle size={16} />
-                      يفضل إضافة ٣ صور على الأقل لزيادة فرص التواصل.
+                      {uc.minImagesWarning}
                     </div>
                   )}
                 </motion.div>
 
                 <motion.div variants={staggerItem} className="space-y-4">
-                  <FieldLabel>فيديو الوحدة (اختياري)</FieldLabel>
+                  <FieldLabel>{uc.videoUrlPlaceholder.split("(")[0].trim() || "Video"}</FieldLabel>
                   <div className="relative">
-                    <Video className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} />
-                    <TextInput placeholder="رابط فيديو اليوتيوب أو فيميو" value={formData.videoUrl} onChange={(v) => setFormData({ ...formData, videoUrl: v })} disabled={pending} className="pr-11" />
+                    <Video className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
+                    <TextInput placeholder={uc.videoUrlPlaceholder} value={formData.videoUrl} onChange={(v) => setFormData({ ...formData, videoUrl: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} />
                   </div>
                 </motion.div>
               </motion.div>
@@ -655,11 +693,11 @@ export default function AgUnitCreateForm({
           {/* ═══ STEP 6: Documents ═══ */}
           {activeStep === 6 && (
             <motion.div key="s6" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className="space-y-10 text-right" variants={staggerContainer} initial="enter" animate="center">
+              <motion.div className={`space-y-10 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٦ من ٧</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">المستندات القانونية</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">أرفق صوراً من عقد الملكية أو ترخيص البناء لتوثيق الوحدة (تظهر داخلياً فقط للمراجعة).</p>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "6", total: "7" })}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.docsTitle}</h2>
+                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.docsDesc}</p>
                 </motion.div>
 
                 <motion.div variants={staggerItem} className="space-y-4">
@@ -678,12 +716,12 @@ export default function AgUnitCreateForm({
                       className="hidden" 
                     />
                     <Paperclip size={28} />
-                    <span className="text-[15px] font-black tracking-tight">اضغط هنا لإرفاق الملفات (PDF, JPG, PNG)</span>
+                    <span className="text-[15px] font-black tracking-tight">{uc.uploadDocsHint}</span>
                   </motion.button>
 
                   <div className="space-y-2">
                     {formData.documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center gap-4 rounded-[24px] border border-[color:var(--workspace-border)] bg-background p-4 pr-6">
+                      <div key={doc.id} className={`flex items-center gap-4 rounded-[24px] border border-[color:var(--workspace-border)] bg-background p-4 ${isRtl ? "pr-6" : "pl-6"}`}>
                         <FileText size={18} className="text-[var(--workspace-highlight)]" />
                         <span className="flex-1 text-[13px] font-black">{doc.name}</span>
                         <button type="button" onClick={() => removeDoc(doc.id)} className="text-rose-500 hover:opacity-70 transition-opacity"><Trash2 size={16} /></button>
@@ -698,19 +736,19 @@ export default function AgUnitCreateForm({
           {/* ═══ STEP 7: Legal & Review ═══ */}
           {activeStep === 7 && (
             <motion.div key="s7" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة الأخيرة</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">الوصف والمراجعة القانونية</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">بدون رقم ترخيص الإعلان سيبقى الإعلان في المسودة ولن يُنشر للعامة.</p>
+                  <FieldLabel>{uc.legalTitle}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.legalTitle}</h2>
+                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.legalDesc}</p>
                 </motion.div>
 
                 <motion.div className="space-y-4" variants={staggerItem}>
-                  <TextArea placeholder="اكتب وصفاً تفصيلياً: الموقع، المميزات، أسباب البيع، والخدمات المحيطة بالوحدة..." value={formData.description} onChange={(v) => setFormData({ ...formData, description: v })} rows={5} disabled={pending} />
+                  <TextArea placeholder={uc.descriptionPlaceholder} value={formData.description} onChange={(v) => setFormData({ ...formData, description: v })} rows={5} disabled={pending} />
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>حالة التسجيل العقاري</FieldLabel>
+                  <FieldLabel>{uc.registrationStatusLabel}</FieldLabel>
                   <div className="flex flex-wrap gap-3">
                     {REGISTRATION_OPTIONS.map((ro) => {
                       const active = formData.registrationStatus === ro.value;
@@ -727,22 +765,22 @@ export default function AgUnitCreateForm({
 
                 <motion.div className="space-y-4" variants={staggerItem}>
                   <div className="relative">
-                    <ShieldCheck className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={18} />
-                    <TextInput placeholder="رقم ترخيص الإعلان (مطلوب للنشر)" value={formData.adLicenseNumber} onChange={(v) => setFormData({ ...formData, adLicenseNumber: v })} disabled={pending} className="pr-11" error={!formData.adLicenseNumber.trim() ? "بدون رقم الترخيص سيبقى إعلانك كمسودة فقط" : undefined} />
+                    <ShieldCheck className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
+                    <TextInput placeholder={uc.adLicenseLabel} value={formData.adLicenseNumber} onChange={(v) => setFormData({ ...formData, adLicenseNumber: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} error={!formData.adLicenseNumber.trim() ? uc.adLicenseError : undefined} />
                   </div>
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
                   <AnimatePresence mode="wait">
                     {canPublish ? (
-                      <motion.div key="ready" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[28px] bg-emerald-500/10 border border-emerald-500/20 p-6 text-right font-black text-emerald-700 dark:text-emerald-400 flex items-start gap-4">
+                      <motion.div key="ready" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={`rounded-[28px] bg-emerald-500/10 border border-emerald-500/20 p-6 ${isRtl ? "text-right" : "text-left"} font-black text-emerald-700 dark:text-emerald-400 flex items-start gap-4`}>
                         <CheckCircle2 size={24} className="shrink-0" />
-                        <div><div className="text-lg mb-1">الإعلان جاهز للنشر القوي</div><p className="text-[13px] opacity-80 leading-relaxed">جميع البيانات الضرورية مكتملة، سيتم إدراج الوحدة في نتائج بحث المنصة فور الحفظ.</p></div>
+                        <div><div className="text-lg mb-1">{uc.readyToPublishTitle}</div><p className="text-[13px] opacity-80 leading-relaxed">{uc.readyToPublishDesc}</p></div>
                       </motion.div>
                     ) : (
-                      <motion.div key="draft" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[28px] bg-amber-500/10 border border-amber-500/20 p-6 text-right font-black text-amber-700 dark:text-amber-400 flex items-start gap-4">
+                      <motion.div key="draft" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={`rounded-[28px] bg-amber-500/10 border border-amber-500/20 p-6 ${isRtl ? "text-right" : "text-left"} font-black text-amber-700 dark:text-amber-400 flex items-start gap-4`}>
                         <Info size={24} className="shrink-0" />
-                        <div><div className="text-lg mb-1">الحفظ كمسودة (بيانات ناقصة)</div><p className="text-[13px] opacity-80 leading-relaxed">أكمل (العنوان، الموقع، السعر، المساحة، ورقم ترخيص الإعلان) لتتمكن من تفعيل خيار النشر العام.</p></div>
+                        <div><div className="text-lg mb-1">{uc.draftStatusTitle}</div><p className="text-[13px] opacity-80 leading-relaxed">{uc.draftStatusDesc}</p></div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -754,13 +792,13 @@ export default function AgUnitCreateForm({
       </div>
 
       {/* ── Floating Dock ── */}
-      <div className="sticky bottom-8 z-50 mx-auto w-full max-w-3xl px-4">
+      <div className="sticky bottom-[100px] z-50 mx-auto w-full max-w-3xl px-4">
         <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
-          <div className="flex w-full items-center justify-between gap-4 rounded-full border border-[color:var(--workspace-border)] bg-[color:color-mix(in_srgb,var(--workspace-panel)_85%,transparent)] p-3 pr-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] backdrop-blur-2xl" dir="rtl">
+          <div className={`flex w-full items-center justify-between gap-4 rounded-full border border-[color:var(--workspace-border)] bg-[color:color-mix(in_srgb,var(--workspace-panel)_85%,transparent)] p-3 ${isRtl ? "pr-8" : "pl-8"} shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] backdrop-blur-2xl`} dir={isRtl ? "rtl" : "ltr"}>
             <div className="hidden text-[15px] font-black tracking-tight text-[var(--workspace-muted)] sm:block">
               <AnimatePresence mode="wait">
                 <motion.span key={activeStep} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
-                  {activeStep === TOTAL_STEPS ? (canPublish ? "جاهز للنشر" : "سيحفظ مسودة") : `المرحلة ${activeStep} من ${TOTAL_STEPS}`}
+                  {activeStep === TOTAL_STEPS ? (canPublish ? uc.submitReady : uc.submitDraft) : formatWebCopy(uc.stepXofY, { step: activeStep.toString(), total: TOTAL_STEPS.toString() })}
                 </motion.span>
               </AnimatePresence>
             </div>
@@ -770,7 +808,7 @@ export default function AgUnitCreateForm({
                   <motion.button initial={{ opacity: 0, scale: 0.9, width: 0 }} animate={{ opacity: 1, scale: 1, width: "auto" }} exit={{ opacity: 0, scale: 0.9, width: 0 }}
                     type="button" onClick={handlePrev} disabled={pending}
                     className="flex h-13 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--workspace-panel)] px-8 font-black tracking-tight text-foreground transition-all hover:bg-[color:color-mix(in_srgb,var(--workspace-border)_40%,var(--workspace-panel))] active:scale-95 disabled:pointer-events-none disabled:opacity-30">
-                    السابق
+                    {uc.prevButton}
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -778,12 +816,12 @@ export default function AgUnitCreateForm({
               {activeStep < TOTAL_STEPS ? (
                 <motion.button type="button" onClick={handleNext} disabled={pending} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}
                   className="flex h-13 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-14 font-black tracking-tight text-background shadow-2xl shadow-foreground/10 disabled:pointer-events-none disabled:opacity-30">
-                  التالي
+                  {uc.nextButton}
                 </motion.button>
               ) : (
                 <motion.button type="button" onClick={handleSubmit} disabled={pending} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}
                   className={`flex h-13 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-full px-14 font-black tracking-tight shadow-2xl disabled:pointer-events-none disabled:opacity-30 ${canPublish ? "bg-[var(--workspace-highlight)] text-white shadow-[var(--workspace-highlight)]/20" : "bg-foreground text-background"}`}>
-                  {pending ? "جاري الحفظ..." : canPublish ? (submitLabel ?? "نشر الوحدة") : "حفظ كمسودة"}
+                  {pending ? "..." : canPublish ? (submitLabel ?? uc.submitReady) : uc.submitDraft}
                 </motion.button>
               )}
             </div>

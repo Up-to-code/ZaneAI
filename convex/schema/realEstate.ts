@@ -60,6 +60,9 @@ const finishingLevel = v.union(
 
 const listingStatus = v.union(v.literal("active"), v.literal("paused"), v.literal("archived"));
 
+const rentalPeriod = v.union(v.literal("day"), v.literal("week"), v.literal("month"), v.literal("year"));
+
+
 const assetKind = v.union(
   v.literal("image"),
   v.literal("video"),
@@ -102,6 +105,8 @@ export const realEstateTables = {
     expectedUnits: v.optional(v.number()),
     developerName: v.optional(v.string()),
     installmentYears: v.optional(v.number()),
+    listingType: v.optional(listingType),
+    rentalPeriod: v.optional(rentalPeriod),
     status: projectStatus,
     publicationState,
     publishedListingId: v.optional(v.id("listings")),
@@ -133,6 +138,7 @@ export const realEstateTables = {
     downPayment: v.optional(v.string()),
     installmentYears: v.optional(v.number()),
     deliveryDate: v.optional(v.string()),
+    rentalPeriod: v.optional(rentalPeriod),
     availability,
     publicationState,
     publishedListingId: v.optional(v.id("listings")),
@@ -156,6 +162,7 @@ export const realEstateTables = {
     price: v.optional(v.number()),
     priceLabel: v.string(),
     listingType,
+    rentalPeriod: v.optional(rentalPeriod),
     unitType: v.optional(unitType),
     bedrooms: v.optional(v.number()),
     bathrooms: v.optional(v.number()),

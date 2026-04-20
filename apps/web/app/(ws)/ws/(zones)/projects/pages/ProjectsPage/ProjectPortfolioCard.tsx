@@ -4,6 +4,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import type { WorkspaceProject } from "../../types/projectTypes";
 import type { ProjectAnalyticsEventType } from "@/server/contracts/properties";
+import { useWebLocale } from "@/app/_components/WebLocaleProvider";
+import type { WebDictionary } from "@/lib/i18n";
 
 type ProjectPortfolioCardProps = {
   project: WorkspaceProject;
@@ -14,14 +16,14 @@ type ProjectPortfolioCardProps = {
   }) => Promise<{ ok: true }>;
 };
 
-function getProjectTypeLabel(projectType?: string): string {
+function getProjectTypeLabel(projectType: string | undefined, dictionary: WebDictionary): string {
   switch (projectType) {
-    case "villas": return "فلل";
-    case "apartments": return "شقق";
-    case "land_plots": return "أراضي";
-    case "mixed": return "مجمع مختلط";
-    case "custom": return "مخصص";
-    default: return "مشروع عقاري";
+    case "villas": return dictionary.projects.types.villas;
+    case "apartments": return dictionary.projects.types.apartments;
+    case "land_plots": return dictionary.projects.types.land_plots;
+    case "mixed": return dictionary.projects.types.mixed;
+    case "custom": return dictionary.projects.types.custom;
+    default: return dictionary.projects.types.fallback;
   }
 }
 
@@ -29,7 +31,9 @@ export default function ProjectPortfolioCard({
   project,
   onTrackProjectEvent,
 }: ProjectPortfolioCardProps) {
-  const projectTypeLabel = getProjectTypeLabel(project.projectType);
+  const { dictionary, locale } = useWebLocale();
+  const isRtl = locale === "ar";
+  const projectTypeLabel = getProjectTypeLabel(project.projectType, dictionary);
   
   return (
     <motion.article
@@ -41,6 +45,7 @@ export default function ProjectPortfolioCard({
         boxShadow: "0 16px 40px -10px rgba(0,0,0,0.14)",
         transition: { duration: 0.25 },
       }}
+      dir={isRtl ? "rtl" : "ltr"}
       className="overflow-hidden rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] w-full transition-colors hover:border-foreground/20"
     >
       {/* Image Hero */}
@@ -60,21 +65,24 @@ export default function ProjectPortfolioCard({
       {/* Content */}
       <div className="space-y-5 p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 text-right">
-            <h2 className="truncate text-[17px] font-black tracking-tight leading-tight text-foreground">{project.title}</h2>
+          <div className={`min-w-0 ${isRtl ? "text-right" : "text-left"}`}>
+            <h2 className="truncate text-[18px] font-black tracking-tight leading-tight text-foreground">{project.title}</h2>
             <p className="mt-1.5 text-[13px] font-semibold text-[var(--workspace-muted)]">{project.location}</p>
           </div>
-          <div className="shrink-0 text-[14px] font-black text-foreground">{project.priceLabel}</div>
+          <div className={`flex flex-col ${isRtl ? "items-end" : "items-start"}`}>
+            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--workspace-muted)]">{dictionary.projects.averagePrice}</span>
+            <div className="text-[17px] font-black text-foreground">{project.priceLabel}</div>
+          </div>
         </div>
 
         {project.shortDescription || project.summary ? (
-          <p className="line-clamp-2 text-[13px] leading-6 text-[var(--workspace-muted)]">
+          <p className={`line-clamp-2 text-[13px] leading-6 text-[var(--workspace-muted)] ${isRtl ? "text-right" : "text-left"}`}>
             {project.shortDescription || project.summary}
           </p>
         ) : null}
 
         {/* Compound-Specific Spec Chips */}
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className={`flex flex-wrap ${isRtl ? "justify-end" : "justify-start"} gap-2`}>
           {typeof project.expectedUnits === "number" && (
             <motion.div
               initial={{ opacity: 0, scale: 0.85 }}
@@ -82,7 +90,7 @@ export default function ProjectPortfolioCard({
               transition={{ delay: 0.15, duration: 0.3 }}
               className="flex flex-col items-center rounded-xl border border-[color:var(--workspace-border)] bg-background/50 px-3 py-2 min-w-[72px]"
             >
-              <span className="text-[10px] font-bold text-[var(--workspace-muted)] uppercase tracking-widest">الوحدات</span>
+              <span className="text-[10px] font-bold text-[var(--workspace-muted)] uppercase tracking-widest">{dictionary.projects.totalUnits}</span>
               <span className="text-[15px] font-black text-foreground">{project.expectedUnits}</span>
             </motion.div>
           )}
@@ -93,14 +101,14 @@ export default function ProjectPortfolioCard({
               transition={{ delay: 0.22, duration: 0.3 }}
               className="flex flex-col items-center rounded-xl border border-[color:var(--workspace-border)] bg-background/50 px-3 py-2 min-w-[72px]"
             >
-              <span className="text-[10px] font-bold text-[var(--workspace-muted)] uppercase tracking-widest">التقسيط</span>
-              <span className="text-[15px] font-black text-foreground">{project.installmentYears} سنة</span>
+              <span className="text-[10px] font-bold text-[var(--workspace-muted)] uppercase tracking-widest">{dictionary.projects.installments}</span>
+              <span className="text-[15px] font-black text-foreground">{dictionary.projects.years.replace("{count}", String(project.installmentYears))}</span>
             </motion.div>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between gap-3 border-t border-[color:var(--workspace-border)] pt-4">
+        <div className={`flex items-center ${isRtl ? "flex-row-reverse" : "flex-row"} justify-between gap-3 border-t border-[color:var(--workspace-border)] pt-4`}>
           <Link
             href={`/ws/projects/${project.id}/analytics`}
             onClick={() => {
@@ -116,7 +124,7 @@ export default function ProjectPortfolioCard({
               whileTap={{ scale: 0.93 }}
               className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-[12px] font-black tracking-tight text-background transition-colors"
             >
-              تحليل
+              {dictionary.projects.analyze}
             </motion.span>
           </Link>
 
@@ -126,7 +134,7 @@ export default function ProjectPortfolioCard({
               whileTap={{ scale: 0.93 }}
               className="inline-flex items-center justify-center rounded-full border border-[color:var(--workspace-border)] bg-transparent px-5 py-2.5 text-[12px] font-black tracking-tight text-foreground transition-colors hover:bg-foreground/5"
             >
-              فتح التفاصيل
+              {dictionary.projects.openDetails}
             </motion.span>
           </Link>
         </div>

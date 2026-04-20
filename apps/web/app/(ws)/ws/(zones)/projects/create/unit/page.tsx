@@ -51,6 +51,7 @@ export default function CreateUnitPage() {
             nearbyPlaces: data.nearbyPlaces,
             adLicenseNumber: data.adLicenseNumber,
             registrationStatus: data.registrationStatus,
+            rentalPeriod: data.rentalPeriod,
           });
           
           window.location.href = `/ws/projects/${result.propertyId}`;

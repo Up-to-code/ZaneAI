@@ -8,7 +8,10 @@ import {
 export default function WorkspacePage() {
   const workspaceState = {
     audience: demoWorkspaceBehavior.audience,
-    organization: demoPrimaryOrganization,
+    organization: {
+      id: demoPrimaryOrganization.id,
+      name: demoPrimaryOrganization.name,
+    },
     metrics: {
       propertyCount: demoProjects.length,
       publishedPropertyCount: demoProjects.filter((project) => project.publicationState === "published").length,

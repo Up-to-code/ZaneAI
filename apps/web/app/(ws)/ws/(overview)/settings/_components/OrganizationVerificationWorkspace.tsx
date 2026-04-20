@@ -14,7 +14,7 @@ import {
   RequirementsChecklist,
 } from "../../../_components/OrganizationOnboarding/VerificationDocsStep.parts";
 import { filterRequirements } from "../../../_components/OrganizationOnboarding/requirements";
-import { formatLocaleDateTime } from "@/lib/i18n";
+import { formatLocaleDateTime, cn } from "@/lib/i18n";
 import { formatWebCopy } from "@/lib/i18n";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 
@@ -42,88 +42,35 @@ const emptyVerificationSummary: OrganizationVerificationSummary = {
 
 function verificationStatusLabel(
   status: OrganizationVerificationSummary["currentRequestStatus"],
-  locale: "ar" | "en" | "fr",
+  dictionary: any,
 ) {
-  if (locale === "ar") {
-    if (status === "approved") return "معتمد";
-    if (status === "in_review") return "قيد المراجعة";
-    if (status === "rejected") return "مرفوض";
-    if (status === "closed") return "مغلق";
-    if (status === "new") return "تم الإرسال";
-    return "لم يتم الإرسال";
-  }
-  if (locale === "fr") {
-    if (status === "approved") return "Approuvé";
-    if (status === "in_review") return "En révision";
-    if (status === "rejected") return "Refusé";
-    if (status === "closed") return "Clôturé";
-    if (status === "new") return "Envoyé";
-    return "Non envoyé";
-  }
-  if (status === "approved") return "Approved";
-  if (status === "in_review") return "In review";
-  if (status === "rejected") return "Rejected";
-  if (status === "closed") return "Closed";
-  if (status === "new") return "Submitted";
-  return "Not submitted";
+  const s = dictionary.settings;
+  if (status === "approved") return s.verificationStatusApproved;
+  if (status === "in_review") return s.verificationStatusInReview;
+  if (status === "rejected") return s.verificationStatusRejected;
+  if (status === "closed") return s.verificationStatusClosed;
+  if (status === "new") return s.verificationStatusNew;
+  return s.verificationStatusNotSubmitted;
 }
 
 function verificationStatusTone(status: OrganizationVerificationSummary["currentRequestStatus"]) {
-  if (status === "approved") return "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
-  if (status === "in_review") return "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300";
-  if (status === "rejected") return "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300";
-  if (status === "closed") return "border-border bg-muted text-muted-foreground";
-  if (status === "new") return "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300";
-  return "border-border bg-muted/50 text-muted-foreground";
+  if (status === "approved") return "text-emerald-600 dark:text-emerald-400";
+  if (status === "in_review") return "text-amber-600 dark:text-amber-400";
+  if (status === "rejected") return "text-red-600 dark:text-red-400";
+  if (status === "new") return "text-blue-600 dark:text-blue-400";
+  return "text-[var(--zane-ai-text-muted)] opacity-60";
 }
 
-function SummaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5 shadow-sm shadow-black/5 transition-all hover:bg-[var(--workspace-shell)]/60">
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-50">
-        {label}
-      </div>
-      <div className="mt-2 text-[15px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function buildLocalizedTimeline(summary: OrganizationVerificationSummary, locale: "ar" | "en" | "fr") {
-  const copy =
-    locale === "fr"
-      ? {
-          submitted: "Demande envoyée",
-          inReview: "Demande en cours de révision",
-          approved: "Organisation approuvée",
-          closed: "Vérification clôturée",
-          rejected: "Demande refusée",
-          updated: "Statut de vérification mis à jour",
-        }
-      : locale === "en"
-        ? {
-            submitted: "Request submitted",
-            inReview: "Request under review",
-            approved: "Organization approved",
-            closed: "Verification closed",
-            rejected: "Request rejected",
-            updated: "Verification status updated",
-          }
-        : {
-            submitted: "تم إرسال الطلب",
-            inReview: "الطلب قيد المراجعة",
-            approved: "تم اعتماد المنظمة",
-            closed: "تم إغلاق التوثيق",
-            rejected: "تم رفض الطلب",
-            updated: "تم تحديث حالة التوثيق",
-          };
+function buildLocalizedTimeline(summary: OrganizationVerificationSummary, dictionary: any) {
+  const s = dictionary.settings;
+  const copy = {
+    submitted: s.verificationTimelineSubmitted,
+    inReview: s.verificationTimelineInReview,
+    approved: s.verificationTimelineApproved,
+    closed: s.verificationTimelineClosed,
+    rejected: s.verificationTimelineRejected,
+    updated: s.verificationTimelineUpdated,
+  };
 
   const items: Array<{ id: string; label: string; at: number; note?: string | null }> = [];
   if (summary.lastSubmittedAt) {
@@ -149,7 +96,6 @@ function buildLocalizedTimeline(summary: OrganizationVerificationSummary, locale
   }
   return items.sort((left, right) => right.at - left.at);
 }
-
 async function uploadVerificationDocuments(args: {
   files: File[];
   startUpload: ReturnType<typeof useUploadThing>["startUpload"];
@@ -198,107 +144,105 @@ export default function OrganizationVerificationWorkspace({
     () => filterRequirements(ruleset?.requirements ?? [], query),
     [query, ruleset?.requirements],
   );
-  const timeline = buildLocalizedTimeline(summary, locale);
+  const timeline = buildLocalizedTimeline(summary, dictionary);
   const organizationTypeLabel =
     organization?.type === "red"
-      ? locale === "fr"
-        ? "Promoteur immobilier"
-        : locale === "en"
-          ? "Real estate developer"
-          : "مطور عقاري"
-      : locale === "fr"
-        ? "Courtier immobilier"
-        : locale === "en"
-          ? "Real estate broker"
-          : "وسيط عقاري";
+      ? dictionary.settings.organizationTypeDeveloper
+      : dictionary.settings.organizationTypeBroker;
   const formatDateLabel = (value: number | null) =>
     value ? formatLocaleDateTime(locale, value, { dateStyle: "medium", timeStyle: "short" }) : dictionary.settings.unavailable;
 
   if (!organization) {
     return (
-      <section className="rounded-[24px] bg-[var(--workspace-panel)] p-5 sm:p-6">
-        <h2 className="text-lg font-bold text-foreground">{dictionary.settings.verificationTitle}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{dictionary.settings.verificationEmptyOrganization}</p>
+      <section className="px-1" dir={direction}>
+        <h2 className="text-xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-2xl">
+          {dictionary.settings.organizationSettingsTitle}
+        </h2>
+        <p className="mt-4 text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
+          {dictionary.settings.verificationEmptyOrganization}
+        </p>
       </section>
     );
   }
 
+  const summaryItems = [
+    { label: dictionary.settings.publishingStatus, value: summary.publishingBlocked ? dictionary.settings.publishingBlocked : dictionary.settings.publishingAllowed },
+    { label: dictionary.settings.lastSubmission, value: formatDateLabel(summary.lastSubmittedAt) },
+    { label: dictionary.settings.filesCount, value: String(summary.documentsCount) },
+    { label: dictionary.settings.membersCountLabel, value: String(membersCount) },
+  ];
+
   return (
     <section className="space-y-8 pb-12" dir={direction}>
-      <div className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div className="space-y-4">
-            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-60">
-              {dictionary.settings.verificationCurrentStatus}
-            </div>
-            <h2 className="text-3xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-4xl">
-              {dictionary.settings.verificationTitle}
-            </h2>
-            <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
-              {formatWebCopy(dictionary.settings.verificationSubmitDescription, { organizationType: organizationTypeLabel })}
-            </p>
+      <div className="flex flex-wrap items-start justify-between gap-10 px-1">
+        <div className="space-y-3">
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-accent)]">
+            {dictionary.settings.verificationCurrentStatus}
           </div>
-          <span className={`rounded-full border px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] ${verificationStatusTone(summary.currentRequestStatus)}`}>
-            {verificationStatusLabel(summary.currentRequestStatus, locale)}
-          </span>
+          <h2 className="text-xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-2xl">
+            {dictionary.settings.verificationTitle}
+          </h2>
+          <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
+            {formatWebCopy(dictionary.settings.verificationSubmitDescription, { organizationType: organizationTypeLabel })}
+          </p>
         </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <SummaryCard
-            label={dictionary.settings.publishingStatus}
-            value={summary.publishingBlocked ? dictionary.settings.publishingBlocked : dictionary.settings.publishingAllowed}
-          />
-          <SummaryCard
-            label={dictionary.settings.lastSubmission}
-            value={formatDateLabel(summary.lastSubmittedAt)}
-          />
-          <SummaryCard
-            label={dictionary.settings.filesCount}
-            value={summary.documentsCount}
-          />
-          <SummaryCard
-            label={dictionary.settings.membersCountLabel}
-            value={membersCount}
-          />
+        <div className={cn("text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full border border-current", verificationStatusTone(summary.currentRequestStatus))}>
+          {verificationStatusLabel(summary.currentRequestStatus, dictionary)}
         </div>
+      </div>
 
-        {summary.reviewerNotes ? (
-          <div className="mt-6 rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-6">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-60">
+      {/* Technical Metadata Strip */}
+      <div className="grid grid-cols-2 gap-px border-y border-[color:var(--workspace-border)] bg-[var(--workspace-border)] sm:grid-cols-4">
+        {summaryItems.map((item) => (
+          <div key={item.label} className="bg-[var(--workspace-shell)]/30 px-5 py-3 backdrop-blur-sm transition-colors hover:bg-[var(--workspace-shell)]/50">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-70">
+              {item.label}
+            </div>
+            <div className="mt-1 text-[13px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+              {item.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {summary.reviewerNotes ? (
+        <div className="px-1">
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-8 py-6 transition-colors hover:bg-red-500/10">
+            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 opacity-80">
               {dictionary.settings.reviewNotes}
             </div>
-            <p className="mt-3 text-[14px] font-medium leading-relaxed text-[var(--zane-ai-deep)] dark:text-white/80">
+            <p className="mt-2.5 text-[14px] font-bold leading-relaxed text-red-700 dark:text-red-300">
               {summary.reviewerNotes}
             </p>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <div className="grid gap-px border-y border-[color:var(--workspace-border)] bg-[var(--workspace-border)] xl:grid-cols-2">
         {/* Timeline */}
-        <div className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-60">
+        <div className="bg-[var(--workspace-shell)]/10 px-6 py-8 transition-colors hover:bg-[var(--workspace-shell)]/20">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--zane-ai-text-muted)] opacity-70">
             {dictionary.settings.verificationTimeline}
           </h3>
-          <div className="mt-6 space-y-4">
+          <div className="mt-8 space-y-8">
             {timeline.length > 0 ? (
               timeline.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5">
-                  <div className="text-[15px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+                <div key={item.id} className="relative pl-8 before:absolute before:left-0 before:top-2 before:h-1.5 before:w-1.5 before:rounded-full before:bg-[var(--zane-ai-accent)]">
+                  <div className="text-[14px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
                     {item.label}
                   </div>
-                  <div className="mt-1.5 text-[11px] font-black uppercase tracking-[0.15em] text-[var(--zane-ai-text-muted)] opacity-60">
+                  <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-[var(--zane-ai-text-muted)] opacity-50">
                     {formatDateLabel(item.at)}
                   </div>
                   {item.note ? (
-                    <p className="mt-4 text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/60">
+                    <p className="mt-3 text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/60">
                       {item.note}
                     </p>
                   ) : null}
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-6 text-[13px] font-medium text-[var(--zane-ai-text-muted)] opacity-60">
+              <div className="text-[13px] font-medium text-[var(--zane-ai-text-muted)] opacity-50 italic">
                 {dictionary.settings.verificationNoTimeline}
               </div>
             )}
@@ -306,11 +250,11 @@ export default function OrganizationVerificationWorkspace({
         </div>
 
         {/* Latest Documents */}
-        <div className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-60">
+        <div className="bg-[var(--workspace-shell)]/10 px-6 py-8 transition-colors hover:bg-[var(--workspace-shell)]/20 border-l border-[color:var(--workspace-border)]">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--zane-ai-text-muted)] opacity-70">
             {dictionary.settings.latestDocuments}
           </h3>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-8 grid gap-4">
             {summary.attachedDocuments.length > 0 ? (
               summary.attachedDocuments.map((document) => (
                 <a
@@ -318,18 +262,18 @@ export default function OrganizationVerificationWorkspace({
                   href={document.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="group rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5 transition-all hover:bg-[var(--workspace-shell)]/70"
+                  className="group flex flex-col border-b border-[color:var(--workspace-border)]/50 pb-4 transition-all hover:border-[var(--zane-ai-accent)]"
                 >
-                  <div className="text-[14px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white transition-colors group-hover:text-[var(--zane-ai-accent)]">
+                  <div className="text-[13px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white group-hover:text-[var(--zane-ai-accent)]">
                     {document.name}
                   </div>
-                  <div className="mt-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[var(--zane-ai-text-muted)] opacity-60">
+                  <div className="mt-1 text-[9px] font-bold uppercase tracking-widest text-[var(--zane-ai-text-muted)] opacity-50">
                     {document.mime ?? dictionary.settings.unknownDocumentType}{document.size ? ` • ${Math.ceil(document.size / 1024)} KB` : ""}
                   </div>
                 </a>
               ))
             ) : (
-              <div className="md:col-span-2 rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-6 text-[13px] font-medium text-[var(--zane-ai-text-muted)] opacity-60">
+              <div className="text-[13px] font-medium text-[var(--zane-ai-text-muted)] opacity-50 italic">
                 {dictionary.settings.verificationNoTimeline}
               </div>
             )}
@@ -337,9 +281,9 @@ export default function OrganizationVerificationWorkspace({
         </div>
       </div>
 
-      <div className="space-y-8 rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-8 shadow-sm shadow-black/5">
-        <div className="space-y-4">
-          <h3 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+      <div className="space-y-10 px-1">
+        <div className="space-y-3">
+          <h3 className="text-xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-2xl">
             {dictionary.settings.verificationSubmitTitle}
           </h3>
           <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
@@ -358,7 +302,7 @@ export default function OrganizationVerificationWorkspace({
           sources={ruleset?.sources ?? []}
         />
 
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid gap-20 xl:grid-cols-2">
           <DocumentsCard
             title={dictionary.settings.requiredDocsTitle}
             subtitle={dictionary.settings.requiredDocsSubtitle}
@@ -400,18 +344,18 @@ export default function OrganizationVerificationWorkspace({
         </div>
 
         {errorMessage ? (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-[13px] font-black uppercase tracking-tight text-red-700 dark:text-red-400">
+          <div className="border-l-4 border-red-500 bg-red-500/5 p-6 text-[13px] font-black uppercase tracking-tight text-red-700 dark:text-red-400">
             {errorMessage}
           </div>
         ) : null}
         {statusMessage ? (
-          <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/40 p-5 text-[13px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+          <div className="border-l-4 border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 p-6 text-[13px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
             {statusMessage}
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-6 pt-2 border-t border-[color:var(--workspace-border)] pt-8">
-          <p className="max-w-md text-[11px] font-black uppercase tracking-[0.1em] text-[var(--zane-ai-text-muted)] opacity-60">
+        <div className="flex flex-wrap items-center justify-between gap-10 pt-10 border-t border-[color:var(--workspace-border)]">
+          <p className="max-w-md text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-50">
             {canManage
               ? dictionary.settings.managerOnlySubmissionHint
               : dictionary.settings.viewerSubmissionHint}
@@ -460,13 +404,15 @@ export default function OrganizationVerificationWorkspace({
                 setIsSubmitting(false);
               }
             }}
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-[var(--zane-ai-deep)] px-8 text-[12px] font-black uppercase tracking-[0.15em] text-white transition hover:opacity-95 dark:bg-white dark:text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--zane-ai-accent)]/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className="group relative inline-flex h-11 items-center justify-center overflow-hidden rounded-full bg-[var(--zane-ai-deep)] px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-black dark:bg-white dark:text-black dark:hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--zane-ai-accent)]/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
           >
-            {isSubmitting
-              ? dictionary.settings.verificationSubmitting
-              : summary.currentRequestStatus === "not_submitted"
-                ? dictionary.settings.verificationSubmit
-                : dictionary.settings.verificationResubmit}
+            <span className="relative z-10">
+              {isSubmitting
+                ? dictionary.settings.verificationSubmitting
+                : summary.currentRequestStatus === "not_submitted"
+                  ? dictionary.settings.verificationSubmit
+                  : dictionary.settings.verificationResubmit}
+            </span>
           </button>
         </div>
       </div>

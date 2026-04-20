@@ -120,6 +120,7 @@ export const demoOrganizationMembers: OrganizationMemberDisplay[] = [
     username: "ahmedmansour",
     role: "manager",
     statusLabel: "نشط",
+    joinedAtLabel: "12/01/2024",
   },
   {
     id: "member-2",
@@ -130,6 +131,7 @@ export const demoOrganizationMembers: OrganizationMemberDisplay[] = [
     username: "saraadel",
     role: "member",
     statusLabel: "نشط",
+    joinedAtLabel: "15/02/2024",
   },
   {
     id: "member-3",
@@ -140,6 +142,7 @@ export const demoOrganizationMembers: OrganizationMemberDisplay[] = [
     username: "youssefk",
     role: "viewer",
     statusLabel: "مراجع",
+    joinedAtLabel: "03/03/2024",
   },
 ];
 

@@ -38,7 +38,7 @@ function buildSettingsHref(pathname: string | null, searchParams: ReturnType<typ
 export default function SettingsTabs({ tabs, defaultTab }: SettingsTabsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { locale } = useWebLocale();
+  const { locale, direction } = useWebLocale();
   const selectedTab = searchParams?.get("tab");
   const currentTab = tabs.some((tab) => tab.key === selectedTab)
     ? selectedTab
@@ -46,10 +46,10 @@ export default function SettingsTabs({ tabs, defaultTab }: SettingsTabsProps) {
 
   return (
     <div
-      className="mt-2"
-      dir={locale === "ar" ? "rtl" : "ltr"}
+      className="mt-4"
+      dir={direction}
     >
-      <nav className="flex flex-wrap gap-8 border-b border-[color:var(--workspace-border)]" aria-label="Tabs">
+      <nav className="flex flex-wrap gap-10 border-b border-[color:var(--workspace-border)]" aria-label="Tabs">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
           const href = buildSettingsHref(pathname, searchParams, tab.key);
@@ -59,17 +59,17 @@ export default function SettingsTabs({ tabs, defaultTab }: SettingsTabsProps) {
               key={tab.key}
               href={href}
               aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "relative inline-flex items-center gap-2 px-1 py-4 text-[10px] font-black uppercase tracking-[0.25em] transition-all",
-                isActive
-                  ? "text-[var(--zane-ai-deep)] dark:text-white font-black"
-                  : "text-[var(--zane-ai-text-muted)] hover:text-[var(--zane-ai-deep)] dark:text-white/40 dark:hover:text-white",
-              )}
+            className={cn(
+              "relative inline-flex items-center gap-2.5 px-0.5 py-3 text-[12px] font-bold uppercase tracking-[0.15em] transition-all",
+              isActive
+                ? "text-[var(--zane-ai-deep)] dark:text-white"
+                : "text-[var(--zane-ai-text-muted)] hover:text-[var(--zane-ai-deep)] dark:text-white/40 dark:hover:text-white",
+            )}
             >
-              {Icon ? <Icon className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-[var(--zane-ai-accent)]" : "")} strokeWidth={2} /> : null}
+            {Icon ? <Icon className={cn("h-3.5 w-3.5 shrink-0 transition-colors", isActive ? "text-[var(--zane-ai-accent)]" : "opacity-30")} strokeWidth={2.5} /> : null}
               {tab.label}
               {isActive && (
-                <div className="absolute -bottom-px left-0 right-0 h-0.5 bg-[var(--zane-ai-accent)]" />
+                <div className="absolute -bottom-px left-0 right-0 h-[2px] bg-[var(--zane-ai-accent)] shadow-[0_0_8px_rgba(var(--zane-ai-accent-rgb),0.2)]" />
               )}
             </Link>
           );

@@ -44,6 +44,15 @@ function asRegistrationStatus(value: string | undefined): RegistrationStatus | u
   return registrationStatusValues.includes(value as RegistrationStatus) ? (value as RegistrationStatus) : undefined;
 }
 
+function asListingType(value: string | undefined): Doc<"projects">["listingType"] {
+  return value === "sale" || value === "rent" ? value : undefined;
+}
+
+function asRentalPeriod(value: string | undefined): Doc<"projects">["rentalPeriod"] {
+  const valid = ["day", "week", "month", "year"];
+  return valid.includes(value as any) ? (value as any) : undefined;
+}
+
 async function listProjectAssets(ctx: QueryCtx | MutationCtx, projectId: Id<"projects">) {
   return await ctx.db
     .query("realEstateAssets")
@@ -189,7 +198,8 @@ async function publishProject(ctx: MutationCtx, project: Doc<"projects">) {
     location: project.location,
     price,
     priceLabel: project.priceLabel ?? project.startingPrice ?? "Price on request",
-    listingType: "sale" as const,
+    listingType: project.listingType ?? "sale",
+    rentalPeriod: project.rentalPeriod,
     heroAssetId: hero?._id,
     heroUrl:
       hero?.url ??
@@ -279,6 +289,7 @@ const projectInputValidator = {
   nearbyPlaces: v.optional(v.array(v.object({ name: v.string(), distance: v.string() }))),
   adLicenseNumber: v.optional(v.string()),
   registrationStatus: v.optional(v.string()),
+  rentalPeriod: v.optional(v.union(v.literal("day"), v.literal("week"), v.literal("month"), v.literal("year"))),
 };
 
 export const createWorkspaceProperty = mutation({
@@ -300,6 +311,8 @@ export const createWorkspaceProperty = mutation({
       shortDescription: args.shortDescription.trim() || args.description.trim(),
       priceLabel: toPriceLabel(args.price),
       expectedUnits: args.expectedUnits ? Number(args.expectedUnits) || undefined : undefined,
+      listingType: asListingType(args.listingType),
+      rentalPeriod: asRentalPeriod(args.rentalPeriod),
       status: "draft",
       publicationState: "draft",
       createdAt: now,
@@ -348,6 +361,8 @@ export const updateWorkspaceProperty = mutation({
       shortDescription: args.data.shortDescription.trim() || args.data.description.trim(),
       priceLabel: toPriceLabel(args.data.price),
       expectedUnits: args.data.expectedUnits ? Number(args.data.expectedUnits) || undefined : undefined,
+      listingType: asListingType(args.data.listingType),
+      rentalPeriod: asRentalPeriod(args.data.rentalPeriod),
       publicationState: row.publicationState === "published" ? "ready" : row.publicationState,
       status: row.status === "published" ? "ready" : row.status,
       updatedAt: now,

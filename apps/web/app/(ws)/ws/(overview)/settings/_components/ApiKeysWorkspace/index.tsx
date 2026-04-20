@@ -1,11 +1,12 @@
 "use client";
 
-import { KeyRound } from "lucide-react";
+import { KeyRound, Plus } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { ApiKeysList } from "./ApiKeysList";
 import { CreateApiKeyDialog } from "./CreateApiKeyDialog";
 import { useApiKeysWorkspace } from "./useApiKeysWorkspace";
 import type { ApiKeysWorkspaceProps } from "./types";
+import { cn } from "@/lib/i18n";
 
 /**
  * WHY:   Organization settings need one focused workspace for self-service API key management.
@@ -21,43 +22,37 @@ export default function ApiKeysWorkspace({
   onCreateKey,
   onRevokeKey,
 }: ApiKeysWorkspaceProps) {
-  const { dictionary } = useWebLocale();
+  const { dictionary, direction } = useWebLocale();
   const workspace = useApiKeysWorkspace({ canCreate, canRevoke, initialKeys, onCreateKey, onRevokeKey });
 
   if (!hasOrganization) {
     return (
-      <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-          <KeyRound className="h-8 w-8" />
+      <section className="px-1" dir={direction}>
+        <div className="border-l-4 border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 px-6 py-4 text-[13px] font-bold text-[var(--zane-ai-text-muted)]">
+          {dictionary.settings.apiKeysNoOrgTitle}
         </div>
-        <h2 className="mt-6 text-xl font-semibold text-foreground">{dictionary.settings.apiKeysNoOrgTitle}</h2>
-        <p className="mt-2 text-sm text-muted-foreground text-balance">
-          {dictionary.settings.apiKeysNoOrgDescription}
-        </p>
-      </div>
+      </section>
     );
   }
 
   if (!canView) {
     return (
-      <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600">
-          <KeyRound className="h-8 w-8" />
+      <section className="px-1" dir={direction}>
+        <div className="border-l-2 border-amber-500 bg-amber-500/5 px-6 py-3 text-[13px] font-bold text-amber-700 dark:text-amber-300">
+          {dictionary.settings.apiKeysRestrictedTitle}
         </div>
-        <h2 className="mt-6 text-xl font-semibold text-foreground">{dictionary.settings.apiKeysRestrictedTitle}</h2>
-        <p className="mt-2 text-sm text-muted-foreground text-balance">
-          {dictionary.settings.apiKeysRestrictedDescription}
-        </p>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="flex h-full flex-col px-4 py-6 sm:px-6 lg:px-8">
-      <header className="mb-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{dictionary.settings.apiKeysPageTitle}</h1>
-          <p className="text-[14px] text-muted-foreground">
+    <div className="space-y-8 pb-12" dir={direction}>
+      <header className="flex flex-wrap items-start justify-between gap-10 px-1">
+        <div className="space-y-3">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-3xl">
+            {dictionary.settings.apiKeysPageTitle}
+          </h2>
+          <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
             {dictionary.settings.apiKeysPageDescription}
           </p>
         </div>
@@ -82,29 +77,39 @@ export default function ApiKeysWorkspace({
       </header>
 
       {workspace.status ? (
-        <div className="mb-4 rounded-xl border border-border/70 bg-muted/30 px-4 py-3 text-[12px] text-muted-foreground">
-          {workspace.status}
+        <div className="px-1">
+          <div className="text-[11px] font-black uppercase tracking-[0.15em] text-[var(--zane-ai-accent)]">
+            {workspace.status}
+          </div>
         </div>
       ) : null}
 
-      <section className="flex-1 pb-10">
+      <section className="flex flex-col border-t border-[color:var(--workspace-border)]">
         {workspace.keys.length > 0 ? (
-          <ApiKeysList keys={workspace.keys} canRevoke={canRevoke} isRevoking={workspace.isRevoking} onRevoke={workspace.handleRevoke} />
+          <ApiKeysList
+            keys={workspace.keys}
+            canRevoke={canRevoke}
+            isRevoking={workspace.isRevoking}
+            onRevoke={workspace.handleRevoke}
+          />
         ) : (
-          <div className="flex min-h-[300px] flex-col items-center justify-center rounded-3xl border border-dashed border-border/60 bg-card/50 p-8 text-center text-muted-foreground">
-            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-border bg-background">
-              <KeyRound className="h-7 w-7 text-muted-foreground/60" />
+          <div className="px-1 py-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 text-[var(--zane-ai-accent)]">
+              <KeyRound className="h-6 w-6" />
             </div>
-            <p className="text-[15px] font-semibold text-foreground">{dictionary.settings.apiKeysEmptyTitle}</p>
-            <p className="mt-2 max-w-[320px] text-[13px] leading-relaxed">
+            <h3 className="mt-8 text-xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+              {dictionary.settings.apiKeysEmptyTitle}
+            </h3>
+            <p className="mx-auto mt-4 max-w-xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
               {dictionary.settings.apiKeysEmptyDescription}
             </p>
             {canCreate ? (
               <button
                 type="button"
                 onClick={() => workspace.setIsModalOpen(true)}
-                className="mt-6 text-[13px] font-semibold text-primary hover:underline"
+                className="mt-10 inline-flex h-11 items-center gap-4 rounded-full bg-[var(--zane-ai-deep)] px-10 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-black dark:bg-white dark:text-black dark:hover:bg-neutral-100 shadow-sm"
               >
+                <Plus className="h-4 w-4" strokeWidth={4} />
                 {dictionary.settings.apiKeysCreateFirst}
               </button>
             ) : null}

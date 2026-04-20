@@ -1,7 +1,6 @@
-"use client";
-
 import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import ZonePageIntro from "../../ZoneShell/ZonePageIntro";
 import { AgPropertyFormHeaderActions } from "../AgPropertyFormHeaderActions";
 import type { AgPropertyFormProps, ProjectFormData } from "./types";
@@ -61,6 +60,8 @@ export default function AgPropertyForm({
   cancelHref,
   onDelete,
 }: AgPropertyFormProps) {
+  const { dictionary, locale } = useWebLocale();
+  const isRtl = locale === "ar";
   const isEditMode = Boolean(propertyId);
   const [pending, startTransition] = useTransition();
 
@@ -84,7 +85,7 @@ export default function AgPropertyForm({
   const handleNext = () => {
     if (activeStep === 1) {
       if (!formData.name.trim() || !formData.location.trim() || !formData.developerName?.trim()) {
-        setFeedback("يرجى إكمال الحقول الأساسية: اسم المشروع، المطور، والموقع.");
+        setFeedback(dictionary.projectForm.feedbackCompleteFields);
         return;
       }
     }
@@ -104,17 +105,17 @@ export default function AgPropertyForm({
     startTransition(async () => {
       const result = await onSave(formData);
       if (!result.ok) {
-        setFeedback(result.feedback?.message ?? "حدث خطأ غير متوقع.");
+        setFeedback(result.feedback?.message ?? dictionary.projectForm.feedbackError);
       }
     });
   };
 
   const PROJ_TYPES = [
-    { value: "villas", label: "فلل" },
-    { value: "apartments", label: "شقق" },
-    { value: "land_plots", label: "أراضي" },
-    { value: "mixed", label: "مجمع سكني مختلط" },
-    { value: "custom", label: "مخصص" },
+    { value: "villas", label: dictionary.projects.types.villas },
+    { value: "apartments", label: dictionary.projects.types.apartments },
+    { value: "land_plots", label: dictionary.projects.types.land_plots },
+    { value: "mixed", label: dictionary.projects.types.mixed },
+    { value: "custom", label: dictionary.projects.types.custom },
   ] as const;
 
   const toggleAmenity = (amenity: string) => {
@@ -129,21 +130,21 @@ export default function AgPropertyForm({
   return (
     <div className="flex min-h-full w-full flex-col pb-12">
       <ZonePageIntro
-        eyebrow={isEditMode ? "تعديل المجمع السكني" : "إنشاء مجمع سكنى جديد"}
-        title={title ?? (isEditMode ? "إدارة المجمع" : "بيانات المجمع السكني (Compound)")}
-        description={description ?? "ابدأ بتعريف المخطط العام للمشروع. ستقوم بإضافة الوحدات التفصيلية والأرقام لاحقاً."}
+        eyebrow={isEditMode ? dictionary.projectForm.editEyebrow : dictionary.projectForm.newEyebrow}
+        title={title ?? (isEditMode ? dictionary.projectForm.editTitle : dictionary.projectForm.newTitle)}
+        description={description ?? dictionary.projectForm.identityDesc}
         actions={isEditMode ? <AgPropertyFormHeaderActions onCancel={onCancel} cancelHref={cancelHref} onDelete={onDelete} /> : undefined}
       />
 
       {/* Progress Indicator */}
-      <div className="mx-auto mt-6 flex w-full max-w-3xl items-center justify-center gap-2" dir="rtl">
+      <div className="mx-auto mt-6 flex w-full max-w-3xl items-center justify-center gap-2" dir={isRtl ? "rtl" : "ltr"}>
         {[1, 2, 3, 4].map((stepNumber) => (
           <motion.div
             key={stepNumber}
             layout
             className={`h-2 rounded-full ${
               activeStep === stepNumber
-                ? "bg-foreground"
+                ? "bg-[var(--workspace-highlight)]"
                 : activeStep > stepNumber
                   ? "bg-foreground/40"
                   : "bg-[var(--workspace-border)]"
@@ -156,7 +157,7 @@ export default function AgPropertyForm({
         ))}
       </div>
 
-      <div className="mx-auto mt-8 w-full max-w-3xl pb-32 pt-4 overflow-hidden" dir="rtl">
+      <div className="mx-auto mt-8 w-full max-w-3xl pb-32 pt-4 overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
         <AnimatePresence mode="wait" initial={false}>
           {feedback ? (
             <motion.div
@@ -165,7 +166,7 @@ export default function AgPropertyForm({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.97 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
-              className="mb-8 rounded-[20px] bg-rose-500/10 px-6 py-4 text-right text-[15px] font-bold text-rose-500"
+              className={`mb-8 rounded-[20px] bg-rose-500/10 px-6 py-4 ${isRtl ? "text-right" : "text-left"} text-[15px] font-bold text-rose-500`}
             >
               {feedback}
             </motion.div>
@@ -184,36 +185,36 @@ export default function AgPropertyForm({
               exit="exit"
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
-                <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ١ من ٤</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">التعريف بالمشروع</h2>
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
+                <motion.div variants={staggerItem} className={isRtl ? "text-right" : "text-left"}>
+                  <FieldLabel>{dictionary.projects.continueFlow.replace("{step}", "1").replace("{total}", "4")}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{dictionary.projectForm.identityTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">
-                    أدخل الاسم والموقع والمطور العقاري. هذا هو الغلاف الخارجي للمشروع بأكمله.
+                    {dictionary.projectForm.identityDesc}
                   </p>
                 </motion.div>
 
                 <motion.div className="space-y-4" variants={staggerItem}>
                   <TextInput
-                    placeholder="اسم المشروع (مثال: ماونتن فيو آي سيتي)"
+                    placeholder={dictionary.projectForm.placeholderName}
                     value={formData.name}
                     onChange={(v) => setFormData({ ...formData, name: v })}
                     disabled={pending}
                   />
                   <TextInput
-                    placeholder="اسم شركة التطوير العقاري (مثال: سوديك، إعمار)"
+                    placeholder={dictionary.projectForm.placeholderDeveloper}
                     value={formData.developerName ?? ""}
                     onChange={(v) => setFormData({ ...formData, developerName: v })}
                     disabled={pending}
                   />
                   <TextInput
-                    placeholder="الموقع بالتفصيل (مثال: المربع الذهبي، التجمع الخامس)"
+                    placeholder={dictionary.projectForm.placeholderLocation}
                     value={formData.location}
                     onChange={(v) => setFormData({ ...formData, location: v })}
                     disabled={pending}
                   />
                   <TextArea
-                    placeholder="وصف المشروع ورسالته التسويقية..."
+                    placeholder={dictionary.projectForm.placeholderDescription}
                     value={formData.description}
                     onChange={(v) => setFormData({ ...formData, description: v })}
                     rows={4}
@@ -235,12 +236,12 @@ export default function AgPropertyForm({
               exit="exit"
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
-                <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٢ من ٤</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">حجم وتصنيف المشروع</h2>
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
+                <motion.div variants={staggerItem} className={isRtl ? "text-right" : "text-left"}>
+                  <FieldLabel>{dictionary.projects.continueFlow.replace("{step}", "2").replace("{total}", "4")}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{dictionary.projectForm.scaleTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">
-                    ما هو نوع الوحدات العقارية التي سيتضمنها هذا المجمع بشكل رئيسي؟ وما هي خطط الدفع؟
+                    {dictionary.projectForm.scaleDesc}
                   </p>
                 </motion.div>
 
@@ -273,14 +274,14 @@ export default function AgPropertyForm({
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <TextInput
                       type="text"
-                      placeholder="تبدأ الأسعار من (مثال: 5,000,000 ج.م)"
+                      placeholder={dictionary.projectForm.placeholderStartingPrice}
                       value={formData.startingPrice ?? ""}
                       onChange={(v) => setFormData({ ...formData, startingPrice: v })}
                       disabled={pending}
                     />
                     <TextInput
                       type="number"
-                      placeholder="سنوات التقسيط (مثال: 8)"
+                      placeholder={dictionary.projectForm.placeholderInstallmentYears}
                       value={formData.installmentYears ?? ""}
                       onChange={(v) => setFormData({ ...formData, installmentYears: v })}
                       disabled={pending}
@@ -290,7 +291,7 @@ export default function AgPropertyForm({
                   <div className="max-w-xs">
                     <TextInput
                       type="number"
-                      placeholder="عدد الوحدات المتوقع (اختياري)"
+                      placeholder={dictionary.projectForm.placeholderExpectedUnits}
                       value={formData.expectedUnits ?? ""}
                       onChange={(v) => setFormData({ ...formData, expectedUnits: v })}
                       disabled={pending}
@@ -312,12 +313,12 @@ export default function AgPropertyForm({
               exit="exit"
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
-                <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٣ من ٤</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">المخطط العام والوسائط</h2>
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
+                <motion.div variants={staggerItem} className={isRtl ? "text-right" : "text-left"}>
+                  <FieldLabel>{dictionary.projects.continueFlow.replace("{step}", "3").replace("{total}", "4")}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{dictionary.projectForm.mediaTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">
-                    سيتم إضافة نظام رفع الصور والـ Master Plan هنا في التحديث القادم لربطه بمعرض المجمع السكني.
+                    {dictionary.projectForm.mediaDesc}
                   </p>
                 </motion.div>
                 
@@ -328,7 +329,7 @@ export default function AgPropertyForm({
                   transition={{ duration: 0.2 }}
                 >
                   <p className="text-sm font-semibold text-[var(--workspace-muted)]">
-                    [منطقة رفع المخطط العام (Master Plan) تحت التطوير]
+                    {dictionary.projectForm.masterPlanDeveloping}
                   </p>
                 </motion.div>
               </motion.div>
@@ -346,12 +347,12 @@ export default function AgPropertyForm({
               exit="exit"
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] as const }}
             >
-              <motion.div className="space-y-8 text-right" variants={staggerContainer} initial="enter" animate="center">
-                <motion.div variants={staggerItem}>
-                  <FieldLabel>الخطوة ٤ من ٤</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">المرافق والخدمات</h2>
+              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
+                <motion.div variants={staggerItem} className={isRtl ? "text-right" : "text-left"}>
+                  <FieldLabel>{dictionary.projects.continueFlow.replace("{step}", "4").replace("{total}", "4")}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{dictionary.projectForm.amenitiesTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">
-                    حدد الخدمات المتوفرة داخل سور المجمع السكني (Compound).
+                    {dictionary.projectForm.amenitiesDesc}
                   </p>
                 </motion.div>
 
@@ -372,7 +373,7 @@ export default function AgPropertyForm({
                         className={`rounded-[24px] px-6 py-4 text-[14px] font-black tracking-tight transition-colors disabled:opacity-50 ${
                           active 
                             ? "bg-[color:color-mix(in_srgb,var(--workspace-highlight)_10%,transparent)] border-2 border-[var(--workspace-highlight)] text-foreground" 
-                            : "border-2 border-[var(--workspace-border)] bg-transparent text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"
+                            : "border-2 border-[var(--workspace-border)] bg-[var(--workspace-panel)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"
                         }`}
                       >
                         {amenity}
@@ -386,23 +387,20 @@ export default function AgPropertyForm({
         </AnimatePresence>
       </div>
 
-      <motion.div
-        className="fixed bottom-8 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 px-4"
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
-      >
-        <div className="flex w-full items-center justify-between gap-4 rounded-full border border-[color:var(--workspace-border)] bg-[color:color-mix(in_srgb,var(--workspace-panel)_85%,transparent)] p-3 pr-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] backdrop-blur-xl" dir="rtl">
+      {/* ── Floating Dock ── */}
+      <div className="sticky bottom-[100px] z-50 mx-auto w-full max-w-3xl px-4">
+        <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}>
+          <div className={`flex w-full items-center justify-between gap-4 rounded-full border border-[color:var(--workspace-border)] bg-[color:color-mix(in_srgb,var(--workspace-panel)_85%,transparent)] p-3 ${isRtl ? "pr-8" : "pl-8"} shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] backdrop-blur-2xl`} dir={isRtl ? "rtl" : "ltr"}>
            <div className="hidden text-[15px] font-black text-[var(--workspace-muted)] sm:block">
              <AnimatePresence mode="wait">
                <motion.span
                  key={activeStep}
-                 initial={{ opacity: 0, y: 8 }}
+                 initial={{ opacity: 0, y: 10 }}
                  animate={{ opacity: 1, y: 0 }}
-                 exit={{ opacity: 0, y: -8 }}
-                 transition={{ duration: 0.25 }}
+                 exit={{ opacity: 0, y: -10 }}
+                 transition={{ duration: 0.3 }}
                >
-                 {activeStep === 4 ? "الخطوة الأخيرة" : `الخطوة ${activeStep} من ٤`}
+                 {activeStep === 4 ? dictionary.projectForm.lastStep : dictionary.unitCreate.stepXofY.replace("{step}", String(activeStep)).replace("{total}", "4")}
                </motion.span>
              </AnimatePresence>
            </div>
@@ -419,8 +417,8 @@ export default function AgPropertyForm({
                    disabled={pending}
                    className="flex h-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--workspace-panel)] px-6 font-bold tracking-tight text-foreground transition-colors hover:bg-[color:color-mix(in_srgb,var(--workspace-border)_40%,var(--workspace-panel))] active:scale-95 disabled:pointer-events-none disabled:opacity-30"
                  >
-                   السابق
-                 </motion.button>
+                    {locale === "ar" ? "رجوع" : "Back"}
+                  </motion.button>
                )}
              </AnimatePresence>
              
@@ -433,8 +431,8 @@ export default function AgPropertyForm({
                  whileTap={{ scale: 0.95 }}
                  className="flex h-12 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-10 font-black tracking-tight text-background disabled:pointer-events-none disabled:opacity-30"
                >
-                 التالي
-               </motion.button>
+                  {dictionary.projects.continueFlow}
+                </motion.button>
              ) : (
                <motion.button
                  type="button"
@@ -444,12 +442,13 @@ export default function AgPropertyForm({
                  whileTap={{ scale: 0.95 }}
                  className="flex h-12 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-10 font-black tracking-tight text-background disabled:pointer-events-none disabled:opacity-30"
                >
-                 {pending ? "جاري الإنشاء..." : submitLabel ?? (isEditMode ? "حفظ مجمع سكني" : "إنشاء مجمع سكني")}
-               </motion.button>
+                  {pending ? dictionary.projectForm.saving : submitLabel ?? (isEditMode ? dictionary.projectForm.saveDraft : dictionary.projectForm.createProject)}
+                </motion.button>
              )}
            </div>
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }

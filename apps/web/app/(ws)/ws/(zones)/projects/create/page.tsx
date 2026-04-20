@@ -27,7 +27,7 @@ export default function CreateSelectionPage() {
   };
 
   return (
-    <div className="min-h-full bg-background/60 flex flex-col items-center justify-center p-6 pb-20">
+    <div className="flex h-full w-full flex-col items-center justify-center p-6 pb-20">
       <motion.div
         className="w-full max-w-6xl mb-8 flex items-center justify-start"
         initial={{ opacity: 0, x: -20 }}

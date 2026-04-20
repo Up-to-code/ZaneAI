@@ -14,11 +14,14 @@ import {
 import type { WorkspaceAudience } from "@/server/contracts/workspace";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { cn } from "@/lib/i18n";
+import { useMemo } from "react";
+import WorkspacePerformanceCharts from "./WorkspacePerformanceCharts";
 
 type OperationalDashboardProps = {
   workspaceState: {
     audience: Extract<WorkspaceAudience, "broker" | "developer">;
     organization: {
+      id: string;
       name: string;
     } | null;
     metrics: {
@@ -31,6 +34,27 @@ type OperationalDashboardProps = {
 
 export default function OperationalDashboard({ workspaceState }: OperationalDashboardProps) {
   const { dictionary, isRtl } = useWebLocale();
+
+  // TODO: Replace with live Convex query once `npx convex dev` has pushed analytics/public/getWorkspaceStats
+  const stats = useMemo(() => {
+    const now = Date.now();
+    const days = 30;
+    const seed = [38,52,41,67,44,29,55,71,48,63,34,58,46,72,39,61,50,44,66,52,43,70,55,38,62,47,59,36,64,53];
+    const trend = Array.from({ length: days }, (_, i) => {
+      const d = new Date(now - (days - 1 - i) * 86400000);
+      const views = seed[i % seed.length] + Math.floor(i * 1.5);
+      const clicks = Math.round(views * 0.28);
+      return { date: d.toISOString().split("T")[0], views, clicks };
+    });
+    return {
+      trend,
+      ctaBreakdown: [
+        { label: "WhatsApp", count: 42, color: "#25D366" },
+        { label: "Email", count: 28, color: "#EA4335" },
+        { label: "Other", count: 11, color: "#94a3b8" },
+      ],
+    };
+  }, []);
 
   const metrics = [
     { label: dictionary.projects.all, value: workspaceState.metrics.propertyCount, icon: Package },
@@ -60,6 +84,14 @@ export default function OperationalDashboard({ workspaceState }: OperationalDash
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ── Performance Analytics ──────────────────────────────── */}
+      <div className="mb-10">
+        <WorkspacePerformanceCharts 
+          trend={stats.trend} 
+          ctaBreakdown={stats.ctaBreakdown} 
+        />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1fr_360px]">

@@ -29,6 +29,7 @@ export const usageTables = {
   ]),
   analyticsEvents: defineTable({
     authUserId: v.optional(v.string()),
+    organizationId: v.optional(v.string()), // Added organizationId
     sessionId: v.optional(v.string()),
     threadId: v.optional(v.string()),
     route: v.optional(v.string()),
@@ -39,6 +40,7 @@ export const usageTables = {
   })
     .index("by_eventName", ["eventName"])
     .index("by_authUserId", ["authUserId"])
+    .index("by_organizationId", ["organizationId"]) // Added index
     .index("by_sessionId", ["sessionId"])
     .index("by_threadId", ["threadId"]),
 };

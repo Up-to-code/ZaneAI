@@ -1,104 +1,86 @@
-import { memo } from "react";
-import { Mail } from "lucide-react";
-import { cn } from "@/lib/i18n";
-import type { OrganizationSummary } from "@/server/contracts/organizations";
+"use client";
+
+import type { ReactNode } from "react";
+import { User } from "lucide-react";
+import { useWebLocale } from "@/app/_components/WebLocaleProvider";
+import { cn, formatWebCopy } from "@/lib/i18n";
 import type { OrganizationMemberDisplay } from "../../_lib/entities";
-import {
-  getOrganizationMemberInitials,
-  getOrganizationMemberRoleLabel,
-  getOrganizationMemberTheme,
-} from "../../_lib/organizationMembers";
+import type { OrganizationSummary } from "@/server/contracts/organizations";
 
 /**
- * Institutional member card — High-precision row layout with technical typography and validated context indicators.
+ * WHY:   Organization members need a shared, high-precision visual representation in lists and management views.
+ * WHAT:  Renders a member's identity (avatar, name, email) with optional metadata and footer actions.
+ * HOW:   Follows the "Pure Canvas" edge-to-edge row philosophy with technical typography and institutional brand tokens.
  */
-const OrganizationMemberCardComponent = function OrganizationMemberCard({
+export default function OrganizationMemberCard({
   member,
   organizationType,
   footer,
-  className,
 }: {
   member: OrganizationMemberDisplay;
   organizationType: OrganizationSummary["type"] | null | undefined;
-  footer?: React.ReactNode;
-  className?: string;
+  footer?: ReactNode;
 }) {
-  const theme = getOrganizationMemberTheme(organizationType);
-  const roleLabel = getOrganizationMemberRoleLabel(member.role);
-  const avatarLabel = getOrganizationMemberInitials(member.name);
-  const isActive = member.statusLabel === "نشط";
-  const usernameLabel = member.username ? `@${member.username}` : null;
+  const { direction, dictionary } = useWebLocale();
+  const m = dictionary.members;
+  const organizationRole = organizationType === "red" ? m.developer : m.broker;
 
   return (
     <article
-      dir="rtl"
-      className={cn(
-        "group relative flex flex-col gap-5 rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-6 transition-all hover:bg-[var(--workspace-panel-hover)] shadow-sm shadow-black/5",
-        className,
-      )}
+      className="group relative flex flex-col gap-6 py-6 px-1 border-b border-[color:var(--workspace-border)] transition-all hover:bg-[var(--workspace-shell)]/5"
+      dir={direction}
     >
-      <div className="flex items-center gap-6">
-        {/* Profile Avatar & Precise Status Bit */}
-        <div className="relative">
-          <div
-            className={cn(
-              "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[18px] font-black uppercase text-white transition-transform duration-300 group-hover:scale-105",
-              theme.avatarClassName,
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-6">
+          {/* Avatar / Initials */}
+          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 text-lg font-black uppercase text-[var(--zane-ai-deep)] dark:text-white shadow-lg shadow-black/5">
+            {member.name ? member.name[0] : <User className="h-5 w-5 opacity-30" />}
+            {member.role === "manager" && (
+              <div className="absolute -right-1 -top-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[var(--zane-ai-accent)] text-[7px] font-black text-white ring-2 ring-[var(--workspace-panel)]">
+                {m.managerBadge}
+              </div>
             )}
-          >
-            {avatarLabel}
           </div>
-          {isActive && (
-            <div className="absolute -right-1 -top-1 ring-4 ring-[var(--workspace-panel)] rounded-full">
-              <div className="h-3.5 w-3.5 rounded-full bg-[var(--zane-ai-accent)]" />
-            </div>
-          )}
-        </div>
 
-        {/* Identity & Technical Metadata */}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 className="text-[18px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
-              {member.name}
-            </h3>
-            {usernameLabel && (
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-text-muted)] opacity-40">
-                {usernameLabel}
-              </span>
-            )}
-          </div>
-          
-          <div className="mt-2.5 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-[11px] font-bold text-[var(--zane-ai-text-muted)] dark:text-white/40" dir="ltr">
-              <Mail className="h-3.5 w-3.5 opacity-60" />
-              <span className="truncate">{member.email}</span>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-lg font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+                {member.name || m.unnamedUser}
+              </h3>
+              <div className="flex items-center gap-3">
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-accent)]">
+                  {member.role}
+                </div>
+                <span className="h-1 w-1 rounded-full bg-[var(--workspace-border)] opacity-30" />
+                <div className="text-[11px] font-black uppercase tracking-[0.1em] text-[var(--zane-ai-text-muted)] dark:text-white/60 tabular-nums" dir="ltr">
+                  {member.email}
+                </div>
+              </div>
             </div>
-            
-            <div className="hidden sm:block h-1 w-1 rounded-full bg-[color:var(--workspace-border)] opacity-60" />
-            
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-[var(--zane-ai-accent)]">
-                {roleLabel}
+
+            {/* Technical Metadata Strip (Member Specific) */}
+            <div className="flex flex-wrap gap-6 text-[10px] font-black uppercase tracking-widest text-[var(--zane-ai-text-muted)] dark:text-white/40">
+              <span className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--zane-ai-accent)]" />
+                {formatWebCopy(m.joinedAt, { date: member.joinedAtLabel })}
               </span>
-              <span className={cn(
-                "rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.1em]",
-                theme.roleClassName
-              )}>
-                {theme.accentLabel}
+              <span className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--zane-ai-accent)]" />
+                {formatWebCopy(m.roleAccess, { role: organizationRole })}
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--zane-ai-accent)]" />
+                ID: {member.id.split("_").pop()?.toUpperCase() ?? member.id}
               </span>
             </div>
           </div>
         </div>
-      </div>
 
-      {footer && (
-        <div className="mt-2 border-t border-[color:var(--workspace-border)] pt-5">
+        {/* Action Slot */}
+        <div className="flex shrink-0 items-center gap-4 pt-1 lg:pt-0">
           {footer}
         </div>
-      )}
+      </div>
     </article>
   );
-};
-
-export default memo(OrganizationMemberCardComponent);
-
+}

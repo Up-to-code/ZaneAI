@@ -23,7 +23,7 @@ function StatusNotice({ status }: { status: string | null }) {
   const { direction } = useWebLocale();
   if (!status) return null;
   return (
-    <div className="rounded-xl border border-border/70 bg-background/60 px-4 py-3 text-[13px] font-bold text-foreground" dir={direction}>
+    <div className="border-l-2 border-[color:var(--zane-ai-accent)] bg-[var(--zane-ai-accent)]/5 px-6 py-3 text-[13px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white" dir={direction}>
       {status}
     </div>
   );
@@ -35,7 +35,7 @@ function MemberRoleButtons(args: {
   onRoleChange: (member: OrganizationMemberDisplay, role: OrganizationMemberDisplay["role"]) => Promise<void>;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2.5">
       {roles.map((role) => (
         <button
           key={role}
@@ -43,10 +43,10 @@ function MemberRoleButtons(args: {
           disabled={!args.canManage}
           onClick={() => args.onRoleChange(args.member, role)}
           className={cn(
-            "rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-all",
+            "h-9 rounded-full px-5 text-[10px] font-black uppercase tracking-[0.15em] transition-all",
             args.member.role === role
-              ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black shadow-lg shadow-black/5"
-              : "bg-[var(--workspace-panel)] border border-[color:var(--workspace-border)] text-[var(--zane-ai-text-muted)] hover:bg-[var(--workspace-panel-hover)] disabled:opacity-40",
+              ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black shadow-md shadow-black/10"
+              : "bg-transparent border border-[color:var(--workspace-border)] text-[var(--zane-ai-deep)] dark:text-white/60 hover:bg-[var(--workspace-shell)]/50 hover:text-[var(--zane-ai-deep)] dark:hover:text-white disabled:opacity-40",
           )}
         >
           {getOrganizationMemberRoleLabel(role)}
@@ -82,24 +82,24 @@ function InviteRow(args: {
 }) {
   const { dictionary, direction, isRtl } = useWebLocale();
   return (
-    <div className="flex items-center justify-between gap-6 border-b border-[color:var(--workspace-border)] p-6 last:border-0" dir={direction}>
+    <div className="flex items-center justify-between gap-10 border-b border-[color:var(--workspace-border)] py-5 px-1 transition-colors hover:bg-[var(--workspace-shell)]/5" dir={direction}>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[16px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white" dir="ltr">
+        <div className="truncate text-[15px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white" dir="ltr">
           {args.invite.email}
         </div>
-        <div className={cn("mt-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-60", isRtl ? "text-right" : "text-left")}>
+        <div className={cn("mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-text-muted)] opacity-50", isRtl ? "text-right" : "text-left")}>
           {formatWebCopy(dictionary.settings.inviteExpires, { date: args.invite.expiresLabel })}
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <span className="rounded-full bg-[var(--zane-ai-accent)]/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-[var(--zane-ai-accent)]">
+      <div className="flex items-center gap-6">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-accent)]">
           {getOrganizationMemberRoleLabel(args.invite.role)}
         </span>
         {args.canManage ? (
           <button
             type="button"
             onClick={() => args.onCancelInvite(args.invite)}
-            className="rounded-xl border border-red-500/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-red-600 transition hover:bg-red-500/10 dark:text-red-400"
+            className="h-9 rounded-full border border-red-500/30 px-5 text-[9px] font-black uppercase tracking-[0.15em] text-red-600 transition hover:bg-red-500/10 dark:text-red-400"
           >
             {dictionary.inbox.cancel}
           </button>
@@ -136,7 +136,7 @@ export default function MembersWorkspace({
     input: { role: "manager" | "member" | "viewer" },
   ) => Promise<{ ok: true; message: string } | { ok: false; message: string }>;
 }) {
-  const { dictionary, direction } = useWebLocale();
+  const { dictionary, direction, isRtl } = useWebLocale();
   const [members, setMembers] = useState(initialMembers);
   const [pendingInvites, setPendingInvites] = useState(invites);
   const [status, setStatus] = useState<string | null>(null);
@@ -177,30 +177,30 @@ export default function MembersWorkspace({
       <StatusNotice status={status} />
 
       {/* Section header + invite button */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-4xl">
+      <div className="space-y-3 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-10">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-3xl">
             {formatWebCopy(dictionary.settings.membersTitle, { count: members.length })}
           </h2>
           {canManage ? (
             <Dialog.Root open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-              <Dialog.Trigger className="inline-flex h-11 items-center gap-3 rounded-2xl bg-[var(--zane-ai-deep)] px-6 text-[11px] font-black uppercase tracking-[0.1em] text-white transition hover:opacity-90 active:scale-[0.98] dark:bg-white dark:text-black">
-                <Plus className="h-4 w-4" strokeWidth={3} />
-                {dictionary.settings.inviteMember}
+              <Dialog.Trigger className="group relative inline-flex h-11 items-center gap-4 overflow-hidden rounded-full bg-[var(--zane-ai-deep)] px-8 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-black dark:bg-white dark:text-black dark:hover:bg-neutral-200 shadow-lg shadow-black/10 active:scale-[0.98]">
+                <Plus className="relative z-10 h-4 w-4" strokeWidth={4} />
+                <span className="relative z-10">{dictionary.settings.inviteMember}</span>
               </Dialog.Trigger>
               <Dialog.Portal>
-                <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-all duration-300 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-                <Dialog.Popup className="pointer-events-none fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 outline-none transition-all duration-300 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
-                  <div className="pointer-events-auto flex flex-col overflow-hidden rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] shadow-2xl overscroll-contain">
-                    <div className="flex items-center justify-between border-b border-[color:var(--workspace-border)] p-6" dir={direction}>
-                      <Dialog.Title className="text-[18px] font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+                <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md transition-all duration-500 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+                <Dialog.Popup className="pointer-events-none fixed left-1/2 top-1/2 z-50 w-full max-w-xl -translate-x-1/2 -translate-y-1/2 outline-none transition-all duration-500 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+                  <div className="pointer-events-auto flex flex-col overflow-hidden rounded-[28px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] shadow-[0_24px_80px_rgba(0,0,0,0.6)] ring-1 ring-black/5 dark:ring-white/10 overscroll-contain">
+                    <div className="flex items-center justify-between border-b border-[color:var(--workspace-border)] p-8" dir={direction}>
+                      <Dialog.Title className="text-xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
                         {dictionary.settings.inviteMemberTitle}
                       </Dialog.Title>
-                      <Dialog.Close className="flex rounded-full p-2 text-muted-foreground transition hover:bg-[var(--workspace-panel-hover)] hover:text-foreground">
-                        <X className="h-5 w-5" />
+                      <Dialog.Close className="flex rounded-full p-2 transition-all hover:bg-[var(--zane-ai-accent)] hover:text-white dark:text-white/40 dark:hover:text-white">
+                        <X className="h-6 w-6" strokeWidth={3} />
                       </Dialog.Close>
                     </div>
-                    <div className="p-2">
+                    <div className="p-4">
                       <InviteMemberForm
                         canManage={canManage}
                         hasOrganization={hasOrganization}
@@ -221,7 +221,7 @@ export default function MembersWorkspace({
       </div>
 
       {/* Members list */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="flex flex-col border-t border-[color:var(--workspace-border)]">
         {members.map((member) => (
           <MemberCard
             key={member.id}
@@ -235,11 +235,11 @@ export default function MembersWorkspace({
 
       {/* Pending invites */}
       {pendingInvites.length > 0 ? (
-        <div className="space-y-6 pt-6">
-          <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
+        <div className="space-y-6 pt-8 px-1">
+          <h2 className="text-xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
             {formatWebCopy(dictionary.settings.pendingInvitesTitle, { count: pendingInvites.length })}
           </h2>
-          <div className="overflow-hidden rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] shadow-sm shadow-black/5">
+          <div className="flex flex-col border-t border-[color:var(--workspace-border)]">
             {pendingInvites.map((invite) => (
               <InviteRow key={invite.id} invite={invite} canManage={canManage} onCancelInvite={handleCancelInvite} />
             ))}

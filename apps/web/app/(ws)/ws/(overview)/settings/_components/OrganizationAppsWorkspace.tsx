@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Clock3, PlugZap, ShieldBan } from "lucide-react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
+import { cn, formatLocaleDateTime } from "@/lib/i18n";
 import type { OAuthAuthorizedAppSummary } from "@/server/contracts/oauth";
 
 type OrganizationAppsWorkspaceProps = {
@@ -20,10 +21,7 @@ export default function OrganizationAppsWorkspace({
   showLegacyNotice,
   onRevokeApp,
 }: OrganizationAppsWorkspaceProps) {
-  const { dictionary, locale } = useWebLocale();
-  const dateFormatter = new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : locale === "fr" ? "fr-FR" : "en-US", {
-    dateStyle: "medium",
-  });
+  const { dictionary, locale, direction, isRtl } = useWebLocale();
   const [apps, setApps] = useState(initialApps);
   const [status, setStatus] = useState<string | null>(null);
   const [revokingClientId, setRevokingClientId] = useState<string | null>(null);
@@ -31,9 +29,11 @@ export default function OrganizationAppsWorkspace({
 
   if (!hasOrganization) {
     return (
-      <div className="rounded-[28px] bg-[var(--workspace-panel)] p-6 text-sm text-slate-500 dark:text-slate-300">
-        {dictionary.settings.organizationNoOrganization}
-      </div>
+      <section className="px-1" dir={direction}>
+        <div className="border-l-4 border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 px-6 py-4 text-[13px] font-bold text-[var(--zane-ai-text-muted)]">
+          {dictionary.settings.organizationNoOrganization}
+        </div>
+      </section>
     );
   }
 
@@ -54,78 +54,83 @@ export default function OrganizationAppsWorkspace({
   }
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-[28px] bg-[var(--workspace-panel)] p-6 sm:p-7">
-        <div className="space-y-1.5">
-          <h2 className="text-xl font-bold text-slate-950 dark:text-slate-100">
-            {dictionary.settings.connectedAppsPageTitle}
-          </h2>
-          <p className="text-sm leading-7 text-slate-500 dark:text-slate-300">
-            {dictionary.settings.connectedAppsPageDescription}
-          </p>
-        </div>
+    <div className="space-y-8 pb-12" dir={direction}>
+      <div className="space-y-3 px-1">
+        <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white lg:text-3xl">
+          {dictionary.settings.connectedAppsPageTitle}
+        </h2>
+        <p className="max-w-2xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
+          {dictionary.settings.connectedAppsPageDescription}
+        </p>
+      </div>
 
-        {showLegacyNotice ? (
-          <div className="mt-5 rounded-[22px] bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600 dark:bg-slate-900/70 dark:text-slate-300">
+      {showLegacyNotice ? (
+        <div className="px-1">
+          <div className="border-l-2 border-amber-500 bg-amber-500/5 px-6 py-3 text-[13px] font-bold text-amber-700 dark:text-amber-300">
             {dictionary.settings.connectedAppsLegacyNotice}
           </div>
-        ) : null}
+        </div>
+      ) : null}
 
-        {!canManage ? (
-          <div className="mt-4 rounded-[22px] bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600 dark:bg-slate-900/70 dark:text-slate-300">
+      {!canManage ? (
+        <div className="px-1">
+          <div className="border-l-2 border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 px-6 py-3 text-[13px] font-bold text-[var(--zane-ai-text-muted)]">
             {dictionary.settings.connectedAppsReadonlyNotice}
           </div>
-        ) : null}
+        </div>
+      ) : null}
 
-        {status ? (
-          <div className="mt-4 rounded-[18px] bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-slate-900/70 dark:text-slate-300">
+      {status ? (
+        <div className="px-1">
+          <div className="text-[11px] font-black uppercase tracking-[0.15em] text-[var(--zane-ai-accent)]">
             {status}
           </div>
-        ) : null}
-      </section>
+        </div>
+      ) : null}
 
       {apps.length === 0 ? (
-        <section className="rounded-[28px] bg-[var(--workspace-panel)] p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+        <section className="px-1 py-12 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 text-[var(--zane-ai-accent)]">
             <PlugZap className="h-6 w-6" />
           </div>
-          <h3 className="mt-4 text-lg font-bold text-slate-950 dark:text-slate-100">
+          <h3 className="mt-8 text-xl font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">
             {dictionary.settings.connectedAppsEmptyTitle}
           </h3>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-slate-500 dark:text-slate-300">
+          <p className="mx-auto mt-4 max-w-xl text-[13px] font-medium leading-relaxed text-[var(--zane-ai-text-muted)] dark:text-white/40">
             {dictionary.settings.connectedAppsEmptyDescription}
           </p>
         </section>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col border-t border-[color:var(--workspace-border)]">
           {apps.map((app) => {
             const isRevoking = isPending && revokingClientId === app.clientId;
             return (
               <section
                 key={app.clientId}
-                className="rounded-[28px] bg-[var(--workspace-panel)] p-5 sm:p-6"
+                className="group relative flex flex-col gap-6 py-6 px-1 border-b border-[color:var(--workspace-border)] transition-colors hover:bg-[var(--workspace-shell)]/5"
               >
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-slate-100 text-sm font-black uppercase text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex items-start gap-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/20 text-base font-black uppercase text-[var(--zane-ai-deep)] dark:text-white shadow-lg shadow-black/5">
                       {(app.appName ?? "?").slice(0, 1)}
                     </div>
                     <div className="space-y-2">
                       <div>
-                        <div className="text-base font-bold text-slate-950 dark:text-slate-100">{app.appName}</div>
-                        <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                        <div className="text-lg font-black uppercase tracking-tight text-[var(--zane-ai-deep)] dark:text-white">{app.appName}</div>
+                        <div className="mt-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-accent)]">
                           {app.publisherName}
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-900">
-                          {dictionary.settings.connectedAppsConnectedAt}: {dateFormatter.format(new Date(app.createdAt))}
+                      <div className="flex flex-wrap gap-x-6 gap-y-2 text-[10px] font-bold text-[var(--zane-ai-text-muted)] dark:text-white/40 uppercase tracking-widest">
+                        <span className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[var(--zane-ai-accent)]" />
+                          {dictionary.settings.connectedAppsConnectedAt}: {formatLocaleDateTime(locale, app.createdAt, { dateStyle: "medium" })}
                         </span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-900">
-                          <Clock3 className="h-3.5 w-3.5" />
+                        <span className="flex items-center gap-2">
+                          <Clock3 className="h-3.5 w-3.5 opacity-50" />
                           {dictionary.settings.connectedAppsLastUsed}:{" "}
                           {app.lastUsedAt
-                            ? dateFormatter.format(new Date(app.lastUsedAt))
+                            ? formatLocaleDateTime(locale, app.lastUsedAt, { dateStyle: "medium" })
                             : dictionary.settings.connectedAppsNeverUsed}
                         </span>
                       </div>
@@ -137,7 +142,7 @@ export default function OrganizationAppsWorkspace({
                       type="button"
                       disabled={isRevoking}
                       onClick={() => handleRevoke(app.clientId)}
-                      className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                      className="inline-flex h-9 items-center justify-center gap-3 rounded-full border border-red-500/30 px-5 text-[9px] font-black uppercase tracking-[0.15em] text-red-600 transition hover:bg-red-500/10 dark:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <ShieldBan className="h-4 w-4" />
                       {isRevoking ? dictionary.settings.connectedAppsRevoking : dictionary.settings.connectedAppsRevoke}
@@ -145,11 +150,11 @@ export default function OrganizationAppsWorkspace({
                   ) : null}
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   {(app.scopeDetails ?? []).map((scope) => (
                     <span
                       key={scope.id}
-                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                      className="rounded-full border border-[color:var(--workspace-border)] bg-[var(--workspace-shell)]/10 px-3.5 py-1 text-[9px] font-black uppercase tracking-[0.15em] text-[var(--zane-ai-text-muted)] dark:text-white/40"
                     >
                       {scope.label}
                     </span>

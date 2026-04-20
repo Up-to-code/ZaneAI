@@ -62,6 +62,19 @@ export function formatLocaleNumber(locale: AppLocale, value: number, options?: I
 }
 
 export type WebDictionary = {
+  performance: {
+    title: string;
+    description: string;
+    views: string;
+    clicks: string;
+    totalViews: string;
+    totalClicks: string;
+    ctaBreakdown: string;
+    trendTitle: string;
+    noData: string;
+    last7Days: string;
+    last30Days: string;
+  };
   landing: {
     heroBadge: string;
     heroTitle: string;
@@ -217,6 +230,165 @@ export type WebDictionary = {
     createUnitHeadline: string;
     createUnitDesc: string;
     continueFlow: string;
+    portfolioManagement: string;
+    noProjectsFound: string;
+    noUnitsFound: string;
+    analyze: string;
+    openDetails: string;
+    unitsLabel: string;
+    installments: string;
+    years: string;
+    averagePrice: string;
+    totalUnits: string;
+    types: {
+      villas: string;
+      apartments: string;
+      land_plots: string;
+      mixed: string;
+      custom: string;
+      fallback: string;
+    };
+  };
+  projectForm: {
+    editTitle: string;
+    newTitle: string;
+    manageTitle: string;
+    identityTitle: string;
+    identityDesc: string;
+    scaleTitle: string;
+    scaleDesc: string;
+    mediaTitle: string;
+    mediaDesc: string;
+    amenitiesTitle: string;
+    amenitiesDesc: string;
+    lastStep: string;
+    saveDraft: string;
+    createProject: string;
+    saving: string;
+    placeholderName: string;
+    placeholderDeveloper: string;
+    placeholderLocation: string;
+    placeholderDescription: string;
+    placeholderStartingPrice: string;
+    placeholderInstallmentYears: string;
+    placeholderExpectedUnits: string;
+    masterPlanDeveloping: string;
+    feedbackCompleteFields: string;
+    feedbackError: string;
+    editEyebrow: string;
+    newEyebrow: string;
+  };
+  unitCreate: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    stepXofY: string;
+    unitDefinition: string;
+    unitDefinitionDesc: string;
+    unitTitlePlaceholder: string;
+    locationPlaceholder: string;
+    listingTypeLabel: string;
+    unitTypeLabel: string;
+    unitSpecs: string;
+    unitSpecsDesc: string;
+    roomsPlaceholder: string;
+    bathsPlaceholder: string;
+    areaPlaceholder: string;
+    floorPlaceholder: string;
+    parkingPlaceholder: string;
+    finishingLevelLabel: string;
+    pricingTitle: string;
+    pricingDescSale: string;
+    pricingDescRent: string;
+    pricePlaceholderSale: string;
+    pricePlaceholderRent: string;
+    rentalPeriodLabel: string;
+    paymentMethodLabel: string;
+    downPaymentPlaceholder: string;
+    installmentYearsPlaceholder: string;
+    deliveryDatePlaceholder: string;
+    amenitiesTitle: string;
+    amenitiesDesc: string;
+    selectedAmenitiesCount: string;
+    nearbyPlacesLabel: string;
+    estimatedDistanceLabel: string;
+    mediaTitle: string;
+    mediaDesc: string;
+    unitImagesCountHint: string;
+    addImagesLabel: string;
+    coverPhotoLabel: string;
+    minImagesWarning: string;
+    videoUrlPlaceholder: string;
+    docsTitle: string;
+    docsDesc: string;
+    uploadDocsHint: string;
+    legalTitle: string;
+    legalDesc: string;
+    descriptionPlaceholder: string;
+    registrationStatusLabel: string;
+    adLicenseLabel: string;
+    adLicenseError: string;
+    readyToPublishTitle: string;
+    readyToPublishDesc: string;
+    draftStatusTitle: string;
+    draftStatusDesc: string;
+    nextButton: string;
+    prevButton: string;
+    submitReady: string;
+    submitDraft: string;
+    setAsCover: string;
+    enlargeImage: string;
+    delete: string;
+    feedbackEmptyName: string;
+    feedbackUnexpectedError: string;
+    rentalPeriods: {
+      day: string;
+      week: string;
+      month: string;
+      year: string;
+    };
+    finishingLevels: {
+      core_shell: string;
+      semi_finished: string;
+      fully_finished: string;
+      extra_super_lux: string;
+      furnished: string;
+    };
+    paymentMethods: {
+      cash: string;
+      installments: string;
+      cash_or_installments: string;
+    };
+    registrationOptions: {
+      registered: string;
+      not_registered: string;
+      pending: string;
+    };
+    distances: {
+      less_than_5: string;
+      five_to_ten: string;
+      ten_to_twenty: string;
+      more_than_twenty: string;
+    };
+    amenities: {
+      ac: string;
+      balcony: string;
+      dressing: string;
+      kitchen: string;
+      heater: string;
+      internet: string;
+      intercom: string;
+      elevator: string;
+      security_cameras: string;
+      armored_door: string;
+      solar_power: string;
+      gym: string;
+      villa: string[];
+      apartment: string[];
+      chalet: string[];
+      commercial: string[];
+    };
+    nearbyPlaceNames: string[];
   };
   units: {
     title: string;
@@ -243,6 +415,7 @@ export type WebDictionary = {
     studio: string;
     penthouse: string;
     townhouse: string;
+    chalet: string;
     commercial: string;
     noUnits: string;
     unitCount: string;
@@ -583,6 +756,26 @@ export type WebDictionary = {
     organizationSave: string;
     organizationTypeBroker: string;
     organizationTypeDeveloper: string;
+    verificationStatusApproved: string;
+    verificationStatusInReview: string;
+    verificationStatusRejected: string;
+    verificationStatusClosed: string;
+    verificationStatusNew: string;
+    verificationStatusNotSubmitted: string;
+    verificationTimelineSubmitted: string;
+    verificationTimelineInReview: string;
+    verificationTimelineApproved: string;
+    verificationTimelineClosed: string;
+    verificationTimelineRejected: string;
+    verificationTimelineUpdated: string;
+    organizationStatusActive: string;
+    organizationStatusPending: string;
+    organizationStatusUnavailable: string;
+    organizationNamePlaceholder: string;
+    organizationDescriptionPlaceholder: string;
+    organizationWebsitePlaceholder: string;
+    organizationEmailPlaceholder: string;
+    organizationPhonePlaceholder: string;
   };
   assistant: {
     placeholderDeveloper: string;
@@ -659,10 +852,31 @@ export type WebDictionary = {
     title: string;
     subtitle: string;
   };
+  members: {
+    unnamedUser: string;
+    joinedAt: string;
+    roleAccess: string;
+    managerBadge: string;
+    developer: string;
+    broker: string;
+  };
 };
 
 const dictionaries: Record<AppLocale, WebDictionary> = {
   ar: {
+    performance: {
+      title: "أداء المؤسسة",
+      description: "نظرة عامة على الوصول الرقمي والتفاعل لجميع المشاريع.",
+      views: "المشاهدات",
+      clicks: "النقرات",
+      totalViews: "إجمالي المشاهدات",
+      totalClicks: "إجمالي النقرات",
+      ctaBreakdown: "تحليل إجراءات التواصل",
+      trendTitle: "تطور الأداء",
+      noData: "لا توجد بيانات كافية حالياً",
+      last7Days: "آخر 7 أيام",
+      last30Days: "آخر 30 يوم",
+    },
     landing: {
       heroBadge: "نقود نموذجاً جديداً",
       heroTitle: "بنية تحتية تشغيلية مدعومة بالذكاء",
@@ -818,6 +1032,53 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       createUnitHeadline: "إنشاء وحدة واحدة مستقلة",
       createUnitDesc: "مثالية للمبيعات الفردية والفيلات والشقق المستقلة. سريعة ومباشرة للنشر.",
       continueFlow: "متابعة",
+      portfolioManagement: "إدارة المحفظة",
+      noProjectsFound: "لم يتم العثور على أي مشاريع ضمن هذه المعايير.",
+      noUnitsFound: "لم يتم العثور على وحدات منفردة عبر المشاريع.",
+      analyze: "تحليل",
+      openDetails: "فتح التفاصيل",
+      unitsLabel: "الوحدات",
+      installments: "التقسيط",
+      years: "{count} سنة",
+      averagePrice: "متوسط السعر",
+      totalUnits: "إجمالي الوحدات",
+      types: {
+        villas: "فلل",
+        apartments: "شقق",
+        land_plots: "أراضي",
+        mixed: "مجمع مختلط",
+        custom: "مخصص",
+        fallback: "مشروع عقاري",
+      },
+    },
+    projectForm: {
+      editTitle: "إدارة المجمع",
+      newTitle: "بيانات المجمع السكني (Compound)",
+      manageTitle: "إدارة المجمع",
+      identityTitle: "التعريف بالمشروع",
+      identityDesc: "أدخل الاسم والموقع والمطور العقاري. هذا هو الغلاف الخارجي للمشروع بأكمله.",
+      scaleTitle: "حجم وتصنيف المشروع",
+      scaleDesc: "ما هو نوع الوحدات العقارية التي سيتضمنها هذا المجمع بشكل رئيسي؟ وما هي خطط الدفع؟",
+      mediaTitle: "المخطط العام والوسائط",
+      mediaDesc: "سيتم إضافة نظام رفع الصور والـ Master Plan هنا في التحديث القادم لربطه بمعرض المجمع السكني.",
+      amenitiesTitle: "المرافق والخدمات",
+      amenitiesDesc: "حدد الخدمات المتوفرة داخل سور المجمع السكني (Compound).",
+      lastStep: "الخطوة الأخيرة",
+      saveDraft: "حفظ مجمع سكني",
+      createProject: "إنشاء مجمع سكني",
+      saving: "جاري الإنشاء...",
+      placeholderName: "اسم المشروع (مثال: ماونتن فيو آي سيتي)",
+      placeholderDeveloper: "اسم شركة التطوير العقاري (مثال: سوديك، إعمار)",
+      placeholderLocation: "الموقع بالتفصيل (مثال: المربع الذهبي، التجمع الخامس)",
+      placeholderDescription: "وصف المشروع ورسالته التسويقية...",
+      placeholderStartingPrice: "تبدأ الأسعار من (مثال: 5,000,000 ج.م)",
+      placeholderInstallmentYears: "سنوات التقسيط (مثال: 8)",
+      placeholderExpectedUnits: "عدد الوحدات المتوقع (اختياري)",
+      masterPlanDeveloping: "[منطقة رفع المخطط العام (Master Plan) تحت التطوير]",
+      feedbackCompleteFields: "يرجى إكمال الحقول الأساسية: اسم المشروع، المطور، والموقع.",
+      feedbackError: "حدث خطأ غير متوقع.",
+      editEyebrow: "تعديل المجمع السكني",
+      newEyebrow: "إنشاء مجمع سكنى جديد",
     },
     units: {
       title: "الوحدات",
@@ -844,6 +1105,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       studio: "ستوديو",
       penthouse: "بنتهاوس",
       townhouse: "تاون هاوس",
+      chalet: "شاليه",
       commercial: "تجاري",
       noUnits: "لا توجد وحدات في هذا المشروع بعد.",
       unitCount: "وحدة",
@@ -1184,6 +1446,26 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       organizationSave: "حفظ التعديلات",
       organizationTypeBroker: "وسيط عقاري",
       organizationTypeDeveloper: "مطور عقاري",
+      verificationStatusApproved: "معتمد",
+      verificationStatusInReview: "قيد المراجعة",
+      verificationStatusRejected: "مرفوض",
+      verificationStatusClosed: "مغلق",
+      verificationStatusNew: "تم الإرسال",
+      verificationStatusNotSubmitted: "لم يتم الإرسال",
+      verificationTimelineSubmitted: "تم إرسال الطلب",
+      verificationTimelineInReview: "الطلب قيد المراجعة",
+      verificationTimelineApproved: "تم اعتماد المنظمة",
+      verificationTimelineClosed: "تم إغلاق التوثيق",
+      verificationTimelineRejected: "تم رفض الطلب",
+      verificationTimelineUpdated: "تم تحديث حالة التوثيق",
+      organizationStatusActive: "نشط",
+      organizationStatusPending: "قيد الانتظار",
+      organizationStatusUnavailable: "غير متوفر",
+      organizationNamePlaceholder: "الاسم التجاري للمؤسسة",
+      organizationDescriptionPlaceholder: "المهمة التقنية ونطاق العمل...",
+      organizationWebsitePlaceholder: "https://institutional.brand",
+      organizationEmailPlaceholder: "infrastructure@brand.domain",
+      organizationPhonePlaceholder: "+966 00 000 0000",
     },
     assistant: {
       placeholderDeveloper: "حلل السوق، جهز عرض سعر، أو اطلب أفكاراً لمشروعك...",
@@ -1260,8 +1542,146 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       title: "انتقل من اليدوي إلى التلقائي.",
       subtitle: "ابدأ في استخدام البنية التحتية خلف أقوى الشركات العقارية أداءً.",
     },
+    unitCreate: {
+      eyebrow: "إنشاء وحدة عقارية",
+      title: "تفاصيل الوحدة",
+      description: "أكمل البيانات لتتمكن من نشر وحدتك العقارية بأفضل شكل ممكن.",
+      stepXofY: "الخطوة {step} من {total}",
+      unitDefinition: "تعريف الوحدة",
+      unitDefinitionDesc: "العنوان، الموقع، نوع الوحدة، وهل هي للبيع أم للايجار.",
+      unitTitlePlaceholder: "عنوان الوحدة (مثلاً: شقة ١٨٥م بالرحاب)",
+      locationPlaceholder: "الموقع التفصيلي (مثلاً: التجمع الخامس، القاهرة الجديدة)",
+      listingTypeLabel: "نوع العرض",
+      unitTypeLabel: "نوع الوحدة",
+      unitSpecs: "مواصفات الوحدة",
+      unitSpecsDesc: "الغرف، الحمامات، المساحة، الدور، جراج، ومستوى التشطيب.",
+      roomsPlaceholder: "عدد الغرف",
+      bathsPlaceholder: "عدد الحمامات",
+      areaPlaceholder: "المساحة (م٢)",
+      floorPlaceholder: "الدور (مثلاً: الخامس)",
+      parkingPlaceholder: "أماكن الجراج",
+      finishingLevelLabel: "مستوى التشطيب",
+      pricingTitle: "السعر وطريقة السداد",
+      pricingDescSale: "حدد السعر ونظام الدفع.",
+      pricingDescRent: "حدد قيمة الإيجار الشهري.",
+      pricePlaceholderSale: "السعر الإجمالي (مثلاً: ٣،٥٠٠،٠٠٠ ج.م)",
+      pricePlaceholderRent: "إيجار {period} (مثلاً: ١٥،٠٠٠ ج.م)",
+      rentalPeriodLabel: "فترة الإيجار",
+      paymentMethodLabel: "طريقة السداد",
+      downPaymentPlaceholder: "المقدم (مثلاً: ٥٠٠،٠٠٠ ج.م)",
+      installmentYearsPlaceholder: "سنوات التقسيط (مثلاً: ٧)",
+      deliveryDatePlaceholder: "تاريخ التسليم أو الاستلام (مثلاً: يناير ٢٠٢٧)",
+      amenitiesTitle: "المرافق والأماكن القريبة",
+      amenitiesDesc: "حدد مرافق الوحدة والأماكن المحيطة بها مع المسافة التقديرية.",
+      selectedAmenitiesCount: "مرافق الوحدة ({count} مختارة)",
+      nearbyPlacesLabel: "الأماكن القريبة",
+      estimatedDistanceLabel: "المسافة التقديرية",
+      mediaTitle: "معرض الصور والفيديو",
+      mediaDesc: "أضف صوراً عالية الجودة. الصور الأولى تظهر في نتائج البحث.",
+      unitImagesCountHint: "صور الوحدة (٣ صور على الأقل)",
+      addImagesLabel: "إضافة صور",
+      coverPhotoLabel: "صورة الغلاف",
+      minImagesWarning: "إضافة ٣ صور على الأقل تزيد من فرص التواصل.",
+      videoUrlPlaceholder: "رابط فيديو يوتيوب أو فيميو",
+      docsTitle: "الأوراق القانونية",
+      docsDesc: "أرفق عقد الملكية أو رخصة البناء (تظهر داخلياً فقط للمراجعة).",
+      uploadDocsHint: "اضغط هنا لإرفاق الملفات (PDF, JPG, PNG)",
+      legalTitle: "الوصف والمراجعة القانونية",
+      legalDesc: "بدون رقم ترخيص الإعلان سيظل الإعلان مسودة.",
+      descriptionPlaceholder: "اكتب وصفاً تفصيلياً: الموقع، المميزات، أسباب البيع، الخدمات المحيطة...",
+      registrationStatusLabel: "حالة تسجيل العقار",
+      adLicenseLabel: "رقم ترخيص الإعلان (مطلوب)",
+      adLicenseError: "بدون رقم الترخيص، سيظل إعلانك كمسودة فقط",
+      readyToPublishTitle: "الإعلان جاهز للنشر",
+      readyToPublishDesc: "كافة البيانات الضرورية مكتملة. سيتم إدراج الوحدة فور الحفظ.",
+      draftStatusTitle: "حفظ كمسودة (غير مكتمل)",
+      draftStatusDesc: "أكمل (العنوان، الموقع، السعر، المساحة، وترخيص الإعلان) لتفعيل النشر العام.",
+      nextButton: "التالي",
+      prevButton: "السابق",
+      submitReady: "حفظ ونشر",
+      submitDraft: "حفظ كمسودة",
+      setAsCover: "جعل هذه الصورة هي الغلاف",
+      enlargeImage: "تكبير الصورة",
+      delete: "حذف",
+      feedbackEmptyName: "يرجى إدخال عنوان الوحدة على الأقل.",
+      feedbackUnexpectedError: "حدث خطأ غير متوقع.",
+      rentalPeriods: {
+        day: "يومي",
+        week: "أسبوعي",
+        month: "شهري",
+        year: "سنوي",
+      },
+      finishingLevels: {
+        core_shell: "على الطوب الأحمر",
+        semi_finished: "نصف تشطيب",
+        fully_finished: "تشطيب كامل",
+        extra_super_lux: "سوبر لوكس",
+        furnished: "مفروشة",
+      },
+      paymentMethods: {
+        cash: "كاش",
+        installments: "تقسيط",
+        cash_or_installments: "كاش أو تقسيط",
+      },
+      registrationOptions: {
+        registered: "مسجل (شهر عقاري)",
+        not_registered: "غير مسجل",
+        pending: "قيد التسجيل",
+      },
+      distances: {
+        less_than_5: "أقل من ٥ دقائق",
+        five_to_ten: "٥ – ١٠ دقائق",
+        ten_to_twenty: "١٠ – ٢٠ دقيقة",
+        more_than_twenty: "أكثر من ٢٠ دقيقة",
+      },
+      amenities: {
+        ac: "تكييف مركزي",
+        balcony: "بلكونة",
+        dressing: "غرفة ملابس",
+        kitchen: "مطبخ مجهز",
+        heater: "سخان مركزي",
+        internet: "شبكة إنترنت",
+        intercom: "إنتركم",
+        elevator: "أسانسير",
+        security_cameras: "كاميرات مراقبة",
+        armored_door: "باب مصفح",
+        solar_power: "طاقة شمسية",
+        gym: "نادي رياضي / جيم",
+        villa: ["حمام سباحة خاص", "حديقة خاصة", "بدروم", "روف", "غرفة سائق", "غرفة خدم", "مدخل خاص", "ملعب خاص"],
+        apartment: ["تراس", "غرفة غسيل", "حراسة خاصة", "جراج خاص", "دش مركزي"],
+        chalet: ["إطلالة على البحر", "شاطئ خاص", "حمام سباحة مشترك", "ملعب أطفال", "لاند سكيب"],
+        commercial: ["واجهة زجاج", "تهوية مركزية", "مدخل مستقل", "أرضيات بورسلين", "عداد تجاري"],
+      },
+      nearbyPlaceNames: [
+        "محطة مترو", "مركز تجاري / مول", "مدرسة دولية", "جامعة",
+        "مستشفى", "صيدلية", "مسجد", "كنيسة", "سوبر ماركت",
+        "نادي رياضي", "حديقة عامة", "محطة بنزين", "مطار",
+        "طريق دائري", "أوتوستراد", "كورنيش", "بنك", "مطعم / كافيه",
+      ],
+    },
+    members: {
+      unnamedUser: "مستخدم مؤسسي غير معروف",
+      joinedAt: "انضم في {date}",
+      roleAccess: "وصول الـ {role}",
+      managerBadge: "م",
+      developer: "مطور",
+      broker: "وسيط",
+    },
   },
   en: {
+    performance: {
+      title: "Organization Performance",
+      description: "Overview of digital reach and engagement for all projects.",
+      views: "Views",
+      clicks: "Clicks",
+      totalViews: "Total Views",
+      totalClicks: "Total Clicks",
+      ctaBreakdown: "Communication Actions Breakdown",
+      trendTitle: "Performance Trend",
+      noData: "Not enough data at the moment",
+      last7Days: "Last 7 Days",
+      last30Days: "Last 30 Days",
+    },
     landing: {
       heroBadge: "Leading the new paradigm",
       heroTitle: "Modular Workspace for Institutional Development",
@@ -1417,6 +1837,53 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       createUnitHeadline: "Creating a single standalone unit",
       createUnitDesc: "Ideal for resales, single villas, or individual apartments. Direct and fast to publish.",
       continueFlow: "Continue",
+      portfolioManagement: "Portfolio Management",
+      noProjectsFound: "No properties identified within this parameter.",
+      noUnitsFound: "No individual units found across projects.",
+      analyze: "Analyze",
+      openDetails: "Open Details",
+      unitsLabel: "Units",
+      installments: "Installments",
+      years: "{count} years",
+      averagePrice: "Average Price",
+      totalUnits: "Total Units",
+      types: {
+        villas: "Villas",
+        apartments: "Apartments",
+        land_plots: "Land Plots",
+        mixed: "Mixed Use",
+        custom: "Custom",
+        fallback: "Real Estate Project",
+      },
+    },
+    projectForm: {
+      editTitle: "Manage Compound",
+      newTitle: "Compound Data",
+      manageTitle: "Manage Compound",
+      identityTitle: "Project Identity",
+      identityDesc: "Enter name, location, and developer. This is the outer shell of the whole project.",
+      scaleTitle: "Project Scale & Types",
+      scaleDesc: "What type of units will this compound mainly include? And what are the payment plans?",
+      mediaTitle: "Master Plan & Media",
+      mediaDesc: "Image upload and Master Plan system will be added here in the next update.",
+      amenitiesTitle: "Amenities & Services",
+      amenitiesDesc: "Select the services available within the compound walls.",
+      lastStep: "Last Step",
+      saveDraft: "Save Compound",
+      createProject: "Create Compound",
+      saving: "Creating...",
+      placeholderName: "Project name (e.g., Mountain View iCity)",
+      placeholderDeveloper: "Developer name (e.g., Sodic, Emaar)",
+      placeholderLocation: "Detailed location (e.g., Golden Square, Fifth Settlement)",
+      placeholderDescription: "Project description and marketing message...",
+      placeholderStartingPrice: "Prices start from (e.g., 5,000,000 EGP)",
+      placeholderInstallmentYears: "Installment years (e.g., 8)",
+      placeholderExpectedUnits: "Expected units (Optional)",
+      masterPlanDeveloping: "[Master Plan Upload area under development]",
+      feedbackCompleteFields: "Please complete the basic fields: Project Name, Developer, and Location.",
+      feedbackError: "An unexpected error occurred.",
+      editEyebrow: "Edit Compound",
+      newEyebrow: "Create New Compound",
     },
     units: {
       title: "Units",
@@ -1443,6 +1910,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       studio: "Studio",
       penthouse: "Penthouse",
       townhouse: "Townhouse",
+      chalet: "Chalet",
       commercial: "Commercial",
       noUnits: "No units in this project yet.",
       unitCount: "units",
@@ -1783,6 +2251,26 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       organizationSave: "Save changes",
       organizationTypeBroker: "Real estate broker",
       organizationTypeDeveloper: "Real estate developer",
+      verificationStatusApproved: "Approved",
+      verificationStatusInReview: "In review",
+      verificationStatusRejected: "Rejected",
+      verificationStatusClosed: "Closed",
+      verificationStatusNew: "Submitted",
+      verificationStatusNotSubmitted: "Not submitted",
+      verificationTimelineSubmitted: "Request submitted",
+      verificationTimelineInReview: "Request under review",
+      verificationTimelineApproved: "Organization approved",
+      verificationTimelineClosed: "Verification closed",
+      verificationTimelineRejected: "Request rejected",
+      verificationTimelineUpdated: "Verification status updated",
+      organizationStatusActive: "Active",
+      organizationStatusPending: "Pending",
+      organizationStatusUnavailable: "Unavailable",
+      organizationNamePlaceholder: "Institutional Brand Name",
+      organizationDescriptionPlaceholder: "Technical mission and operational scope...",
+      organizationWebsitePlaceholder: "https://institutional.brand",
+      organizationEmailPlaceholder: "infrastructure@brand.domain",
+      organizationPhonePlaceholder: "+966 00 000 0000",
     },
     assistant: {
       placeholderDeveloper: "Analyze the market, prepare an offer, or ask for ideas for your project...",
@@ -1859,8 +2347,146 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       title: "From manual chaos to automated development.",
       subtitle: "Start utilizing the intelligent infrastructure behind top-performing institutional real estate development teams.",
     },
+    unitCreate: {
+      eyebrow: "Create real estate unit",
+      title: "Unit details",
+      description: "Complete the details to publish your real estate unit in the best possible way.",
+      stepXofY: "Step {step} of {total}",
+      unitDefinition: "Unit Definition",
+      unitDefinitionDesc: "Title, location, unit type, and whether it's for sale or rent.",
+      unitTitlePlaceholder: "Unit title (e.g., 185m² apartment in Al-Rehab)",
+      locationPlaceholder: "Detailed location (e.g., Fifth Settlement, New Cairo)",
+      listingTypeLabel: "Listing Type",
+      unitTypeLabel: "Unit Type",
+      unitSpecs: "Unit Specifications",
+      unitSpecsDesc: "Rooms, bathrooms, area, floor, parking, and finishing level.",
+      roomsPlaceholder: "Number of rooms",
+      bathsPlaceholder: "Number of bathrooms",
+      areaPlaceholder: "Area (m²)",
+      floorPlaceholder: "Floor (e.g., Fifth)",
+      parkingPlaceholder: "Parking spaces",
+      finishingLevelLabel: "Finishing Level",
+      pricingTitle: "Price and Payment Method",
+      pricingDescSale: "Set the price and payment system.",
+      pricingDescRent: "Set the monthly rent.",
+      pricePlaceholderSale: "Total price (e.g., 3,500,000 EGP)",
+      pricePlaceholderRent: "{period} rent (e.g., 15,000 EGP)",
+      rentalPeriodLabel: "Rental Period",
+      paymentMethodLabel: "Payment Method",
+      downPaymentPlaceholder: "Down payment (e.g., 500,000 EGP)",
+      installmentYearsPlaceholder: "Installment years (e.g., 7)",
+      deliveryDatePlaceholder: "Delivery or receipt date (e.g., January 2027)",
+      amenitiesTitle: "Amenities and Nearby Places",
+      amenitiesDesc: "Define unit amenities and nearby places with estimated distance.",
+      selectedAmenitiesCount: "Unit amenities ({count} selected)",
+      nearbyPlacesLabel: "Nearby Places",
+      estimatedDistanceLabel: "Estimated Distance",
+      mediaTitle: "Photo and Video Gallery",
+      mediaDesc: "Add high-quality photos. The first photos appear in search results.",
+      unitImagesCountHint: "Unit images (minimum 3 photos)",
+      addImagesLabel: "Add Images",
+      coverPhotoLabel: "Cover Photo",
+      minImagesWarning: "Adding at least 3 photos increases communication opportunities.",
+      videoUrlPlaceholder: "YouTube or Vimeo video link",
+      docsTitle: "Legal Documents",
+      docsDesc: "Attach property contract or building permit (shown internally only for review).",
+      uploadDocsHint: "Click here to attach files (PDF, JPG, PNG)",
+      legalTitle: "Description and Legal Review",
+      legalDesc: "Without an advertisement license number, the ad will remain as a draft.",
+      descriptionPlaceholder: "Write a detailed description: location, features, reasons for selling, and surrounding services...",
+      registrationStatusLabel: "Property Registration Status",
+      adLicenseLabel: "Ad License Number (Required)",
+      adLicenseError: "Without the license number, your ad will remain as a draft only",
+      readyToPublishTitle: "Ad is ready to publish",
+      readyToPublishDesc: "All necessary data is complete. The unit will be listed immediately upon saving.",
+      draftStatusTitle: "Save as draft (incomplete)",
+      draftStatusDesc: "Complete (title, location, price, area, and ad license) to enable public publishing.",
+      nextButton: "Next",
+      prevButton: "Previous",
+      submitReady: "Save and Publish",
+      submitDraft: "Save as Draft",
+      setAsCover: "Set as cover",
+      enlargeImage: "Enlarge image",
+      delete: "Delete",
+      feedbackEmptyName: "Please enter at least the unit title.",
+      feedbackUnexpectedError: "An unexpected error occurred.",
+      rentalPeriods: {
+        day: "Daily",
+        week: "Weekly",
+        month: "Monthly",
+        year: "Yearly",
+      },
+      finishingLevels: {
+        core_shell: "Core & Shell",
+        semi_finished: "Semi-finished",
+        fully_finished: "Fully-finished",
+        extra_super_lux: "Extra Super Lux",
+        furnished: "Furnished",
+      },
+      paymentMethods: {
+        cash: "Cash",
+        installments: "Installments",
+        cash_or_installments: "Cash or Installments",
+      },
+      registrationOptions: {
+        registered: "Registered",
+        not_registered: "Not registered",
+        pending: "Pending registration",
+      },
+      distances: {
+        less_than_5: "Less than 5 mins",
+        five_to_ten: "5 – 10 mins",
+        ten_to_twenty: "10 – 20 mins",
+        more_than_twenty: "More than 20 mins",
+      },
+      amenities: {
+        ac: "Central AC",
+        balcony: "Balcony",
+        dressing: "Dressing Room",
+        kitchen: "Equipped Kitchen",
+        heater: "Central Heater",
+        internet: "Internet / Wi-Fi",
+        intercom: "Intercom",
+        elevator: "Elevator",
+        security_cameras: "Security Cameras",
+        armored_door: "Armored Door",
+        solar_power: "Solar Power",
+        gym: "Gym / Fitness Center",
+        villa: ["Private Pool", "Private Garden", "Basement", "Roof", "Driver Room", "Maid Room", "Private Entrance", "Private Court"],
+        apartment: ["Terrace", "Laundry Room", "Security", "Private Garage", "Central Satellite"],
+        chalet: ["Sea View", "Private Beach", "Shared Pool", "Kids Area", "Landscape"],
+        commercial: ["Glass Facade", "Central Ventilation", "Independent Entrance", "Porcelain Floors", "Commercial Meter"],
+      },
+      nearbyPlaceNames: [
+        "Metro Station", "Shopping Mall", "International School", "University",
+        "Hospital", "Pharmacy", "Mosque", "Church", "Supermarket",
+        "Sports Club", "Public Park", "Gas Station", "Airport",
+        "Ring Road", "Highway", "Corniche", "Bank", "Restaurant / Cafe",
+      ],
+    },
+    members: {
+      unnamedUser: "Unnamed Institutional User",
+      joinedAt: "Joined {date}",
+      roleAccess: "{role} Access",
+      managerBadge: "M",
+      developer: "Developer",
+      broker: "Broker",
+    },
   },
   fr: {
+    performance: {
+      title: "Performance de l'organisation",
+      description: "Aperçu de la portée numérique et de l'engagement pour tous les projets.",
+      views: "Vues",
+      clicks: "Clics",
+      totalViews: "Total des vues",
+      totalClicks: "Total des clics",
+      ctaBreakdown: "Répartition des actions de communication",
+      trendTitle: "Tendance de performance",
+      noData: "Pas assez de données pour le moment",
+      last7Days: "7 derniers jours",
+      last30Days: "30 derniers jours",
+    },
     landing: {
       heroBadge: "À la pointe du nouveau modèle",
       heroTitle: "Infrastructure Opérationnelle Propulsée par l'IA",
@@ -2016,6 +2642,53 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       createUnitHeadline: "Création d'une seule unité indépendante",
       createUnitDesc: "Idéale pour les reventes, les villas individuelles ou les appartements. Directe et rapide à publier.",
       continueFlow: "Continuer",
+      portfolioManagement: "Gestion du Portfolio",
+      noProjectsFound: "Aucun projet identifié selon ces critères.",
+      noUnitsFound: "Aucune unité individuelle trouvée.",
+      analyze: "Analyser",
+      openDetails: "Voir les Détails",
+      unitsLabel: "Unités",
+      installments: "Versements",
+      years: "{count} ans",
+      averagePrice: "Prix Moyen",
+      totalUnits: "Total des Unités",
+      types: {
+        villas: "Villas",
+        apartments: "Appartements",
+        land_plots: "Terrains",
+        mixed: "Usage Mixte",
+        custom: "Personnalisé",
+        fallback: "Projet Immobilier",
+      },
+    },
+    projectForm: {
+      editTitle: "Gérer le Complexe",
+      newTitle: "Données du Complexe",
+      manageTitle: "Gérer le Complexe",
+      identityTitle: "Identité du Projet",
+      identityDesc: "Entrez le nom, l'emplacement et le promoteur.",
+      scaleTitle: "Échelle et Types",
+      scaleDesc: "Quels types d'unités seront inclus ?",
+      mediaTitle: "Plan Directeur & Médias",
+      mediaDesc: "Le système de téléchargement d'images sera ajouté prochainement.",
+      amenitiesTitle: "Commodités & Services",
+      amenitiesDesc: "Sélectionnez les services disponibles.",
+      lastStep: "Dernière Étape",
+      saveDraft: "Enregistrer le Brouillon",
+      createProject: "Créer le Projet",
+      saving: "Création en cours...",
+      placeholderName: "Nom du projet",
+      placeholderDeveloper: "Nom du promoteur",
+      placeholderLocation: "Emplacement détaillé",
+      placeholderDescription: "Description du projet...",
+      placeholderStartingPrice: "Prix à partir de...",
+      placeholderInstallmentYears: "Années de versement",
+      placeholderExpectedUnits: "Unités prévues",
+      masterPlanDeveloping: "[Zone de téléchargement en développement]",
+      feedbackCompleteFields: "Veuillez remplir les champs obligatoires.",
+      feedbackError: "Une erreur inattendue est survenue.",
+      editEyebrow: "Modifier le Complexe",
+      newEyebrow: "Nouveau Complexe",
     },
     units: {
       title: "Unités",
@@ -2042,6 +2715,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       studio: "Studio",
       penthouse: "Penthouse",
       townhouse: "Maison de ville",
+      chalet: "Chalet",
       commercial: "Commercial",
       noUnits: "Aucune unité dans ce projet pour le moment.",
       unitCount: "unités",
@@ -2382,6 +3056,26 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       organizationSave: "Enregistrer les modifications",
       organizationTypeBroker: "Courtier immobilier",
       organizationTypeDeveloper: "Promoteur immobilier",
+      verificationStatusApproved: "Approuvé",
+      verificationStatusInReview: "En révision",
+      verificationStatusRejected: "Refusé",
+      verificationStatusClosed: "Clôturé",
+      verificationStatusNew: "Envoyé",
+      verificationStatusNotSubmitted: "Non envoyé",
+      verificationTimelineSubmitted: "Demande envoyée",
+      verificationTimelineInReview: "Demande en cours de révision",
+      verificationTimelineApproved: "Organisation approuvée",
+      verificationTimelineClosed: "Vérification clôturée",
+      verificationTimelineRejected: "Demande refusée",
+      verificationTimelineUpdated: "Statut de vérification mis à jour",
+      organizationStatusActive: "Actif",
+      organizationStatusPending: "En attente",
+      organizationStatusUnavailable: "Indisponible",
+      organizationNamePlaceholder: "Nom de la marque institutionnelle",
+      organizationDescriptionPlaceholder: "Mission technique et portée opérationnelle...",
+      organizationWebsitePlaceholder: "https://institutional.brand",
+      organizationEmailPlaceholder: "infrastructure@brand.domain",
+      organizationPhonePlaceholder: "+966 00 000 0000",
     },
     assistant: {
       placeholderDeveloper: "Analysez le marché, préparez une offre ou demandez des idées pour votre projet...",
@@ -2457,6 +3151,131 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
     cta: {
       title: "Passez de manuel à automatique.",
       subtitle: "Commencez à utiliser l'infrastructure derrière les déploiements de l'immobilier institutionnel les plus performants.",
+    },
+    unitCreate: {
+      eyebrow: "Créer une unité immobilière",
+      title: "Détails de l'unité",
+      description: "Complétez les détails pour publier votre unité au mieux.",
+      stepXofY: "Étape {step} sur {total}",
+      unitDefinition: "Définition de l'unité",
+      unitDefinitionDesc: "Titre, emplacement, type d'unité et vente ou location.",
+      unitTitlePlaceholder: "Titre (ex: Appartement 185m² à Al-Rehab)",
+      locationPlaceholder: "Emplacement détaillé (ex: Nouveau Caire)",
+      listingTypeLabel: "Type d'annonce",
+      unitTypeLabel: "Type d'unité",
+      unitSpecs: "Spécifications",
+      unitSpecsDesc: "Pièces, bains, surface, étage, parking et finition.",
+      roomsPlaceholder: "Nombre de pièces",
+      bathsPlaceholder: "Nombre de salles de bain",
+      areaPlaceholder: "Surface (m²)",
+      floorPlaceholder: "Étage (ex: 5ème)",
+      parkingPlaceholder: "Places de parking",
+      finishingLevelLabel: "Niveau de finition",
+      pricingTitle: "Prix et mode de paiement",
+      pricingDescSale: "Définissez le prix et le mode de paiement.",
+      pricingDescRent: "Définissez le loyer mensuel.",
+      pricePlaceholderSale: "Prix total (ex: 3 500 000 EGP)",
+      pricePlaceholderRent: "Loyer {period} (ex: 15 000 EGP)",
+      rentalPeriodLabel: "Période de location",
+      paymentMethodLabel: "Mode de paiement",
+      downPaymentPlaceholder: "Acompte (ex: 500 000 EGP)",
+      installmentYearsPlaceholder: "Années d'échelonnement (ex: 7)",
+      deliveryDatePlaceholder: "Date de livraison (ex: Janvier 2027)",
+      amenitiesTitle: "Équipements et proximité",
+      amenitiesDesc: "Définissez les équipements et lieux proches.",
+      selectedAmenitiesCount: "Équipements ({count} sélectionnés)",
+      nearbyPlacesLabel: "Lieux à proximité",
+      estimatedDistanceLabel: "Distance estimée",
+      mediaTitle: "Galerie photo et vidéo",
+      mediaDesc: "Ajoutez des photos HD. Les premières apparaissent dans la recherche.",
+      unitImagesCountHint: "Photos de l'unité (min. 3)",
+      addImagesLabel: "Ajouter des photos",
+      coverPhotoLabel: "Photo de couverture",
+      minImagesWarning: "Ajouter au moins 3 photos augmente la visibilité.",
+      videoUrlPlaceholder: "Lien vidéo YouTube ou Vimeo",
+      docsTitle: "Documents légaux",
+      docsDesc: "Joignez le contrat ou permis (usage interne uniquement).",
+      uploadDocsHint: "Cliquez pour joindre (PDF, JPG, PNG)",
+      legalTitle: "Description et revue légale",
+      legalDesc: "Sans numéro de licence, l'annonce restera un brouillon.",
+      descriptionPlaceholder: "Description détaillée : emplacement, atouts, services...",
+      registrationStatusLabel: "Statut d'enregistrement",
+      adLicenseLabel: "N° de licence publicitaire (requis)",
+      adLicenseError: "Sans ce numéro, l'annonce reste un brouillon",
+      readyToPublishTitle: "L'annonce est prête",
+      readyToPublishDesc: "Données complètes. L'unité sera listée dès l'enregistrement.",
+      draftStatusTitle: "Brouillon (incomplet)",
+      draftStatusDesc: "Complétez le titre, le prix, la surface et la licence pour publier.",
+      nextButton: "Suivant",
+      prevButton: "Précédent",
+      submitReady: "Enregistrer et publier",
+      submitDraft: "Enregistrer brouillon",
+      setAsCover: "Définir comme couverture",
+      enlargeImage: "Agrandir l'image",
+      delete: "Supprimer",
+      feedbackEmptyName: "Veuillez entrer au moins le titre.",
+      feedbackUnexpectedError: "Une erreur inattendue est survenue.",
+      rentalPeriods: {
+        day: "Journalier",
+        week: "Hebdomadaire",
+        month: "Mensuel",
+        year: "Annuel",
+      },
+      finishingLevels: {
+        core_shell: "Brut",
+        semi_finished: "Semi-fini",
+        fully_finished: "Fini",
+        extra_super_lux: "Extra Super Lux",
+        furnished: "Meublé",
+      },
+      paymentMethods: {
+        cash: "Comptant",
+        installments: "Échelonné",
+        cash_or_installments: "Comptant ou échelonné",
+      },
+      registrationOptions: {
+        registered: "Enregistré",
+        not_registered: "Non enregistré",
+        pending: "En cours",
+      },
+      distances: {
+        less_than_5: "Moins de 5 min",
+        five_to_ten: "5 – 10 min",
+        ten_to_twenty: "10 – 20 min",
+        more_than_twenty: "Plus de 20 min",
+      },
+      amenities: {
+        ac: "Climatisation Centrale",
+        balcony: "Balcon",
+        dressing: "Dressing",
+        kitchen: "Cuisine Équipée",
+        heater: "Chauffe-eau Central",
+        internet: "Internet / Wi-Fi",
+        intercom: "Interphone",
+        elevator: "Ascenseur",
+        security_cameras: "Caméras de Surveillance",
+        armored_door: "Porte Blindée",
+        solar_power: "Énergie Solaire",
+        gym: "Salle de Sport / Gym",
+        villa: ["Piscine Privée", "Jardin Privé", "Sous-sol", "Toit", "Chambre de Chauffeur", "Chambre de Bonne", "Entrée Privée", "Terrain Privé"],
+        apartment: ["Terrasse", "Buanderie", "Sécurité", "Garage Privé", "Satellite Central"],
+        chalet: ["Vue sur Mer", "Plage Privée", "Piscine Commune", "Espace Enfants", "Paysage"],
+        commercial: ["Façade en Verre", "Ventilation Centrale", "Entrée Indépendante", "Sols en Porcelaine", "Compteur Commercial"],
+      },
+      nearbyPlaceNames: [
+        "Station de Métro", "Centre Commercial", "École Internationale", "Université",
+        "Hôpital", "Pharmacie", "Mosquée", "Église", "Supermarché",
+        "Club de Sport", "Parc Public", "Station-service", "Aéroport",
+        "Périphérique", "Autoroute", "Corniche", "Banque", "Restaurant / Café",
+      ],
+    },
+    members: {
+      unnamedUser: "Utilisateur institutionnel sans nom",
+      joinedAt: "Inscrit le {date}",
+      roleAccess: "Accès {role}",
+      managerBadge: "G",
+      developer: "Promoteur",
+      broker: "Courtier",
     },
   },
 };
