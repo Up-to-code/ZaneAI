@@ -30,10 +30,10 @@ const FilterChipBarComponent = function FilterChipBar({
           type="button"
           onClick={() => onChange(chip.key)}
           className={cn(
-            "relative flex items-center justify-center rounded-xl border border-border bg-card px-5 py-2 text-[11px] font-bold tracking-wide transition-all",
+            "relative flex items-center justify-center rounded-xl border border-[var(--workspace-border)] bg-[var(--workspace-panel)] px-5 py-2 text-[11px] font-bold tracking-wide transition-colors",
             activeKey === chip.key
-              ? "border-foreground bg-foreground text-background shadow-sm"
-              : "text-muted-foreground hover:border-foreground/30 hover:bg-muted/20 hover:text-foreground",
+              ? "border-foreground bg-foreground text-background"
+              : "text-muted-foreground hover:border-foreground/40 hover:text-foreground",
           )}
         >
           {chip.label}

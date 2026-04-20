@@ -1,8 +1,17 @@
 import { memo } from "react";
 import { motion } from "framer-motion";
-import { Building2, BedDouble, Bath, Square, Ruler } from "lucide-react";
+import { Building2, BedDouble, Bath, Square, Ruler, MapPin, ChevronLeft, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { cn } from "@/lib/i18n";
 import type { UnitType, UnitStatus } from "@/app/(ws)/ws/_lib/entities";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
+import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export type AgUnitCardProps = {
   id: string;
@@ -23,12 +32,14 @@ export type AgUnitCardProps = {
   image?: string;
   fallbackImage?: string;
   location?: string;
+  variant?: "horizontal" | "vertical";
+  projectId?: string;
 };
 
 const STATUS_BADGE: Record<UnitStatus, string> = {
-  available: "border-white/20 bg-emerald-500/90 text-white backdrop-blur-md",
-  reserved: "border-white/20 bg-amber-500/90 text-white backdrop-blur-md",
-  sold: "border-white/20 bg-rose-500/90 text-white backdrop-blur-md",
+  available: "bg-background/60 backdrop-blur-xl text-foreground border border-foreground/10 shadow-sm font-bold",
+  reserved: "bg-amber-500/90 backdrop-blur-xl text-white font-bold border border-amber-400/20",
+  sold: "bg-rose-500/90 backdrop-blur-xl text-white font-bold border border-rose-400/20",
 };
 
 const AgUnitCardBase = function AgUnitCard({
@@ -50,6 +61,8 @@ const AgUnitCardBase = function AgUnitCard({
   image,
   fallbackImage,
   location,
+  variant = "vertical",
+  projectId,
 }: AgUnitCardProps) {
   const { dictionary, locale } = useWebLocale();
   const isRtl = locale === "ar";
@@ -58,113 +71,151 @@ const AgUnitCardBase = function AgUnitCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -10, scale: 0.97 }}
+      exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{
-        y: -6,
-        boxShadow: "0 16px 40px -10px rgba(0,0,0,0.14)",
-        transition: { duration: 0.25 },
-      }}
       dir={isRtl ? "rtl" : "ltr"}
-      className="flex flex-col overflow-hidden rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] w-full transition-colors hover:border-foreground/20"
+      className={cn(
+        "group flex overflow-hidden rounded-[24px] border border-border bg-gradient-to-br from-foreground/[0.01] to-transparent w-full transition-all hover:border-foreground/30 shadow-sm",
+        variant === "vertical" ? "flex-col" : "flex-row items-stretch min-h-[160px]"
+      )}
     >
-      {/* Image Hero */}
-      <div className="relative h-48 w-full overflow-hidden bg-muted/20">
+      {/* 📸 Image Section */}
+      <Link 
+        href={projectId ? `/ws/projects/${projectId}/units/${id}` : "#"}
+        className={cn(
+          "relative overflow-hidden bg-muted/10 shrink-0",
+          variant === "vertical" ? "h-[260px] w-full" : "w-[180px] md:w-[220px] lg:w-[260px] h-full"
+        )}
+      >
         {displayImg ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={displayImg} alt={label} className="h-full w-full object-cover" />
+          <img src={displayImg} alt={label} className="h-full w-full object-cover transition-transform duration-[1.5s] group-hover:scale-105" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[var(--workspace-background)]">
-            <Building2 className="h-10 w-10 text-muted-foreground/30" />
+          <div className="flex h-full w-full items-center justify-center bg-[var(--workspace-panel)]">
+            <Building2 className="h-10 w-10 text-muted-foreground/10" />
           </div>
         )}
         
-        {/* Status Badge Overlaid */}
-        <motion.div
-           initial={{ opacity: 0, x: 12 }}
-           animate={{ opacity: 1, x: 0 }}
-           transition={{ delay: 0.2, duration: 0.35 }}
-           className={`absolute top-4 ${isRtl ? "right-4" : "left-4"} rounded-full border px-4 py-1.5 text-[11px] font-black uppercase tracking-widest shadow-sm ${STATUS_BADGE[status]}`}
-        >
-          {statusLabel ?? status}
-        </motion.div>
+        {/* Badges Overlay */}
+        <div className={cn(
+          "absolute top-5 flex items-center gap-2 px-5 w-full",
+          isRtl ? "flex-row-reverse text-right" : "flex-row text-left"
+        )}>
+          <span className={cn(
+            "rounded-full px-4 py-1.5 text-[9px] font-black uppercase tracking-widest leading-none",
+            STATUS_BADGE[status]
+          )}>
+            {statusLabel ?? (status === "available" ? (isRtl ? "للبيع" : "FOR SALE") : status)}
+          </span>
+          <span className="rounded-full bg-black/40 backdrop-blur-xl border border-white/10 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest text-white leading-none">
+            {typeLabel ?? (isRtl ? "جديد" : "NEW")}
+          </span>
+        </div>
 
-        {/* Type Badge Overlaid */}
-        <div className={`absolute top-4 ${isRtl ? "left-4" : "right-4"} rounded-full border border-white/20 bg-black/50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md`}>
-          {typeLabel ?? unitType}
+        {/* Carousel Dots Placeholder */}
+        <div className="absolute bottom-5 left-0 right-0 flex items-center justify-center gap-1.5">
+           <div className="h-1.5 w-1.5 rounded-full bg-white shadow-xl" />
+           <div className="h-1.5 w-1.5 rounded-full bg-white/30" />
+           <div className="h-1.5 w-1.5 rounded-full bg-white/30" />
+        </div>
+      </Link>
+
+      {/* 📄 Content Section */}
+      <div className={cn(
+        "flex flex-1 flex-col p-7 gap-7",
+        variant === "vertical" ? "justify-between" : "justify-center"
+      )}>
+        <div className="flex flex-col gap-6">
+          {/* Header: Title & Price Side-by-Side */}
+          <div className="flex items-start justify-between gap-4">
+             <div className="flex flex-col gap-2">
+                <h3 className="text-[24px] font-black tracking-tighter text-foreground leading-tight line-clamp-1 uppercase leading-none">{label}</h3>
+                {location && (
+                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                     <MapPin className="h-3 w-3" />
+                     <span className="truncate uppercase tracking-[0.2em]">{location}</span>
+                  </div>
+                )}
+             </div>
+             
+             <div className="flex items-center gap-3">
+               <div className="text-[20px] font-black text-foreground tabular-nums tracking-tighter whitespace-nowrap">
+                  {priceLabel ?? (isRtl ? "طلب سعر" : "REQUEST")}
+               </div>
+
+               {(onEdit || onDelete) && (
+                 <DropdownMenu>
+                   <DropdownMenuTrigger
+                     render={(
+                       <button className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/[0.08] transition hover:bg-foreground/[0.04] active:scale-95">
+                         <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                       </button>
+                     )}
+                   />
+                   <DropdownMenuContent align={isRtl ? "start" : "end"} className="min-w-[180px] p-2 rounded-2xl border border-border bg-popover shadow-2xl animate-in fade-in zoom-in-95">
+                     {onEdit && (
+                       <DropdownMenuItem onClick={onEdit} className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-foreground/[0.03] transition-colors cursor-pointer">
+                         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                         <span>{isRtl ? "تعديل الوحدة" : "EDIT ASSET"}</span>
+                       </DropdownMenuItem>
+                     )}
+                     <DropdownMenuSeparator className="my-1 bg-foreground/[0.05]" />
+                     {onDelete && (
+                       <DropdownMenuItem 
+                        onClick={onDelete} 
+                        disabled={isDeleting}
+                        variant="destructive"
+                        className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                       >
+                         <Trash2 className="h-3.5 w-3.5" />
+                         <span>{isRtl ? "حذف الوحدة" : "DELETE ASSET"}</span>
+                       </DropdownMenuItem>
+                     )}
+                   </DropdownMenuContent>
+                 </DropdownMenu>
+               )}
+             </div>
+          </div>
+
+          {description && (
+            <p className="text-[14px] font-medium leading-relaxed text-muted-foreground/40 line-clamp-2 min-h-[42px]">
+              {description}
+            </p>
+          )}
+
+          <div className="h-px bg-foreground/[0.05]" />
+
+          {/* 💎 Commercial Specs Row - Luxury Institutional Tone */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+               <BedDouble className="h-4 w-4 text-slate-400 opacity-60" />
+               <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.25em]">{bedrooms || 0} Bed</span>
+            </div>
+            <div className="flex items-center gap-2">
+               <Bath className="h-4 w-4 text-slate-400 opacity-60" />
+               <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.25em]">{bathrooms || 0} Bath</span>
+            </div>
+            <div className="flex items-center gap-2">
+               <Ruler className="h-4 w-4 text-slate-400 opacity-60" />
+               <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.25em]">{area || 0} m²</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 🚀 Actions Area - Institutional Premium CTA */}
+        <div className="flex flex-col">
+           {variant === "vertical" && (
+             <button className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4.5 text-[11px] font-black uppercase tracking-[0.3em] text-background shadow-md shadow-foreground/5 transition-all hover:bg-foreground/90 hover:shadow-lg hover:shadow-foreground/10 active:scale-[0.98]">
+                <span>{isRtl ? "استفسار عن الوحدة" : "ENQUIRE NOW"}</span>
+                <ChevronLeft className={cn("h-4 w-4", isRtl ? "" : "rotate-180")} />
+             </button>
+           )}
         </div>
       </div>
-
-      <div className="flex flex-col p-5 gap-5">
-        {/* Title & Location */}
-        <div className={`flex flex-col ${isRtl ? "items-start text-right" : "items-end text-left"}`}>
-          <div className="w-full flex items-start justify-between gap-3">
-            <div className="text-[20px] font-black tracking-tight text-foreground line-clamp-1 flex-1">{label}</div>
-            <div className="text-[18px] font-black text-foreground shrink-0">{priceLabel ?? "السعر عند الطلب"}</div>
-          </div>
-          {location ? (
-            <div className="mt-1 text-[13px] font-bold text-[var(--workspace-muted)] truncate w-full">{location}</div>
-          ) : null}
-        </div>
-
-        {/* Specs Row */}
-        <div className={`flex flex-wrap items-center ${isRtl ? "justify-start" : "justify-end"} gap-5 text-[var(--workspace-muted)] pt-1`}>
-          {bedrooms ? (
-             <div className="flex items-center gap-1.5">
-                <span className="text-[16px] font-bold text-foreground">{bedrooms}</span>
-                <BedDouble className="h-4 w-4 shrink-0" />
-             </div>
-          ) : null}
-          {bathrooms ? (
-             <div className="flex items-center gap-1.5">
-                <span className="text-[16px] font-bold text-foreground">{bathrooms}</span>
-                <Bath className="h-4 w-4 shrink-0" />
-             </div>
-          ) : null}
-          {area ? (
-             <div className="flex items-center gap-1.5">
-                <span className="text-[16px] font-bold text-foreground">{area}</span>
-                <Ruler className="h-4 w-4 shrink-0" />
-             </div>
-          ) : null}
-        </div>
-
-      {description ? (
-        <p className={`mt-4 text-[13px] leading-6 text-[var(--workspace-muted)] line-clamp-2 ${isRtl ? "text-right" : "text-left"}`}>{description}</p>
-      ) : null}
-
-      {(onEdit || onDelete) ? (
-        <div className={`mt-5 flex items-center ${isRtl ? "justify-end" : "justify-start"} gap-2 border-t border-[color:var(--workspace-border)] pt-4`}>
-          {onEdit && (
-            <motion.button
-              type="button"
-              onClick={onEdit}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.92 }}
-              className="rounded-full px-4 py-2 text-[12px] font-black text-[var(--workspace-muted)] transition-colors hover:bg-foreground/5 hover:text-foreground"
-            >
-              {dictionary.projects.actionFailed.includes("Failed") ? "Edit" : "تعديل"}
-            </motion.button>
-          )}
-          {onDelete && (
-            <motion.button
-              type="button"
-              onClick={onDelete}
-              disabled={isDeleting}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.92 }}
-              className="rounded-full px-4 py-2 text-[12px] font-black text-rose-500 transition-colors hover:bg-rose-500/10 disabled:opacity-50"
-            >
-              {isDeleting ? dictionary.projectForm.saving : dictionary.projects.deleteConfirm}
-            </motion.button>
-          )}
-        </div>
-      ) : null}
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
 };
 
 export default memo(AgUnitCardBase);

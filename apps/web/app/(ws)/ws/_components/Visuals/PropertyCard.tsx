@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { memo } from "react";
 import { cn } from "@/lib/i18n";
+import { MapPin, Building2 } from "lucide-react";
 
 type PropertyCardSpec = {
   label: string;
@@ -8,9 +11,9 @@ type PropertyCardSpec = {
 };
 
 /**
- * WHY:   Multiple workspace zones need one reusable real-estate card instead of bespoke text blocks.
- * WHAT:  Renders a clean, minimal property card with image, key info, specs, and optional footer.
- * HOW:   Uses a simple photo hero with a tighter layout that keeps attention on the item itself.
+ * WHY:   The generic property card must reflect the institutional luxury of the workspace.
+ * WHAT:  High-precision 'Reydghin' redesigned PropertyCard for CRM and Offers.
+ * HOW:   Applying Silk-Glass texture, massive technical headers, and tracking-widest metadata.
  */
 const PropertyCardComponent = function PropertyCard({
   href,
@@ -38,46 +41,66 @@ const PropertyCardComponent = function PropertyCard({
   const content = (
     <article
       className={cn(
-        "overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-colors hover:border-foreground/20",
+        "group overflow-hidden rounded-[24px] border border-border bg-gradient-to-br from-foreground/[0.01] to-transparent shadow-sm transition-all hover:border-foreground/30",
         density === "flexible" ? "w-full" : density === "detail" ? "w-full max-w-sm" : "w-full max-w-xs",
       )}
     >
-      <div className="h-44 overflow-hidden bg-muted/20">
+      <div className="relative h-48 overflow-hidden bg-muted/10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt={title} className="h-full w-full object-cover" />
+        <img 
+          src={image} 
+          alt={title} 
+          className="h-full w-full object-cover transition-transform duration-[1.5s] group-hover:scale-105" 
+        />
+        <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/5" />
+        
+        {publicationBadge && (
+          <div className="absolute top-4 right-4">
+             {publicationBadge}
+          </div>
+        )}
       </div>
 
-      <div className="space-y-4 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 text-right">
-            <h2 className="truncate text-base font-semibold leading-tight text-foreground">{title}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{location}</p>
+      <div className="flex flex-col p-6 gap-5">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-[20px] font-black tracking-tighter text-foreground leading-tight uppercase line-clamp-1">{title}</h2>
+            <div className="shrink-0 text-[16px] font-black tabular-nums tracking-tighter text-foreground">{priceLabel}</div>
           </div>
-          <div className="shrink-0 text-sm font-semibold text-foreground">{priceLabel}</div>
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+            <MapPin className="h-3 w-3" />
+            <span className="truncate">{location}</span>
+          </div>
         </div>
 
-        {summary ? <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{summary}</p> : null}
+        {summary ? (
+          <p className="line-clamp-2 text-[13px] font-medium leading-relaxed text-muted-foreground/60">
+            {summary}
+          </p>
+        ) : null}
 
         {specs.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 text-right sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-y-4 gap-x-6 border-t border-border/50 pt-5">
             {specs.slice(0, 4).map((spec) => (
-              <div key={spec.label}>
-                <div className="text-[11px] text-muted-foreground">{spec.label}</div>
-                <div className="mt-1 text-sm font-medium text-foreground">{spec.value}</div>
+              <div key={spec.label} className="flex flex-col gap-1">
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{spec.label}</div>
+                <div className="text-[13px] font-black text-foreground uppercase tracking-tight">{spec.value}</div>
               </div>
             ))}
           </div>
         ) : null}
 
-        {publicationBadge ? <div className="text-xs text-muted-foreground">{publicationBadge}</div> : null}
-
-        {footer ? <div className="border-t border-border/60 pt-3">{footer}</div> : null}
+        {footer ? (
+          <div className="border-t border-border/50 pt-4 mt-1">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </article>
   );
 
   if (!href) return content;
-  return <Link href={href} className="block">{content}</Link>;
+  return <Link href={href} className="block group/link">{content}</Link>;
 }
 
 export default memo(PropertyCardComponent);

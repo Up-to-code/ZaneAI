@@ -616,3 +616,119 @@ export function getDemoOrganizationProfile(type: "broker" | "developer", slug: s
     })),
   };
 }
+
+export function getDemoComplianceRuleset() {
+  return {
+    _id: "ruleset-demo",
+    countryCode: "SA",
+    countryLabel: "Saudi Arabia",
+    orgType: "red" as const,
+    status: "active" as const,
+    version: 1,
+    requirements: [
+      { id: "commercial_reg", label: "Commercial Registration", required: true, note: "Valid CR document" },
+      { id: "tax_cert", label: "VAT Certificate", required: true, note: "Tax registration number" },
+    ],
+    sources: [
+      { id: "mci", label: "MCI Portal", url: "https://mci.gov.sa" },
+    ],
+    enforcement: {
+      blockPublish: false,
+      hideUnverified: true,
+      showBanner: true,
+      requireOrgVerification: true,
+      requireListingVerification: false,
+    },
+    createdAt: now - 1000 * 60 * 60 * 24 * 30,
+    updatedAt: now - 1000 * 60 * 60 * 24 * 30,
+  };
+}
+
+export function getDemoProjectAnalytics(projectId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const analytics: any = {
+    projectId,
+    kpis: {
+      connectedBrokers: 12,
+      brokerManagedClients: 45,
+      totalViews: 12400,
+      totalClicks: 840,
+      activeCases: 19,
+      activeDeals: 8,
+    },
+    brokerRows: [
+       { brokerId: "b-1", brokerName: "Broker Hub Riyadh", brokerAvatarLabel: "B", brokerPhone: "+966500000001", state: "client_linked", stateLabel: "عميل نشط", linkedClientName: "Ahmed", currentStageLabel: "تفاوض", lastActivityAt: now - 1000*60*60*2, views: 240, clicks: 45 },
+       { brokerId: "b-2", brokerName: "Estate Pros", brokerAvatarLabel: "E", brokerPhone: "+966500000002", state: "offer_active", stateLabel: "عرض جاري", linkedClientName: null, currentStageLabel: "مرحلة جديدة", lastActivityAt: now - 1000*60*60*24*2, views: 120, clicks: 12 },
+    ],
+    stageSummary: [
+       { key: "new", label: "مرحلة جديدة", count: 12, kind: "offer_case" },
+       { key: "contacted", label: "متصل", count: 8, kind: "deal" },
+       { key: "negotiation", label: "تفاوض", count: 5, kind: "deal" },
+    ],
+    recentEvents: [
+       { id: "e1", title: "تفاعل جديد من شبكة الوسطاء", subtitle: "تنزيل الملفات لـ 3 وسطاء جدد", createdAt: now - 1000*60*30 },
+       { id: "e2", title: "عميل مرتبط", subtitle: "تم ربط العميل احمد بعرض مبدئي", createdAt: now - 1000*60*60*4 },
+    ],
+    visibilityTrend: [
+      { dateKey: "2024-04-10", label: "10 April", views: 250, clicks: 20 },
+      { dateKey: "2024-04-11", label: "11 April", views: 280, clicks: 25 },
+      { dateKey: "2024-04-12", label: "12 April", views: 420, clicks: 40 },
+      { dateKey: "2024-04-13", label: "13 April", views: 350, clicks: 35 },
+      { dateKey: "2024-04-14", label: "14 April", views: 480, clicks: 55 },
+      { dateKey: "2024-04-15", label: "15 April", views: 600, clicks: 75 },
+    ],
+    brokerStateSummary: [
+      { key: "viewer_only", label: "متابِع فقط", count: 4 },
+      { key: "offer_active", label: "عرض نشط", count: 3 },
+      { key: "client_linked", label: "عميل مرتبط", count: 6 },
+      { key: "closed_won", label: "إغلاق ناجح", count: 2 },
+    ],
+    interactionSummary: [
+      { eventType: "project_detail_view", label: "عرض المشروع", count: 8500 },
+      { eventType: "project_asset_open_click", label: "فتح الملفات الاستثمارية", count: 2100 },
+      { eventType: "project_analyze_click", label: "تحليل الأداء", count: 450 },
+    ],
+    developerSummary: {
+      totalCustomers: 50,
+      trackedCustomers: 20,
+      brokerManagedCustomers: 45,
+      internalCustomers: 5,
+      activeBrokers: 12,
+      closedWonCustomers: 5,
+      closedLostCustomers: 2,
+    },
+    developerStageSummary: [
+      { key: "new", label: "جديد", count: 12 },
+      { key: "contacted", label: "اتصال", count: 8 },
+      { key: "negotiation", label: "تفاوض", count: 5 },
+    ],
+    brokerTracking: [
+      {
+        brokerId: "b-1",
+        brokerName: "Broker Hub Riyadh",
+        brokerAvatarLabel: "BH",
+        brokerPhone: "+966500000001",
+        state: "client_linked",
+        stateLabel: "عميل نشط",
+        currentActivityKey: "in_stage",
+        currentActivityLabel: "في المراحل",
+        lastActivityAt: now - 1000*60*60*2,
+        views: 240,
+        clicks: 45,
+        totalCustomers: 3,
+        trackedCustomers: 2,
+        brokerManagedCustomers: 3,
+        internalCustomers: 0,
+        closedWonCustomers: 1,
+        closedLostCustomers: 0,
+        customers: [
+          { id: "c-1", name: "أحمد المنسي", relationType: "broker_managed", relationTypeLabel: "مدار عبر وسيط", isTrackedCustomer: true, activityKey: "in_stage", activityLabel: "في المرحلة", stageKey: "negotiation", stageLabel: "تفاوض", secondaryStateKey: null, secondaryStateLabel: null, lastActivityAt: now - 1000*60*30 }
+        ],
+        timeline: [
+          { id: "t-1", kind: "deal", title: "تم ربط عميل جديد", subtitle: "أحمد المنسي - عبر Broker Hub", createdAt: now - 1000*60*60*5 }
+        ]
+      }
+    ]
+  };
+  return analytics;
+}

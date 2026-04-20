@@ -6,14 +6,31 @@ import type { WorkspaceProject } from "../../types/projectTypes";
 import type { ProjectAnalyticsEventType } from "@/server/contracts/properties";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import type { WebDictionary } from "@/lib/i18n";
+import { 
+  MoreHorizontal, 
+  Pencil, 
+  Trash2, 
+  LineChart,
+  ChevronRight
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 type ProjectPortfolioCardProps = {
   project: WorkspaceProject;
+  onEdit?: () => void;
+  onDelete?: () => void;
   onTrackProjectEvent?: (input: {
     id: string;
     eventType: ProjectAnalyticsEventType;
     source: string;
   }) => Promise<{ ok: true }>;
+  variant?: "horizontal" | "vertical";
 };
 
 function getProjectTypeLabel(projectType: string | undefined, dictionary: WebDictionary): string {
@@ -29,7 +46,10 @@ function getProjectTypeLabel(projectType: string | undefined, dictionary: WebDic
 
 export default function ProjectPortfolioCard({
   project,
+  onEdit,
+  onDelete,
   onTrackProjectEvent,
+  variant = "vertical",
 }: ProjectPortfolioCardProps) {
   const { dictionary, locale } = useWebLocale();
   const isRtl = locale === "ar";
@@ -37,80 +57,142 @@ export default function ProjectPortfolioCard({
   
   return (
     <motion.article
-      initial={{ opacity: 0, y: 24, scale: 0.97 }}
+      initial={{ opacity: 0, y: 24, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{
-        y: -6,
-        boxShadow: "0 16px 40px -10px rgba(0,0,0,0.14)",
-        transition: { duration: 0.25 },
-      }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       dir={isRtl ? "rtl" : "ltr"}
-      className="overflow-hidden rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] w-full transition-colors hover:border-foreground/20"
+      className={cn(
+        "group overflow-hidden rounded-[32px] border border-border bg-gradient-to-br from-foreground/[0.01] to-transparent w-full transition-all hover:border-foreground/30 shadow-sm",
+        variant === "vertical" ? "flex flex-col" : "flex flex-col lg:flex-row items-stretch min-h-[300px]"
+      )}
     >
       {/* Image Hero */}
-      <div className="relative h-48 overflow-hidden bg-muted/20">
+      <div className={cn(
+        "relative overflow-hidden bg-muted/20 shrink-0",
+        variant === "vertical" ? "h-64 w-full" : "w-full lg:w-[280px] xl:w-[320px] min-h-[200px]"
+      )}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={project.image} alt={project.title} className="h-full w-full object-cover" />
+        <img 
+          src={project.image} 
+          alt={project.title} 
+          className="h-full w-full object-cover transition-transform duration-[1.5s] group-hover:scale-105" 
+        />
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500" />
+        
         <motion.div
           initial={{ opacity: 0, x: 12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2, duration: 0.35 }}
-          className="absolute top-4 right-4 rounded-full border border-white/20 bg-black/50 px-4 py-1.5 text-[11px] font-black uppercase tracking-widest text-white backdrop-blur-md"
+          className={cn(
+            "absolute top-6 rounded-full border border-white/20 bg-black/50 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md",
+            isRtl ? "left-6" : "right-6"
+          )}
         >
           {projectTypeLabel}
         </motion.div>
       </div>
-
+ 
       {/* Content */}
-      <div className="space-y-5 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className={`min-w-0 ${isRtl ? "text-right" : "text-left"}`}>
-            <h2 className="truncate text-[18px] font-black tracking-tight leading-tight text-foreground">{project.title}</h2>
-            <p className="mt-1.5 text-[13px] font-semibold text-[var(--workspace-muted)]">{project.location}</p>
+      <div className="flex flex-1 flex-col p-6 gap-6 justify-between">
+        <div className="flex flex-col gap-6">
+          <div className={cn(
+            "flex flex-col gap-4",
+            variant === "horizontal" ? "xl:flex-row xl:items-start xl:justify-between" : ""
+          )}>
+            <div className="flex flex-col gap-2 flex-1">
+               <h2 className="text-[24px] lg:text-[28px] font-black tracking-tighter text-foreground leading-tight transition-colors line-clamp-1 uppercase leading-none">{project.title}</h2>
+               <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                  <MapPin className="h-3 w-3" />
+                  <span>{project.location}</span>
+               </div>
+            </div>
+            
+            <div className={cn(
+               "flex items-center gap-3 shrink-0",
+               variant === "horizontal" ? "xl:items-center" : "items-start"
+            )}>
+               <div className={cn(
+                 "flex flex-col gap-1",
+                 variant === "horizontal" ? "xl:items-end" : "items-start"
+               )}>
+                 <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{dictionary.projects.averagePrice}</span>
+                 <div className="text-[22px] font-black text-foreground tabular-nums tracking-tighter leading-none">{project.priceLabel}</div>
+               </div>
+
+               <DropdownMenu>
+                 <DropdownMenuTrigger
+                   render={(
+                     <button className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/[0.08] transition hover:bg-foreground/[0.04] active:scale-95">
+                       <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                     </button>
+                   )}
+                 />
+                 <DropdownMenuContent align={isRtl ? "start" : "end"} className="min-w-[200px] p-2 rounded-2xl border border-border bg-popover shadow-2xl animate-in fade-in zoom-in-95">
+                   {onEdit && (
+                     <DropdownMenuItem onClick={onEdit} className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-foreground/[0.03] transition-colors cursor-pointer">
+                       <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                       <span>{isRtl ? "تعديل المشروع" : "EDIT PORTFOLIO"}</span>
+                     </DropdownMenuItem>
+                   )}
+                   <DropdownMenuSeparator className="my-1 bg-foreground/[0.05]" />
+                   {onDelete && (
+                     <DropdownMenuItem 
+                      onClick={onDelete} 
+                      variant="destructive"
+                      className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                     >
+                       <Trash2 className="h-3.5 w-3.5" />
+                       <span>{isRtl ? "حذف المشروع" : "DELETE PORTFOLIO"}</span>
+                     </DropdownMenuItem>
+                   )}
+                 </DropdownMenuContent>
+               </DropdownMenu>
+            </div>
           </div>
-          <div className={`flex flex-col ${isRtl ? "items-end" : "items-start"}`}>
-            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[var(--workspace-muted)]">{dictionary.projects.averagePrice}</span>
-            <div className="text-[17px] font-black text-foreground">{project.priceLabel}</div>
+
+          <div className="h-px bg-border/50" />
+
+          {/* Key Portfolio Metrics - Institutional Style */}
+          <div className="flex flex-wrap items-center gap-10">
+            {typeof project.expectedUnits === "number" && (
+               <div className="flex flex-col gap-1.5">
+                  <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.totalUnits}</span>
+                  <div className="text-[18px] font-black text-foreground tabular-nums leading-none">
+                    {project.expectedUnits} <span className="text-[10px] opacity-20 ml-0.5">UNITS</span>
+                  </div>
+               </div>
+            )}
+            {typeof project.installmentYears === "number" && (
+               <div className="flex flex-col gap-1.5">
+                  <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.installments}</span>
+                  <div className="text-[18px] font-black text-foreground leading-none">
+                    {project.installmentYears} <span className="text-[10px] opacity-20 ml-0.5 uppercase">{dictionary.projects.years.split(' ').pop()}</span>
+                  </div>
+               </div>
+            )}
+            <div className="flex flex-col gap-1.5">
+               <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{isRtl ? "الحالة" : "STATUS"}</span>
+               <div className="flex items-center gap-2">
+                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                 <span className="text-[13px] font-black text-emerald-600 uppercase tracking-[0.1em] leading-none">Active</span>
+               </div>
+            </div>
           </div>
+
+          {(project.shortDescription || project.summary) && (
+            <p className={cn(
+              "text-[13px] leading-relaxed text-muted-foreground/80 line-clamp-2 max-w-xl",
+              isRtl ? "text-right" : "text-left"
+            )}>
+              {project.shortDescription || project.summary}
+            </p>
+          )}
         </div>
 
-        {project.shortDescription || project.summary ? (
-          <p className={`line-clamp-2 text-[13px] leading-6 text-[var(--workspace-muted)] ${isRtl ? "text-right" : "text-left"}`}>
-            {project.shortDescription || project.summary}
-          </p>
-        ) : null}
-
-        {/* Compound-Specific Spec Chips */}
-        <div className={`flex flex-wrap ${isRtl ? "justify-end" : "justify-start"} gap-2`}>
-          {typeof project.expectedUnits === "number" && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15, duration: 0.3 }}
-              className="flex flex-col items-center rounded-xl border border-[color:var(--workspace-border)] bg-background/50 px-3 py-2 min-w-[72px]"
-            >
-              <span className="text-[10px] font-bold text-[var(--workspace-muted)] uppercase tracking-widest">{dictionary.projects.totalUnits}</span>
-              <span className="text-[15px] font-black text-foreground">{project.expectedUnits}</span>
-            </motion.div>
-          )}
-          {typeof project.installmentYears === "number" && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.22, duration: 0.3 }}
-              className="flex flex-col items-center rounded-xl border border-[color:var(--workspace-border)] bg-background/50 px-3 py-2 min-w-[72px]"
-            >
-              <span className="text-[10px] font-bold text-[var(--workspace-muted)] uppercase tracking-widest">{dictionary.projects.installments}</span>
-              <span className="text-[15px] font-black text-foreground">{dictionary.projects.years.replace("{count}", String(project.installmentYears))}</span>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className={`flex items-center ${isRtl ? "flex-row-reverse" : "flex-row"} justify-between gap-3 border-t border-[color:var(--workspace-border)] pt-4`}>
-          <Link
-            href={`/ws/projects/${project.id}/analytics`}
+        {/* Actions Row - Institutional Layout (Unified) */}
+        <div className="flex flex-col pt-8 border-t border-border/50">
+          <Link 
+            href={`/ws/projects/${project.id}`}
             onClick={() => {
               void onTrackProjectEvent?.({
                 id: project.id,
@@ -119,26 +201,25 @@ export default function ProjectPortfolioCard({
               });
             }}
           >
-            <motion.span
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.93 }}
-              className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-2.5 text-[12px] font-black tracking-tight text-background transition-colors"
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4.5 text-[11px] font-black uppercase tracking-[0.3em] text-background shadow-md shadow-foreground/5 transition-all hover:bg-foreground/90 hover:shadow-lg hover:shadow-foreground/10 active:scale-[0.98]"
             >
-              {dictionary.projects.analyze}
-            </motion.span>
+              <span>{isRtl ? "عرض المحفظة" : "OPEN ASSETS"}</span>
+              <ChevronRight className={cn("h-4 w-4", isRtl ? "rotate-180" : "")} />
+            </motion.button>
           </Link>
 
-          <Link href={`/ws/projects/${project.id}`}>
-            <motion.span
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.93 }}
-              className="inline-flex items-center justify-center rounded-full border border-[color:var(--workspace-border)] bg-transparent px-5 py-2.5 text-[12px] font-black tracking-tight text-foreground transition-colors hover:bg-foreground/5"
-            >
-              {dictionary.projects.openDetails}
-            </motion.span>
-          </Link>
+          <div className="flex items-center justify-center gap-2 mt-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors">
+            <span>Portfolio Security Scan</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500/40" />
+            <span>Active</span>
+          </div>
         </div>
       </div>
     </motion.article>
   );
 }
+
+import { cn } from "@/lib/i18n";
+import { MapPin } from "lucide-react";
