@@ -25,9 +25,9 @@ type DisplayUnit = UnitReference & {
   status: UnitStatus;
 };
 
-type UnitDictionary = {
-  units: Partial<Record<UnitType | UnitStatus, string>>;
-};
+import type { WebDictionary } from "@/lib/i18n";
+
+type UnitDictionary = WebDictionary;
 
 type UnitFormData = {
   label: string;
@@ -39,6 +39,14 @@ type UnitFormData = {
   priceLabel: string;
   status: UnitStatus;
   description: string;
+  compoundName: string;
+  unitCode: string;
+  direction: string;
+  currency: "EGP" | "USD";
+  maintenanceFees: string;
+  monthlyInstallment: string;
+  reception: string;
+  negotiable: boolean;
 };
 
 const emptyForm: UnitFormData = {
@@ -51,6 +59,14 @@ const emptyForm: UnitFormData = {
   priceLabel: "",
   status: "available",
   description: "",
+  compoundName: "",
+  unitCode: "",
+  direction: "",
+  currency: "EGP",
+  maintenanceFees: "",
+  monthlyInstallment: "",
+  reception: "",
+  negotiable: false,
 };
 
 function getUnitTypeLabel(type: UnitType, dictionary: UnitDictionary): string {
@@ -116,7 +132,15 @@ export default function ProjectUnitsManager({
       area: unit.area ?? "",
       priceLabel: unit.priceLabel ?? "",
       status: unit.status,
-      description: unit.description ?? "",
+      description: unit.description || "",
+      compoundName: unit.compoundName || "",
+      unitCode: unit.unitCode || "",
+      direction: (unit as any).direction || "",
+      currency: (unit as any).currency || "EGP",
+      maintenanceFees: (unit as any).maintenanceFees || "",
+      monthlyInstallment: (unit as any).monthlyInstallment || "",
+      reception: (unit as any).reception?.toString() || "",
+      negotiable: (unit as any).negotiable || false,
     });
     setShowForm(true);
   }
@@ -140,6 +164,14 @@ export default function ProjectUnitsManager({
         priceLabel: form.priceLabel.trim() || undefined,
         status: form.status,
         description: form.description.trim() || undefined,
+        compoundName: form.compoundName.trim() || undefined,
+        unitCode: form.unitCode.trim() || undefined,
+        direction: form.direction.trim() || undefined,
+        currency: form.currency,
+        maintenanceFees: form.maintenanceFees.trim() || undefined,
+        monthlyInstallment: form.monthlyInstallment.trim() || undefined,
+        reception: form.reception ? Number(form.reception) : undefined,
+        negotiable: form.negotiable,
       };
 
       if (editingUnitId) {
@@ -194,7 +226,7 @@ export default function ProjectUnitsManager({
     return (
       <div className="w-full">
         <div className="mt-5 flex min-h-[40vh] items-center justify-center py-8">
-          <div className="text-[13px] font-semibold text-[var(--workspace-muted)]">Loading units...</div>
+          <div className="text-[13px] font-semibold text-[var(--workspace-muted)]">{isRtl ? "جاري تحميل الوحدات..." : "Loading units..."}</div>
         </div>
       </div>
     );
@@ -210,7 +242,7 @@ export default function ProjectUnitsManager({
               <Search className="absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground opacity-30" />
               <input
                 type="text"
-                placeholder={isRtl ? "البحث عن الوحدات..." : "SEARCH UNITS..."}
+                placeholder={dictionary.units.searchUnits}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] py-4 pl-11 pr-6 text-[11px] font-black tracking-widest text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04] placeholder:text-muted-foreground/30"
@@ -223,7 +255,7 @@ export default function ProjectUnitsManager({
                 onChange={(e) => setTypeFilter(e.target.value as any)}
                 className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 outline-none transition hover:border-foreground/10 focus:border-foreground/20 focus:text-foreground"
               >
-                <option value="all">{isRtl ? "كل الأنواع" : "ALL TYPES"}</option>
+                <option value="all">{dictionary.units.allTypes}</option>
                 {UNIT_TYPES.map((t) => (
                   <option key={t} value={t}>{getUnitTypeLabel(t, dictionary)}</option>
                 ))}
@@ -233,7 +265,7 @@ export default function ProjectUnitsManager({
                 onChange={(e) => setStatusFilter(e.target.value as any)}
                 className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 outline-none transition hover:border-foreground/10 focus:border-foreground/20 focus:text-foreground"
               >
-                <option value="all">{isRtl ? "كل الحالات" : "ALL STATUSES"}</option>
+                <option value="all">{dictionary.units.allStatuses}</option>
                 {UNIT_STATUSES.map((s) => (
                   <option key={s} value={s}>{getUnitStatusLabel(s, dictionary)}</option>
                 ))}
@@ -248,7 +280,7 @@ export default function ProjectUnitsManager({
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-10 py-4.5 text-[10px] font-black uppercase tracking-[0.3em] text-background transition-all hover:bg-foreground/90 active:scale-95"
           >
             <Plus className="h-3 w-3" strokeWidth={5} />
-            {isRtl ? "إضافة وحدة" : "ADD ASSET"}
+            {dictionary.units.addAsset}
           </motion.button>
         </div>
       </div>
@@ -280,7 +312,7 @@ export default function ProjectUnitsManager({
                 value={form.label}
                 onChange={(e) => setForm({ ...form, label: e.target.value })}
                 className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04] placeholder:text-muted-foreground/20"
-                placeholder="e.g. Unit A-101"
+                placeholder={isRtl ? "مثلاً: وحدة A-101" : "e.g. Unit A-101"}
               />
             </div>
 
@@ -291,7 +323,7 @@ export default function ProjectUnitsManager({
                 value={form.priceLabel}
                 onChange={(e) => setForm({ ...form, priceLabel: e.target.value })}
                 className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04] placeholder:text-muted-foreground/20"
-                placeholder="e.g. EGP 4,200,000"
+                placeholder={isRtl ? "مثلاً: 4,200,000 ج.م" : "e.g. EGP 4,200,000"}
               />
             </div>
 
@@ -354,7 +386,7 @@ export default function ProjectUnitsManager({
                 value={form.floor}
                 onChange={(e) => setForm({ ...form, floor: e.target.value })}
                 className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                placeholder="e.g. 3rd Floor"
+                placeholder={isRtl ? "مثلاً: الدور الثالث" : "e.g. 3rd Floor"}
               />
             </div>
             
@@ -365,7 +397,7 @@ export default function ProjectUnitsManager({
                 value={form.area}
                 onChange={(e) => setForm({ ...form, area: e.target.value })}
                 className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                placeholder="e.g. 185 sqm"
+                placeholder={isRtl ? "مثلاً: 185 م²" : "e.g. 185 sqm"}
               />
             </div>
 
@@ -378,6 +410,103 @@ export default function ProjectUnitsManager({
                 rows={4}
                 className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04] resize-none placeholder:text-muted-foreground/20"
               />
+            </div>
+
+            {/* Egyptian Market Fields */}
+            <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-foreground/[0.04]">
+               {/* Compound Name */}
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.compoundNamePlaceholder}</label>
+                  <input
+                    value={form.compoundName}
+                    onChange={(e) => setForm({ ...form, compoundName: e.target.value })}
+                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
+                    placeholder="e.g. Malqa Residence"
+                  />
+               </div>
+
+               {/* Unit Code */}
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.unitCodePlaceholder}</label>
+                  <input
+                    value={form.unitCode}
+                    onChange={(e) => setForm({ ...form, unitCode: e.target.value })}
+                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
+                    placeholder="e.g. M-A-101"
+                  />
+               </div>
+
+               {/* Direction */}
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.directionLabel}</label>
+                  <input
+                    value={form.direction}
+                    onChange={(e) => setForm({ ...form, direction: e.target.value })}
+                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
+                    placeholder="e.g. North"
+                  />
+               </div>
+
+               {/* Reception */}
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.receptionPlaceholder}</label>
+                  <input
+                    type="number"
+                    value={form.reception}
+                    onChange={(e) => setForm({ ...form, reception: e.target.value })}
+                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
+                    min={0}
+                  />
+               </div>
+
+               {/* Maintenance Fees */}
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.maintenanceFeesPlaceholder}</label>
+                  <input
+                    value={form.maintenanceFees}
+                    onChange={(e) => setForm({ ...form, maintenanceFees: e.target.value })}
+                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
+                    placeholder="e.g. 10%"
+                  />
+               </div>
+
+               {/* Monthly Installment */}
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.monthlyInstallmentPlaceholder}</label>
+                  <input
+                    value={form.monthlyInstallment}
+                    onChange={(e) => setForm({ ...form, monthlyInstallment: e.target.value })}
+                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
+                    placeholder="e.g. EGP 25,000"
+                  />
+               </div>
+
+               {/* Currency Select */}
+               <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">Currency</label>
+                  <select
+                    value={form.currency}
+                    onChange={(e) => setForm({ ...form, currency: e.target.value as any })}
+                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
+                  >
+                    <option value="EGP">EGP</option>
+                    <option value="USD">USD</option>
+                  </select>
+               </div>
+
+               {/* Negotiable Checkbox */}
+               <div className="flex items-center gap-3 pt-6">
+                  <input
+                    type="checkbox"
+                    id="negotiable"
+                    checked={form.negotiable}
+                    onChange={(e) => setForm({ ...form, negotiable: e.target.checked })}
+                    className="h-4 w-4 rounded border-foreground/[0.1] bg-foreground/[0.02] text-foreground focus:ring-foreground/20"
+                  />
+                  <label htmlFor="negotiable" className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground cursor-pointer">
+                    {dictionary.unitCreate.negotiableLabel}
+                  </label>
+               </div>
             </div>
           </div>
 
@@ -409,13 +538,13 @@ export default function ProjectUnitsManager({
             <Building2 className="mb-4 h-12 w-12 text-[var(--workspace-highlight)]/40" />
             <h3 className="text-xl font-black text-foreground">
               {searchQuery || typeFilter !== "all" || statusFilter !== "all" 
-                ? "No matching units found" 
+                ? dictionary.units.noMatchingUnits 
                 : dictionary.units.noUnits}
             </h3>
             <p className="mt-2 text-[14px] text-muted-foreground">
               {searchQuery || typeFilter !== "all" || statusFilter !== "all" 
-                ? "Adjust your filters or clear search to see results." 
-                : "Get started by adding your first unit to this project."}
+                ? (isRtl ? "قم بتعديل الفلاتر أو مسح البحث لرؤية النتائج." : "Adjust your filters or clear search to see results.")
+                : (isRtl ? "ابدأ بإضافة أول وحدة لهذا المشروع." : "Get started by adding your first unit to this project.")}
             </p>
           </div>
         ) : (
@@ -438,6 +567,7 @@ export default function ProjectUnitsManager({
                 statusLabel={getUnitStatusLabel(unit.status, dictionary)}
                 fallbackImage={projectImage}
                 location={projectLocation}
+                unitCode={unit.unitCode}
                 onEdit={() => openEditForm(unit)}
                 onDelete={() => handleDelete(unit._id)}
                 isDeleting={deletingId === unit._id}

@@ -50,22 +50,22 @@ export default function ProjectsWorkspace({
   const filteredProjects = useMemo(() => projects, [projects]);
 
   return (
-    <div dir={isRtl ? "rtl" : "ltr"} className="flex w-full flex-col gap-8 px-6 py-10 lg:px-12 lg:py-16 bg-background min-h-screen">
+    <div dir={isRtl ? "rtl" : "ltr"} className="flex w-full flex-col gap-6 md:gap-8 px-5 py-8 md:px-8 md:py-12 lg:px-12 lg:py-16 bg-background min-h-screen">
       
       {/* ── Institutional Header: Portfolio ── */}
-      <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-        <div className="flex flex-col gap-5">
-           <div className="flex items-center gap-2.5">
-             <div className="h-px w-8 bg-foreground/20" />
-             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/50">
+      <div className="flex flex-col justify-between gap-6 md:gap-8 lg:flex-row lg:items-end">
+        <div className="flex flex-col gap-4 md:gap-5">
+           <div className={cn("flex items-center gap-2.5", isRtl && "flex-row-reverse")}>
+             <div className="h-px w-6 md:w-8 bg-foreground/20" />
+             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.35em] md:tracking-[0.4em] text-muted-foreground/50">
                {dictionary.projects.portfolioManagement}
              </span>
            </div>
-           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-foreground leading-[0.9]">
+           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-foreground leading-[1] md:leading-[0.9] uppercase">
              {dictionary.projects.title}
            </h1>
            <p className={cn(
-             "max-w-2xl text-[15px] font-medium leading-relaxed text-muted-foreground/50",
+             "max-w-xl text-[14px] md:text-[15px] font-medium leading-relaxed text-muted-foreground/50",
              isRtl ? "text-right" : "text-left"
            )}>
              {dictionary.projects.description}
@@ -74,7 +74,7 @@ export default function ProjectsWorkspace({
         
         <Link
           href="/ws/projects/create"
-          className="group flex h-14 w-full items-center justify-between rounded-full bg-foreground px-10 text-[11px] font-black uppercase tracking-[0.2em] text-background transition-all hover:scale-[1.02] active:scale-[0.98] lg:w-[280px]"
+          className="group flex h-14 w-full items-center justify-between rounded-full bg-foreground px-8 md:px-10 text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-background transition-all hover:scale-[1.02] active:scale-[0.98] lg:w-[280px]"
         >
           <span>{dictionary.projects.create}</span>
           <Plus className="h-4 w-4" strokeWidth={4} />
@@ -82,20 +82,20 @@ export default function ProjectsWorkspace({
       </div>
 
       {/* ── Portfolio Aggregate Scorecard ── */}
-      <div className="flex flex-col lg:flex-row items-stretch gap-0 border border-border rounded-[28px] bg-gradient-to-br from-foreground/[0.03] to-transparent overflow-hidden shadow-sm">
-         <div className="flex-1 flex flex-col gap-2 p-8 border-b lg:border-b-0 lg:border-r border-border/50">
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">TOTAL PORTFOLIO</span>
-            <span className="text-[32px] font-black tracking-tighter text-foreground tabular-nums leading-none">{projects.length} <span className="text-[12px] text-muted-foreground/30 font-bold uppercase ml-1">Projects</span></span>
+      <div className="flex flex-col lg:flex-row items-stretch gap-0 border border-border rounded-[24px] md:rounded-[28px] bg-gradient-to-br from-foreground/[0.03] to-transparent overflow-hidden shadow-sm">
+         <div className="flex-1 flex flex-col gap-1.5 md:gap-2 p-6 md:p-8 border-b lg:border-b-0 lg:border-r border-border/50">
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{dictionary.projects.totalPortfolio}</span>
+            <span className="text-[28px] md:text-[32px] font-black tracking-tighter text-foreground tabular-nums leading-none">{projects.length} <span className="text-[10px] md:text-[12px] text-muted-foreground/30 font-bold uppercase ml-1">{dictionary.projects.title}</span></span>
          </div>
-         <div className="flex-1 flex flex-col gap-2 p-8 border-b lg:border-b-0 lg:border-r border-border/50">
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">AGGREGATE INVENTORY</span>
-            <span className="text-[32px] font-black tracking-tighter text-foreground tabular-nums leading-none">{allUnits.length} <span className="text-[12px] text-muted-foreground/30 font-bold uppercase ml-1">Assets</span></span>
+         <div className="flex-1 flex flex-col gap-1.5 md:gap-2 p-6 md:p-8 border-b lg:border-b-0 lg:border-r border-border/50">
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{dictionary.projects.aggregateInventory}</span>
+            <span className="text-[28px] md:text-[32px] font-black tracking-tighter text-foreground tabular-nums leading-none">{allUnits.length} <span className="text-[10px] md:text-[12px] text-muted-foreground/30 font-bold uppercase ml-1">{dictionary.units.title}</span></span>
          </div>
-         <div className="flex-1 flex flex-col gap-2 p-8 bg-foreground/[0.01]">
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">PORTFOLIO STATUS</span>
-            <div className="flex items-center gap-3">
-               <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-               <span className="text-[16px] font-black text-emerald-600 uppercase tracking-[0.15em] leading-none">Operational</span>
+         <div className="flex-1 flex flex-col gap-1.5 md:gap-2 p-6 md:p-8 bg-foreground/[0.01]">
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{dictionary.projects.portfolioStatus}</span>
+            <div className={cn("flex items-center gap-3", isRtl && "flex-row-reverse")}>
+               <div className="h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+               <span className="text-[14px] md:text-[16px] font-black text-emerald-600 uppercase tracking-[0.15em] leading-none">{dictionary.projects.operational}</span>
             </div>
          </div>
       </div>

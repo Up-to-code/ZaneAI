@@ -113,6 +113,16 @@ export const realEstateTables = {
     publishedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
+    
+    // Egyptian Market Extended Unit Fields
+    compoundName: v.optional(v.string()),
+    unitCode: v.optional(v.string()),
+    direction: v.optional(v.string()),
+    currency: v.optional(v.union(v.literal("EGP"), v.literal("USD"))),
+    maintenanceFees: v.optional(v.string()),
+    monthlyInstallment: v.optional(v.string()),
+    reception: v.optional(v.number()),
+    negotiable: v.optional(v.boolean()),
   })
     .index("by_organizationId_and_status", ["organizationId", "status"])
     .index("by_organizationId_and_publicationState", ["organizationId", "publicationState"])
@@ -146,6 +156,16 @@ export const realEstateTables = {
     createdAt: v.number(),
     updatedAt: v.number(),
     publishedAt: v.optional(v.number()),
+    
+    // Egyptian Market Extended Unit Fields
+    compoundName: v.optional(v.string()),
+    unitCode: v.optional(v.string()),
+    direction: v.optional(v.string()),
+    currency: v.optional(v.union(v.literal("EGP"), v.literal("USD"))),
+    maintenanceFees: v.optional(v.string()),
+    monthlyInstallment: v.optional(v.string()),
+    reception: v.optional(v.number()),
+    negotiable: v.optional(v.boolean()),
   })
     .index("by_projectId_and_publicationState", ["projectId", "publicationState"])
     .index("by_projectId_and_availability", ["projectId", "availability"])

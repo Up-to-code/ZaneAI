@@ -52,6 +52,15 @@ export default function CreateUnitPage() {
             adLicenseNumber: data.adLicenseNumber,
             registrationStatus: data.registrationStatus,
             rentalPeriod: data.rentalPeriod,
+            // ── New Market Fields ──
+            compoundName: data.compoundName || undefined,
+            unitCode: data.unitCode || undefined,
+            direction: data.direction || undefined,
+            currency: data.currency || "EGP",
+            maintenanceFees: data.maintenanceFees || undefined,
+            monthlyInstallment: data.monthlyInstallment || undefined,
+            reception: data.reception ? Number(data.reception) : undefined,
+            negotiable: data.negotiable,
           });
           
           window.location.href = `/ws/projects/${result.propertyId}`;

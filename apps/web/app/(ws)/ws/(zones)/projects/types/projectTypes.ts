@@ -15,7 +15,7 @@ export type WorkspaceProject = {
   gallery: {
     coverImageKey: string | null;
     displayMode: "cover" | "fit";
-    aspectRatio: "auto" | "landscape" | "square" | "portrait";
+    aspectRatio: "landscape" | "square" | "portrait";
   };
   amenities: string[];
   parking: {
@@ -36,6 +36,8 @@ export type WorkspaceProject = {
     area: string;
     status: string;
   };
+  developerName?: string;
+  startingPrice?: string;
   expectedUnits?: number;
   projectType?: string;
   installmentYears?: number;

@@ -6,16 +6,18 @@ import { AgPropertyFormHeaderActions } from "../AgPropertyFormHeaderActions";
 import type { AgPropertyFormProps, ProjectFormData } from "./types";
 import { TextInput, TextArea, FieldLabel } from "./controls";
 
-const EGYPTIAN_COMPOUND_AMENITIES = [
-  "Clubhouse (كلوب هاوس)",
-  "Commercial Strip (منطقة تجارية)",
-  "Smart Gates (بوابات ذكية)",
-  "24/7 Security (أمن وحراسة)",
-  "International School (مدرسة دولية)",
-  "Water Features (مسطحات مائية)",
-  "Medical Center (مركز طبي)",
-  "Sports Club (نادي رياضي)",
-] as const;
+function getAmenities(dictionary: any) {
+  return [
+    dictionary.projectForm.amenityClubhouse,
+    dictionary.projectForm.amenityCommercial,
+    dictionary.projectForm.amenitySecurity,
+    dictionary.projectForm.amenitySchools,
+    dictionary.projectForm.amenityMedical,
+    dictionary.projectForm.amenityPools,
+    dictionary.projectForm.amenityGym,
+    dictionary.projectForm.amenityLandscape,
+  ].filter(Boolean);
+}
 
 const stepVariants = {
   enter: (direction: number) => ({
@@ -117,6 +119,8 @@ export default function AgPropertyForm({
     { value: "mixed", label: dictionary.projects.types.mixed },
     { value: "custom", label: dictionary.projects.types.custom },
   ] as const;
+
+  const AMENITIES = getAmenities(dictionary);
 
   const toggleAmenity = (amenity: string) => {
     const current = formData.compoundAmenities ?? [];
@@ -357,7 +361,7 @@ export default function AgPropertyForm({
                 </motion.div>
 
                 <motion.div className="flex flex-wrap gap-3" variants={staggerItem}>
-                  {EGYPTIAN_COMPOUND_AMENITIES.map((amenity, idx) => {
+                  {AMENITIES.map((amenity, idx) => {
                     const active = formData.compoundAmenities?.includes(amenity);
                     return (
                       <motion.button
@@ -417,7 +421,7 @@ export default function AgPropertyForm({
                    disabled={pending}
                    className="flex h-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--workspace-panel)] px-6 font-bold tracking-tight text-foreground transition-colors hover:bg-[color:color-mix(in_srgb,var(--workspace-border)_40%,var(--workspace-panel))] active:scale-95 disabled:pointer-events-none disabled:opacity-30"
                  >
-                    {locale === "ar" ? "رجوع" : "Back"}
+                    {dictionary.common.back}
                   </motion.button>
                )}
              </AnimatePresence>

@@ -20,6 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/i18n";
+import { MapPin } from "lucide-react";
 
 type ProjectPortfolioCardProps = {
   project: WorkspaceProject;
@@ -69,7 +71,7 @@ export default function ProjectPortfolioCard({
       {/* Image Hero */}
       <div className={cn(
         "relative overflow-hidden bg-muted/20 shrink-0",
-        variant === "vertical" ? "h-64 w-full" : "w-full lg:w-[280px] xl:w-[320px] min-h-[200px]"
+        variant === "vertical" ? "h-48 md:h-64 w-full" : "w-full lg:w-[280px] xl:w-[320px] min-h-[160px] md:min-h-[200px]"
       )}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
@@ -80,49 +82,49 @@ export default function ProjectPortfolioCard({
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500" />
         
         <motion.div
-          initial={{ opacity: 0, x: 12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2, duration: 0.35 }}
-          className={cn(
-            "absolute top-6 rounded-full border border-white/20 bg-black/50 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md",
-            isRtl ? "left-6" : "right-6"
-          )}
+           initial={{ opacity: 0, x: 12 }}
+           animate={{ opacity: 1, x: 0 }}
+           transition={{ delay: 0.2, duration: 0.35 }}
+           className={cn(
+             "absolute top-4 md:top-6 rounded-full border border-white/20 bg-black/50 px-3 md:px-4 py-1 md:py-1.5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md",
+             isRtl ? "left-4 md:left-6" : "right-4 md:right-6"
+           )}
         >
           {projectTypeLabel}
         </motion.div>
       </div>
  
       {/* Content */}
-      <div className="flex flex-1 flex-col p-6 gap-6 justify-between">
-        <div className="flex flex-col gap-6">
+      <div className="flex flex-1 flex-col p-5 md:p-6 gap-5 md:gap-6 justify-between">
+        <div className="flex flex-col gap-5 md:gap-6">
           <div className={cn(
             "flex flex-col gap-4",
             variant === "horizontal" ? "xl:flex-row xl:items-start xl:justify-between" : ""
           )}>
-            <div className="flex flex-col gap-2 flex-1">
-               <h2 className="text-[24px] lg:text-[28px] font-black tracking-tighter text-foreground leading-tight transition-colors line-clamp-1 uppercase leading-none">{project.title}</h2>
-               <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+            <div className="flex flex-col gap-1.5 md:gap-2 flex-1">
+               <h2 className="text-[20px] md:text-[24px] lg:text-[28px] font-black tracking-tighter text-foreground leading-tight transition-colors line-clamp-1 uppercase whitespace-normal">{project.title}</h2>
+               <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
                   <MapPin className="h-3 w-3" />
-                  <span>{project.location}</span>
+                  <span className="truncate">{project.location}</span>
                </div>
             </div>
             
             <div className={cn(
-               "flex items-center gap-3 shrink-0",
+               "flex items-center justify-between xl:justify-start gap-4 shrink-0",
                variant === "horizontal" ? "xl:items-center" : "items-start"
             )}>
                <div className={cn(
-                 "flex flex-col gap-1",
+                 "flex flex-col gap-0.5 md:gap-1",
                  variant === "horizontal" ? "xl:items-end" : "items-start"
                )}>
-                 <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{dictionary.projects.averagePrice}</span>
-                 <div className="text-[22px] font-black text-foreground tabular-nums tracking-tighter leading-none">{project.priceLabel}</div>
+                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">{dictionary.projects.averagePrice}</span>
+                 <div className="text-[18px] md:text-[22px] font-black text-foreground tabular-nums tracking-tighter leading-none">{project.priceLabel}</div>
                </div>
 
                <DropdownMenu>
                  <DropdownMenuTrigger
                    render={(
-                     <button className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/[0.08] transition hover:bg-foreground/[0.04] active:scale-95">
+                     <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-foreground/[0.08] transition hover:bg-foreground/[0.04] active:scale-95">
                        <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                      </button>
                    )}
@@ -131,7 +133,7 @@ export default function ProjectPortfolioCard({
                    {onEdit && (
                      <DropdownMenuItem onClick={onEdit} className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-foreground/[0.03] transition-colors cursor-pointer">
                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                       <span>{isRtl ? "تعديل المشروع" : "EDIT PORTFOLIO"}</span>
+                       <span>{dictionary.projectForm.editTitle}</span>
                      </DropdownMenuItem>
                    )}
                    <DropdownMenuSeparator className="my-1 bg-foreground/[0.05]" />
@@ -142,7 +144,7 @@ export default function ProjectPortfolioCard({
                       className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
                      >
                        <Trash2 className="h-3.5 w-3.5" />
-                       <span>{isRtl ? "حذف المشروع" : "DELETE PORTFOLIO"}</span>
+                       <span>{dictionary.projects.deleteConfirm}</span>
                      </DropdownMenuItem>
                    )}
                  </DropdownMenuContent>
@@ -153,35 +155,35 @@ export default function ProjectPortfolioCard({
           <div className="h-px bg-border/50" />
 
           {/* Key Portfolio Metrics - Institutional Style */}
-          <div className="flex flex-wrap items-center gap-10">
-            {typeof project.expectedUnits === "number" && (
-               <div className="flex flex-col gap-1.5">
-                  <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.totalUnits}</span>
-                  <div className="text-[18px] font-black text-foreground tabular-nums leading-none">
-                    {project.expectedUnits} <span className="text-[10px] opacity-20 ml-0.5">UNITS</span>
-                  </div>
-               </div>
-            )}
-            {typeof project.installmentYears === "number" && (
-               <div className="flex flex-col gap-1.5">
-                  <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.installments}</span>
-                  <div className="text-[18px] font-black text-foreground leading-none">
-                    {project.installmentYears} <span className="text-[10px] opacity-20 ml-0.5 uppercase">{dictionary.projects.years.split(' ').pop()}</span>
-                  </div>
-               </div>
-            )}
-            <div className="flex flex-col gap-1.5">
-               <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{isRtl ? "الحالة" : "STATUS"}</span>
-               <div className="flex items-center gap-2">
-                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                 <span className="text-[13px] font-black text-emerald-600 uppercase tracking-[0.1em] leading-none">Active</span>
-               </div>
-            </div>
+          <div className="flex flex-wrap items-center gap-x-8 md:gap-x-10 gap-y-4">
+             {typeof project.expectedUnits === "number" && (
+                <div className="flex flex-col gap-1.5 shrink-0">
+                   <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.totalUnits}</span>
+                   <div className="text-[16px] md:text-[18px] font-black text-foreground tabular-nums leading-none">
+                     {project.expectedUnits} <span className="text-[10px] opacity-20 ml-0.5">{dictionary.units.title}</span>
+                   </div>
+                </div>
+             )}
+             {typeof project.installmentYears === "number" && (
+                <div className="flex flex-col gap-1.5 shrink-0">
+                   <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.installments}</span>
+                   <div className="text-[16px] md:text-[18px] font-black text-foreground leading-none">
+                     {project.installmentYears} <span className="text-[10px] opacity-20 ml-0.5 uppercase">{dictionary.projects.years.replace('{count}', '').trim()}</span>
+                   </div>
+                </div>
+             )}
+             <div className="flex flex-col gap-1.5 shrink-0">
+                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.portfolioStatus}</span>
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[12px] md:text-[13px] font-black text-emerald-600 uppercase tracking-[0.1em] leading-none">{dictionary.projects.active}</span>
+                </div>
+             </div>
           </div>
 
           {(project.shortDescription || project.summary) && (
             <p className={cn(
-              "text-[13px] leading-relaxed text-muted-foreground/80 line-clamp-2 max-w-xl",
+              "text-[12px] md:text-[13px] leading-relaxed text-muted-foreground/80 line-clamp-2 max-w-xl",
               isRtl ? "text-right" : "text-left"
             )}>
               {project.shortDescription || project.summary}
@@ -190,7 +192,7 @@ export default function ProjectPortfolioCard({
         </div>
 
         {/* Actions Row - Institutional Layout (Unified) */}
-        <div className="flex flex-col pt-8 border-t border-border/50">
+        <div className="flex flex-col pt-6 md:pt-8 border-t border-border/50">
           <Link 
             href={`/ws/projects/${project.id}`}
             onClick={() => {
@@ -203,17 +205,17 @@ export default function ProjectPortfolioCard({
           >
             <motion.button
               whileTap={{ scale: 0.98 }}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4.5 text-[11px] font-black uppercase tracking-[0.3em] text-background shadow-md shadow-foreground/5 transition-all hover:bg-foreground/90 hover:shadow-lg hover:shadow-foreground/10 active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3.5 md:py-4.5 text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-background shadow-md shadow-foreground/5 transition-all hover:bg-foreground/90 hover:shadow-lg hover:shadow-foreground/10 active:scale-[0.98]"
             >
-              <span>{isRtl ? "عرض المحفظة" : "OPEN ASSETS"}</span>
+              <span>{dictionary.projects.openAssets}</span>
               <ChevronRight className={cn("h-4 w-4", isRtl ? "rotate-180" : "")} />
             </motion.button>
           </Link>
 
-          <div className="flex items-center justify-center gap-2 mt-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors">
-            <span>Portfolio Security Scan</span>
+          <div className="flex items-center justify-center gap-2 mt-4 md:mt-5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors">
+            <span>{dictionary.projects.securityScan}</span>
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500/40" />
-            <span>Active</span>
+            <span>{dictionary.projects.operational}</span>
           </div>
         </div>
       </div>
@@ -221,5 +223,4 @@ export default function ProjectPortfolioCard({
   );
 }
 
-import { cn } from "@/lib/i18n";
-import { MapPin } from "lucide-react";
+

@@ -6,6 +6,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getWorkspaceZonesForKeys } from "../../_lib/zones";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 
+import WebLocaleSwitcher from "@/app/_components/WebLocaleSwitcher";
+import ThemeToggle from "@/app/_components/ThemeToggle";
+
 export default function SidebarContent({
   organization,
   visibleZoneKeys,
@@ -18,7 +21,7 @@ export default function SidebarContent({
   onNavigate,
 }: SidebarProps) {
   const pathname = usePathname();
-  const { dictionary, locale } = useWebLocale();
+  const { dictionary, locale, isRtl } = useWebLocale();
   void allAssistantThreads;
   void variant;
   void titleId;
@@ -192,6 +195,21 @@ export default function SidebarContent({
           </div>
         ) : null}
       </nav>
+
+      {/* ── Global Controls (Mobile Drawer Only) ────────────── */}
+      {mode === "drawer" && (
+        <div className="mt-auto border-t border-[color:var(--workspace-border)] bg-muted/10 px-6 py-8">
+           <div className={cn("flex flex-col gap-6", isRtl && "items-end")}>
+              <div className="flex flex-col gap-1.5">
+                 <span className="text-[9px] font-black uppercase tracking-[0.35em] text-muted-foreground/40">{dictionary.nav.preferencesLabel || "Preferences"}</span>
+                 <div className={cn("flex items-center gap-3", isRtl && "flex-row-reverse")}>
+                    <WebLocaleSwitcher className="h-11 w-11 rounded-2xl border border-border bg-card text-[var(--zane-ai-deep)] dark:text-white" />
+                    <ThemeToggle className="h-11 w-11 rounded-2xl border border-border bg-card text-[var(--zane-ai-deep)] dark:text-white" />
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -38,7 +38,17 @@ function mapProjectToFormData(project: WorkspaceProject) {
     images: project.galleryImages,
     video: null,
     brokerId: project.brokers[0]?.id ?? null,
-    visibilityMembers: project.visibility.viewers,
+    visibilityMembers: project.visibility.viewers.map((viewer) => ({
+      authUserId: viewer.authUserId,
+      name: viewer.name,
+      email: viewer.email ?? undefined,
+    })),
+    // Egyptian Market Fields
+    developerName: project.developerName,
+    expectedUnits: project.expectedUnits ? String(project.expectedUnits) : "",
+    startingPrice: project.startingPrice,
+    installmentYears: project.installmentYears ? String(project.installmentYears) : "",
+    compoundAmenities: project.amenities,
   } satisfies Partial<ProjectFormData>;
 }
 

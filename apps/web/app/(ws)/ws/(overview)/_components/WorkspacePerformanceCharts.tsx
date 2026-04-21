@@ -1,23 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
-  CartesianGrid,
-  Line,
-  LineChart,
+  RadialBarChart,
+  RadialBar,
   ResponsiveContainer,
   Tooltip,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
+  Cell,
 } from "recharts";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { cn } from "@/lib/i18n";
-
-type TrendPoint = {
-  date: string;
-  views: number;
-  clicks: number;
-};
 
 type CTAPoint = {
   label: string;
@@ -26,148 +22,166 @@ type CTAPoint = {
 };
 
 type WorkspacePerformanceChartsProps = {
-  trend: TrendPoint[];
+  inventory: {
+    available: number;
+    reserved: number;
+    sold: number;
+  };
+  interactions: {
+    impressions: number;
+    enquiries: number;
+    conversions: number;
+  };
   ctaBreakdown: CTAPoint[];
 };
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
+  const data = payload[0].payload;
   return (
-    <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] px-4 py-3 shadow-xl backdrop-blur-md">
-      <p className="mb-2 text-[9px] font-black uppercase tracking-widest text-[var(--zane-ai-text-muted)]">{label}</p>
-      {payload.map((entry: any, i: number) => (
-        <div key={i} className="flex items-center justify-between gap-6 py-0.5">
-          <div className="flex items-center gap-1.5">
-            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-[10px] font-bold text-[var(--zane-ai-text-muted)]">{entry.name}</span>
-          </div>
-          <span className="text-[11px] font-black text-[var(--zane-ai-deep)] dark:text-white">
-            {entry.name === "Convert" ? `${entry.value}%` : entry.value}
-          </span>
-        </div>
-      ))}
+    <div className="rounded-2xl border border-[color:var(--workspace-border)] bg-background/80 px-5 py-4 shadow-2xl backdrop-blur-xl">
+      <p className="text-xs font-black uppercase tracking-widest text-foreground">{data.name}</p>
+      <div className="mt-2 flex items-center gap-3">
+        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: data.fill }} />
+        <span className="text-2xl font-black tracking-tighter">{data.value}</span>
+        <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{data.unit || "Units"}</span>
+      </div>
     </div>
   );
 }
 
-export default function WorkspacePerformanceCharts({ trend, ctaBreakdown }: WorkspacePerformanceChartsProps) {
+export default function WorkspacePerformanceCharts({ inventory, interactions, ctaBreakdown }: WorkspacePerformanceChartsProps) {
   const { dictionary, isRtl } = useWebLocale();
-  const [activeRange, setActiveRange] = useState<7 | 30>(7);
 
-  const chartData = useMemo(() => {
-    const slice = trend.slice(-activeRange);
-    return slice.map((p) => ({
-      ...p,
-      convert: p.views > 0 ? Math.round((p.clicks / p.views) * 100) : 0,
-    }));
-  }, [trend, activeRange]);
+  const inventoryData = useMemo(() => [
+    { name: dictionary.performance.available, value: inventory.available, fill: "var(--zane-ai-accent)", unit: "Asset" },
+    { name: dictionary.performance.reserved, value: inventory.reserved, fill: "#f59e0b", unit: "Asset" },
+    { name: dictionary.performance.sold, value: inventory.sold, fill: "#10b981", unit: "Asset" },
+  ], [inventory, dictionary]);
 
-  // Totals for the legend pills
-  const totals = useMemo(() => {
-    const slice = trend.slice(-activeRange);
-    const views = slice.reduce((s, p) => s + p.views, 0);
-    const clicks = slice.reduce((s, p) => s + p.clicks, 0);
-    const convert = views > 0 ? Math.round((clicks / views) * 100) : 0;
-    return { views, clicks, convert };
-  }, [trend, activeRange]);
+  const interactionData = useMemo(() => [
+    { name: "Impressions", value: interactions.impressions, fill: "var(--workspace-border)" },
+    { name: dictionary.performance.eoiCount, value: interactions.enquiries, fill: "#6366f1" },
+    { name: "CTAs", value: interactions.conversions, fill: "var(--zane-ai-deep)" },
+  ], [interactions, dictionary]);
+
+  const totalUnits = inventory.available + inventory.reserved + inventory.sold;
 
   return (
-    <div className="rounded-3xl border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-6 lg:p-8">
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--zane-ai-text-muted)]">
-            {dictionary.performance.trendTitle}
-          </h3>
+    <div className={cn("grid gap-8 lg:grid-cols-2", isRtl ? "rtl" : "ltr")}>
+      {/* ── Inventory Pulse (Radial) ── */}
+      <div className="group relative flex flex-col rounded-[32px] border border-[color:var(--workspace-border)] bg-card p-10 transition-all hover:shadow-2xl hover:shadow-black/5">
+        <div className={cn("mb-8 flex items-center justify-between", isRtl && "flex-row-reverse")}>
+           <div className={cn(isRtl ? "text-right" : "text-left")}>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
+                {dictionary.performance.inventoryHealth}
+              </h3>
+              <p className="mt-1 text-3xl font-black tracking-tighter">Real-time Portfolio Stock</p>
+           </div>
+           <div className={cn(isRtl ? "text-left" : "text-right")}>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+                {dictionary.performance.capacity}
+              </span>
+              <p className="text-2xl font-black tabular-nums">{totalUnits}</p>
+           </div>
         </div>
 
-        {/* Range toggle */}
-        <div className="flex rounded-xl border border-[color:var(--workspace-border)] bg-[var(--workspace-elevated)] p-1 self-start sm:self-auto">
-          {([7, 30] as const).map((r) => (
-            <button
-              key={r}
-              onClick={() => setActiveRange(r)}
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-[9px] font-black uppercase tracking-wider transition-all",
-                activeRange === r
-                  ? "bg-[var(--zane-ai-deep)] text-white dark:bg-white dark:text-black"
-                  : "text-[var(--zane-ai-text-muted)] hover:text-[var(--zane-ai-deep)]"
-              )}
+        <div className="relative h-[280px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadialBarChart 
+              cx="50%" 
+              cy="50%" 
+              innerRadius="30%" 
+              outerRadius="100%" 
+              barSize={14} 
+              data={inventoryData}
+              startAngle={isRtl ? -180 : 180}
+              endAngle={isRtl ? 180 : -180}
             >
-              {r === 7 ? dictionary.performance.last7Days : dictionary.performance.last30Days}
-            </button>
-          ))}
+              <RadialBar
+                background={{ fill: "var(--workspace-border)", opacity: 0.2 }}
+                dataKey="value"
+                cornerRadius={14}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
+            </RadialBarChart>
+          </ResponsiveContainer>
+          
+          {/* Center Text Cap */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+             <span className="text-4xl font-black tracking-tighter tabular-nums text-[var(--workspace-highlight)]">
+               {Math.round((inventory.sold / (totalUnits || 1)) * 100)}%
+             </span>
+             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+               {dictionary.performance.occupancy}
+             </span>
+          </div>
+        </div>
+
+        {/* Legend Custom */}
+        <div className={cn("mt-8 flex flex-wrap gap-x-6 gap-y-4", isRtl && "flex-row-reverse")}>
+           {inventoryData.map(item => (
+             <div key={item.name} className={cn("flex items-center gap-2.5", isRtl && "flex-row-reverse")}>
+                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/70">{item.name}</span>
+                <span className="text-sm font-black tabular-nums">{item.value}</span>
+             </div>
+           ))}
         </div>
       </div>
 
-      {/* Stat pills */}
-      <div className="mb-6 flex flex-wrap gap-3">
-        {[
-          { label: dictionary.performance.views, value: totals.views, color: "var(--zane-ai-accent)" },
-          { label: dictionary.performance.clicks, value: totals.clicks, color: "#6366f1" },
-          { label: "Convert", value: `${totals.convert}%`, color: "#f59e0b" },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="flex items-center gap-2 rounded-full border border-[color:var(--workspace-border)] bg-[var(--workspace-elevated)] px-3 py-1.5"
-          >
-            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
-            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--zane-ai-text-muted)]">{s.label}</span>
-            <span className="text-[12px] font-black text-[var(--zane-ai-deep)] dark:text-white">{s.value}</span>
-          </div>
-        ))}
-      </div>
+      {/* ── Interaction Velocity (Funnel) ── */}
+      <div className="flex flex-col rounded-[32px] border border-[color:var(--workspace-border)] bg-card p-10">
+        <div className={cn("mb-8", isRtl ? "text-right" : "text-left")}>
+           <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
+             {dictionary.performance.conversionFunnel}
+           </h3>
+           <p className="mt-1 text-3xl font-black tracking-tighter">Market Response Index</p>
+        </div>
 
-      {/* Chart */}
-      <div className="h-[200px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 5, right: 10, left: -30, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--workspace-border)" />
-            <XAxis
-              dataKey="date"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 9, fontWeight: 700, fill: "var(--zane-ai-text-muted)" }}
-              tickFormatter={(s) => {
-                const d = new Date(s);
-                return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
-              }}
-              reversed={isRtl}
-              interval="preserveStartEnd"
-            />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 700, fill: "var(--zane-ai-text-muted)" }} />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="monotone"
-              dataKey="views"
-              name="Views"
-              stroke="var(--zane-ai-accent)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="clicks"
-              name="Clicks"
-              stroke="#6366f1"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="convert"
-              name="Convert"
-              stroke="#f59e0b"
-              strokeWidth={2}
-              strokeDasharray="4 3"
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 0 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="h-[260px] w-full">
+           <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                layout="vertical" 
+                data={interactionData} 
+                margin={isRtl ? { left: 40, right: 10, top: 0, bottom: 0 } : { left: 10, right: 40, top: 0, bottom: 0 }}
+              >
+                 <XAxis type="number" hide />
+                 <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fontWeight: 900, fill: "var(--zane-ai-text-muted)" }} 
+                    width={100}
+                    orientation={isRtl ? "right" : "left"}
+                 />
+                 <Tooltip cursor={{ fill: "var(--workspace-border)", opacity: 0.1 }} />
+                 <Bar dataKey="value" barSize={36} radius={isRtl ? [18, 0, 0, 18] : [0, 18, 18, 0]}>
+                    {interactionData.map((entry, index) => (
+                       <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                 </Bar>
+              </BarChart>
+           </ResponsiveContainer>
+        </div>
+
+        <div className={cn("mt-auto grid grid-cols-3 gap-6 pt-8 border-t border-border/40", isRtl && "text-right")}>
+           <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Efficiency</span>
+              <span className="text-2xl font-black tabular-nums">{Math.round((interactions.conversions / (interactions.impressions || 1)) * 100)}%</span>
+           </div>
+           <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Response</span>
+              <span className="text-2xl font-black tabular-nums">{Math.round((interactions.enquiries / (interactions.impressions || 1)) * 100)}%</span>
+           </div>
+           <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Top Channel</span>
+              <span className="text-base font-black uppercase truncate text-emerald-500">WhatsApp</span>
+           </div>
+        </div>
       </div>
     </div>
   );
 }
+

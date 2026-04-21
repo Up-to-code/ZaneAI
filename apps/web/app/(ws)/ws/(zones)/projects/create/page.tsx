@@ -14,9 +14,10 @@ const cardHover = {
 };
 
 export default function CreateSelectionPage() {
-  const { dictionary } = useWebLocale();
+  const { dictionary, locale } = useWebLocale();
   const router = useRouter();
   const [selected, setSelected] = useState<"project" | "unit" | null>(null);
+  const isRtl = locale === "ar";
 
   const handleContinue = () => {
     if (selected === "project") {
@@ -27,7 +28,7 @@ export default function CreateSelectionPage() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center p-6 pb-20">
+    <div className="flex h-full w-full flex-col items-center justify-center p-6 pb-20" dir={isRtl ? "rtl" : "ltr"}>
       <motion.div
         className="w-full max-w-6xl mb-8 flex items-center justify-start"
         initial={{ opacity: 0, x: -20 }}
@@ -43,7 +44,7 @@ export default function CreateSelectionPage() {
         </Link>
       </motion.div>
 
-      <div className="w-full max-w-4xl text-right">
+      <div className={`w-full max-w-4xl ${isRtl ? "text-right" : "text-left"}`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -63,7 +64,7 @@ export default function CreateSelectionPage() {
             whileTap="tap"
             animate={selected === "unit" ? { scale: 1, y: -2 } : { scale: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={`group relative overflow-hidden rounded-[32px] border p-8 text-right transition-colors duration-300 ${
+            className={`group relative overflow-hidden rounded-[32px] border p-8 ${isRtl ? "text-right" : "text-left"} transition-colors duration-300 ${
               selected === "unit" 
                 ? "border-foreground bg-foreground shadow-xl ring-4 ring-foreground/10" 
                 : "border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] hover:border-foreground/30"
@@ -97,7 +98,7 @@ export default function CreateSelectionPage() {
             whileTap="tap"
             animate={selected === "project" ? { scale: 1, y: -2 } : { scale: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={`group relative overflow-hidden rounded-[32px] border p-8 text-right transition-colors duration-300 ${
+            className={`group relative overflow-hidden rounded-[32px] border p-8 ${isRtl ? "text-right" : "text-left"} transition-colors duration-300 ${
               selected === "project" 
                 ? "border-foreground bg-foreground shadow-xl ring-4 ring-foreground/10" 
                 : "border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] hover:border-foreground/30"

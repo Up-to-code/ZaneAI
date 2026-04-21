@@ -11,7 +11,7 @@ import {
   Video, Paperclip, AlertCircle, Info, Trash2, Plus, 
   CreditCard, Wind, DoorClosed, 
   Utensils, Wifi, Mic2, ArrowUpDown, ShieldCheck, Sun, Image, 
-  X, Maximize2, Dumbbell, type LucideIcon
+  X, Maximize2, Dumbbell, Hash, Compass, Handshake, type LucideIcon
 } from "lucide-react";
 import type { UnitType, ListingType } from "@/app/(ws)/ws/_lib/entities";
 import ZonePageIntro from "../../ZoneShell/ZonePageIntro";
@@ -25,10 +25,14 @@ import { TextInput, TextArea, FieldLabel } from "../AgPropertyForm/controls";
 export type UnitPropertyFormData = {
   /* Step 1: Identity */
   name: string;
+  compoundName: string;
+  unitCode: string;
   location: string;
   unitType: UnitType;
   listingType: ListingType;
   /* Step 2: Specs */
+  direction: string;
+  reception: string;
   rooms: string;
   baths: string;
   area: string;
@@ -36,7 +40,11 @@ export type UnitPropertyFormData = {
   parking: string;
   finishingLevel: "core_shell" | "semi_finished" | "fully_finished" | "extra_super_lux" | "furnished";
   /* Step 3: Pricing */
+  currency: string;
   price: string;
+  maintenanceFees: string;
+  monthlyInstallment: string;
+  negotiable: boolean;
   paymentMethod: "cash" | "installments" | "cash_or_installments";
   downPayment: string;
   installmentYears: string;
@@ -48,9 +56,8 @@ export type UnitPropertyFormData = {
   /* Step 5: Media */
   images: { id: string; url: string; file?: File; isCover?: boolean }[];
   videoUrl: string;
-  /* Step 6: Documents */
+  /* Step 6: Legal & Review */
   documents: { id: string; name: string; type: string; file?: File; fileKey?: string }[];
-  /* Step 7: Legal & Review */
   description: string;
   adLicenseNumber: string;
   registrationStatus: "registered" | "not_registered" | "pending";
@@ -70,7 +77,7 @@ export type AgUnitFormProps = {
    CONSTANTS
    ═══════════════════════════════════════════════════════════ */
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 6;
 
 /* ═══════════════════════════════════════════════════════════
    ANIMATIONS
@@ -183,16 +190,24 @@ const staggerItem: Variants = {
 
   const [formData, setFormData] = useState<UnitPropertyFormData>({
     name: initialData?.name ?? "",
+    compoundName: initialData?.compoundName ?? "",
+    unitCode: initialData?.unitCode ?? "",
     location: initialData?.location ?? "",
     unitType: initialData?.unitType ?? "apartment",
     listingType: initialData?.listingType ?? "sale",
+    direction: initialData?.direction ?? "north",
+    reception: initialData?.reception?.toString() ?? "",
     rooms: initialData?.rooms?.toString() ?? "",
     baths: initialData?.baths?.toString() ?? "",
     area: initialData?.area ?? "",
     floor: initialData?.floor ?? "",
     parking: initialData?.parking?.toString() ?? "",
     finishingLevel: initialData?.finishingLevel ?? "fully_finished",
+    currency: initialData?.currency ?? "EGP",
     price: initialData?.price ?? "",
+    maintenanceFees: initialData?.maintenanceFees ?? "",
+    monthlyInstallment: initialData?.monthlyInstallment ?? "",
+    negotiable: initialData?.negotiable ?? false,
     paymentMethod: initialData?.paymentMethod ?? "cash",
     downPayment: initialData?.downPayment ?? "",
     installmentYears: initialData?.installmentYears?.toString() ?? "",
@@ -301,7 +316,7 @@ const staggerItem: Variants = {
   /* ═══════════════ RENDER ═══════════════ */
 
   return (
-    <div className="relative flex h-full w-full flex-col pb-12">
+    <div className="relative flex min-h-[calc(100vh-140px)] w-full flex-col pb-12">
       <ZonePageIntro
         eyebrow={uc.eyebrow}
         title={title ?? uc.title}
@@ -336,17 +351,25 @@ const staggerItem: Variants = {
             <motion.div key="s1" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
               <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "1", total: "7" })}</FieldLabel>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "1", total: "6" })}</FieldLabel>
                   <h2 className="text-2xl font-black uppercase tracking-tight text-foreground lg:text-3xl">{uc.unitDefinition}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.unitDefinitionDesc}</p>
                 </motion.div>
 
                 <motion.div className="space-y-4" variants={staggerItem}>
                   <TextInput placeholder={uc.unitTitlePlaceholder} value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} disabled={pending} />
+                  <div className="relative">
+                    <Building2 className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
+                    <TextInput placeholder={uc.compoundNamePlaceholder} value={formData.compoundName} onChange={(v) => setFormData({ ...formData, compoundName: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} />
+                  </div>
                   <TextInput placeholder={uc.locationPlaceholder} value={formData.location} onChange={(v) => setFormData({ ...formData, location: v })} disabled={pending} />
+                  <div className="relative">
+                    <Hash className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
+                    <TextInput placeholder={uc.unitCodePlaceholder} value={formData.unitCode} onChange={(v) => setFormData({ ...formData, unitCode: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} />
+                  </div>
                 </motion.div>
 
-                <motion.div variants={staggerItem}>
+                <motion.div variants={staggerItem} className="space-y-4">
                   <FieldLabel>{uc.listingTypeLabel}</FieldLabel>
                   <div className="flex gap-3">
                     {LISTING_TYPES.map((lt) => {
@@ -359,6 +382,38 @@ const staggerItem: Variants = {
                       );
                     })}
                   </div>
+
+                  <AnimatePresence>
+                    {formData.listingType === "rent" && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }} 
+                        animate={{ opacity: 1, height: "auto", marginTop: 16 }} 
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }} 
+                        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} 
+                        className="overflow-hidden"
+                      >
+                        <FieldLabel>{uc.rentalPeriodLabel}</FieldLabel>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mt-2">
+                          {RENTAL_PERIODS.map((rp) => {
+                            const active = formData.rentalPeriod === rp.value;
+                            return (
+                              <motion.button 
+                                key={rp.value} 
+                                type="button" 
+                                onClick={() => setFormData({ ...formData, rentalPeriod: rp.value })} 
+                                disabled={pending}
+                                whileHover={{ scale: 1.04, y: -2 }} 
+                                whileTap={{ scale: 0.93 }} 
+                                className={`flex flex-col items-center justify-center rounded-[24px] py-4 text-[13px] font-black tracking-tight transition-all border-2 ${active ? "bg-foreground text-background border-foreground shadow-xl shadow-foreground/10" : "border-[var(--workspace-border)] bg-[var(--workspace-panel)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
+                                <Calendar size={18} className={`mb-2 ${active ? "text-background" : "text-[var(--workspace-highlight)]"}`} />
+                                {rp.label}
+                              </motion.button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
 
                 <motion.div variants={staggerItem}>
@@ -388,17 +443,38 @@ const staggerItem: Variants = {
             <motion.div key="s2" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
               <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "2", total: "7" })}</FieldLabel>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "2", total: "6" })}</FieldLabel>
                   <h2 className="text-2xl font-black uppercase tracking-tight text-foreground lg:text-3xl">{uc.unitSpecs}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.unitSpecsDesc}</p>
+                </motion.div>
+
+                <motion.div variants={staggerItem}>
+                  <FieldLabel>{uc.directionLabel}</FieldLabel>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {Object.entries((uc as any).directions || {}).map(([key, label], idx) => {
+                      const active = formData.direction === key;
+                      return (
+                        <motion.button key={key} type="button" onClick={() => setFormData({ ...formData, direction: key })} disabled={pending}
+                          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.02, duration: 0.2 }}
+                          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }}
+                          className={`flex items-center justify-center gap-2 rounded-[16px] px-3 py-3 text-[12px] font-black tracking-tight transition-all border-2 ${active ? "bg-foreground text-background border-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)]" : "border-[var(--workspace-border)] bg-[var(--workspace-panel)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
+                          <Compass size={14} className={active ? "text-background" : "text-[var(--workspace-highlight)]"} />
+                          {label as string}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
                 </motion.div>
 
                 <motion.div className="grid grid-cols-2 gap-4 sm:grid-cols-3" variants={staggerItem}>
                   {formData.unitType !== "studio" && (
                     <div className="relative"><Bed className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.roomsPlaceholder} value={formData.rooms} onChange={(v) => setFormData({ ...formData, rooms: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                   )}
+                  {["apartment", "duplex", "penthouse", "villa", "townhouse"].includes(formData.unitType) && (
+                    <div className="relative"><Layers className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.receptionPlaceholder} value={formData.reception} onChange={(v) => setFormData({ ...formData, reception: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                  )}
                   <div className="relative"><Bath className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.bathsPlaceholder} value={formData.baths} onChange={(v) => setFormData({ ...formData, baths: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
-                  <div className="relative"><Move className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.areaPlaceholder} value={formData.area} onChange={(v) => setFormData({ ...formData, area: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                  <div className="relative"><Move className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.areaPlaceholder} value={formData.area} onChange={(v) => setFormData({ ...formData, area: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                   {formData.unitType !== "villa" && formData.unitType !== "townhouse" && (
                     <div className="relative"><ChevronUp className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.floorPlaceholder} value={formData.floor} onChange={(v) => setFormData({ ...formData, floor: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                   )}
@@ -429,7 +505,7 @@ const staggerItem: Variants = {
             <motion.div key="s3" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
               <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "3", total: "7" })}</FieldLabel>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "3", total: "6" })}</FieldLabel>
                   <h2 className="text-2xl font-black uppercase tracking-tight text-foreground lg:text-3xl">{uc.pricingTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">
                     {formData.listingType === "rent" ? uc.pricingDescRent : uc.pricingDescSale}
@@ -437,7 +513,23 @@ const staggerItem: Variants = {
                 </motion.div>
 
                 <motion.div className="space-y-4" variants={staggerItem}>
-                  <div className="relative">
+                  <FieldLabel>{uc.currencyLabel}</FieldLabel>
+                  <div className="flex gap-2">
+                    {["EGP", "USD"].map((curr) => (
+                      <motion.button 
+                        key={curr} 
+                        type="button" 
+                        disabled={pending}
+                        onClick={() => setFormData({ ...formData, currency: curr })} 
+                        whileHover={{ scale: 1.04 }} 
+                        whileTap={{ scale: 0.96 }} 
+                        className={`rounded-full px-6 py-2 text-[14px] font-black tracking-tight transition-all border ${formData.currency === curr ? "bg-foreground text-background border-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)]" : "bg-[var(--workspace-panel)] border-[var(--workspace-border)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
+                        {curr}
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  <div className="relative mt-2">
                     <CreditCard className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
                     <TextInput 
                       type="text" 
@@ -449,35 +541,25 @@ const staggerItem: Variants = {
                       value={formData.price} 
                       onChange={(v) => setFormData({ ...formData, price: v })} 
                       disabled={pending} 
-                      className={`${isRtl ? "pr-11" : "pl-11"} text-xl font-black`} 
+                      className={`${isRtl ? "pr-11 pl-20" : "pl-11 pr-20"} text-xl font-black`} 
                     />
+                    <div className={`absolute ${isRtl ? "left-4" : "right-4"} top-1/2 -translate-y-1/2 text-[14px] font-black text-[var(--workspace-muted)]`}>
+                      {formData.currency}
+                    </div>
                   </div>
+
+                  {formData.listingType === "sale" && (
+                     <div className="text-[14px] px-2 text-[var(--workspace-muted)] font-medium">
+                       {uc.pricePerMeterLabel}: {
+                         (Number(formData.price.replace(/,/g, "")) > 0 && Number(formData.area.replace(/,/g, "")) > 0) 
+                         ? Math.round(Number(formData.price.replace(/,/g, "")) / Number(formData.area.replace(/,/g, ""))).toLocaleString() + ' ' + formData.currency
+                         : '—'
+                       }
+                     </div>
+                  )}
                 </motion.div>
 
-                {formData.listingType === "rent" && (
-                  <motion.div variants={staggerItem}>
-                    <FieldLabel>{uc.rentalPeriodLabel}</FieldLabel>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {RENTAL_PERIODS.map((rp, idx) => {
-                        const active = formData.rentalPeriod === rp.value;
-                        return (
-                          <motion.button 
-                            key={rp.value} 
-                            type="button" 
-                            onClick={() => setFormData({ ...formData, rentalPeriod: rp.value })} 
-                            disabled={pending}
-                            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04, duration: 0.35 }}
-                            whileHover={{ scale: 1.04, y: -2 }} 
-                            whileTap={{ scale: 0.93 }} 
-                            className={`flex flex-col items-center justify-center rounded-[24px] py-6 text-[14px] font-black tracking-tight transition-all border-2 ${active ? "bg-foreground text-background border-foreground shadow-xl shadow-foreground/10" : "border-[var(--workspace-border)] bg-[var(--workspace-panel)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
-                            <Calendar size={20} className={`mb-2 ${active ? "text-background" : "text-[var(--workspace-highlight)]"}`} />
-                            {rp.label}
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
+
 
                 {formData.listingType === "sale" && (
                   <>
@@ -503,15 +585,30 @@ const staggerItem: Variants = {
                           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
                             <div className="relative"><Receipt className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.downPaymentPlaceholder} value={formData.downPayment} onChange={(v) => setFormData({ ...formData, downPayment: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                             <div className="relative"><Calendar className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="number" placeholder={uc.installmentYearsPlaceholder} value={formData.installmentYears} onChange={(v) => setFormData({ ...formData, installmentYears: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                            <div className="relative"><CreditCard className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.monthlyInstallmentPlaceholder} value={formData.monthlyInstallment} onChange={(v) => setFormData({ ...formData, monthlyInstallment: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
+                    
+                    <motion.div variants={staggerItem} className="pt-2">
+                      <div className="relative"><Receipt className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.maintenanceFeesPlaceholder} value={formData.maintenanceFees} onChange={(v) => setFormData({ ...formData, maintenanceFees: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                    </motion.div>
                   </>
                 )}
 
-                <motion.div variants={staggerItem}>
-                  <div className="relative"><Calendar className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.deliveryDatePlaceholder} value={formData.deliveryDate} onChange={(v) => setFormData({ ...formData, deliveryDate: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                <motion.div className="flex items-center gap-6 pt-2" variants={staggerItem}>
+                  {formData.listingType === "sale" && (
+                     <div className="flex-1 relative"><Calendar className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} /><TextInput type="text" placeholder={uc.deliveryDatePlaceholder} value={formData.deliveryDate} onChange={(v) => setFormData({ ...formData, deliveryDate: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} /></div>
+                  )}
+                  
+                  <motion.button 
+                    type="button" 
+                    onClick={() => setFormData(p => ({ ...p, negotiable: !p.negotiable }))}
+                    className={`flex items-center gap-2 rounded-full px-5 py-3 text-[14px] font-black transition-all border-2 ${formData.negotiable ? "border-foreground bg-foreground text-background shadow-[0_4px_12px_rgba(0,0,0,0.1)]" : "border-[var(--workspace-border)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
+                    <Handshake size={18} className={formData.negotiable ? "text-background" : "text-muted-foreground"} />
+                    {uc.negotiableLabel}
+                  </motion.button>
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -520,9 +617,9 @@ const staggerItem: Variants = {
           {/* ═══ STEP 4: Amenities & Nearby ═══ */}
           {activeStep === 4 && (
             <motion.div key="s4" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className="space-y-10 text-right" variants={staggerContainer} initial="enter" animate="center">
+              <motion.div className={`space-y-10 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "4", total: "7" })}</FieldLabel>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "4", total: "6" })}</FieldLabel>
                   <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.amenitiesTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.amenitiesDesc}</p>
                 </motion.div>
@@ -597,7 +694,7 @@ const staggerItem: Variants = {
             <motion.div key="s5" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
               <motion.div className={`space-y-10 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "5", total: "7" })}</FieldLabel>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "5", total: "6" })}</FieldLabel>
                   <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.mediaTitle}</h2>
                   <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.mediaDesc}</p>
                 </motion.div>
@@ -690,17 +787,47 @@ const staggerItem: Variants = {
             </motion.div>
           )}
 
-          {/* ═══ STEP 6: Documents ═══ */}
+          {/* ═══ STEP 6: Documents & Legal ═══ */}
           {activeStep === 6 && (
             <motion.div key="s6" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
               <motion.div className={`space-y-10 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
                 <motion.div variants={staggerItem}>
-                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "6", total: "7" })}</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.docsTitle}</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.docsDesc}</p>
+                  <FieldLabel>{formatWebCopy(uc.stepXofY, { step: "6", total: "6" })}</FieldLabel>
+                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.legalTitle}</h2>
+                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.legalDesc}</p>
                 </motion.div>
 
-                <motion.div variants={staggerItem} className="space-y-4">
+                <motion.div className="space-y-4" variants={staggerItem}>
+                  <TextArea placeholder={uc.descriptionPlaceholder} value={formData.description} onChange={(v) => setFormData({ ...formData, description: v })} rows={5} disabled={pending} />
+                </motion.div>
+
+                <motion.div variants={staggerItem}>
+                  <FieldLabel>{uc.registrationStatusLabel}</FieldLabel>
+                  <div className="flex flex-wrap gap-3">
+                    {REGISTRATION_OPTIONS.map((ro) => {
+                      const active = formData.registrationStatus === ro.value;
+                      return (
+                        <motion.button key={ro.value} type="button" onClick={() => setFormData({ ...formData, registrationStatus: ro.value })} disabled={pending}
+                          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.93 }} layout
+                          className={`rounded-full px-6 py-3 text-[14px] font-black tracking-tight transition-all border ${active ? "bg-foreground text-background border-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)]" : "bg-[var(--workspace-panel)] border-[var(--workspace-border)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
+                          {ro.label}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+
+                <motion.div className="space-y-4" variants={staggerItem}>
+                  <div className="relative">
+                    <ShieldCheck className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
+                    <TextInput placeholder={uc.adLicenseLabel} value={formData.adLicenseNumber} onChange={(v) => setFormData({ ...formData, adLicenseNumber: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} error={!formData.adLicenseNumber.trim() ? uc.adLicenseError : undefined} />
+                  </div>
+                </motion.div>
+
+                <motion.div variants={staggerItem} className="pt-4 space-y-4">
+                  <FieldLabel>{uc.docsTitle}</FieldLabel>
+                  <p className="text-[14px] text-[var(--workspace-muted)] mb-4">{uc.docsDesc}</p>
+                  
                   <motion.button 
                     type="button" 
                     whileHover={{ scale: 1.01 }} 
@@ -719,7 +846,7 @@ const staggerItem: Variants = {
                     <span className="text-[15px] font-black tracking-tight">{uc.uploadDocsHint}</span>
                   </motion.button>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-w-2xl mx-auto">
                     {formData.documents.map((doc) => (
                       <div key={doc.id} className={`flex items-center gap-4 rounded-[24px] border border-[color:var(--workspace-border)] bg-background p-4 ${isRtl ? "pr-6" : "pl-6"}`}>
                         <FileText size={18} className="text-[var(--workspace-highlight)]" />
@@ -729,47 +856,6 @@ const staggerItem: Variants = {
                     ))}
                   </div>
                 </motion.div>
-              </motion.div>
-            </motion.div>
-          )}
-
-          {/* ═══ STEP 7: Legal & Review ═══ */}
-          {activeStep === 7 && (
-            <motion.div key="s7" custom={direction} variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.div className={`space-y-8 ${isRtl ? "text-right" : "text-left"}`} variants={staggerContainer} initial="enter" animate="center">
-                <motion.div variants={staggerItem}>
-                  <FieldLabel>{uc.legalTitle}</FieldLabel>
-                  <h2 className="text-4xl font-black tracking-tight text-foreground lg:text-5xl">{uc.legalTitle}</h2>
-                  <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[var(--workspace-muted)]">{uc.legalDesc}</p>
-                </motion.div>
-
-                <motion.div className="space-y-4" variants={staggerItem}>
-                  <TextArea placeholder={uc.descriptionPlaceholder} value={formData.description} onChange={(v) => setFormData({ ...formData, description: v })} rows={5} disabled={pending} />
-                </motion.div>
-
-                <motion.div variants={staggerItem}>
-                  <FieldLabel>{uc.registrationStatusLabel}</FieldLabel>
-                  <div className="flex flex-wrap gap-3">
-                    {REGISTRATION_OPTIONS.map((ro) => {
-                      const active = formData.registrationStatus === ro.value;
-                      return (
-                        <motion.button key={ro.value} type="button" onClick={() => setFormData({ ...formData, registrationStatus: ro.value })} disabled={pending}
-                          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.93 }} layout
-                          className={`rounded-full px-6 py-3 text-[14px] font-black tracking-tight transition-all border ${active ? "bg-foreground text-background border-foreground shadow-lg shadow-foreground/10" : "bg-[var(--workspace-panel)] border-[var(--workspace-border)] text-[var(--workspace-muted)] hover:border-foreground/30 hover:text-foreground"}`}>
-                          {ro.label}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-
-                <motion.div className="space-y-4" variants={staggerItem}>
-                  <div className="relative">
-                    <ShieldCheck className={`absolute ${isRtl ? "right-4" : "left-4"} top-1/2 -translate-y-1/2 text-muted-foreground/40`} size={18} />
-                    <TextInput placeholder={uc.adLicenseLabel} value={formData.adLicenseNumber} onChange={(v) => setFormData({ ...formData, adLicenseNumber: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} error={!formData.adLicenseNumber.trim() ? uc.adLicenseError : undefined} />
-                  </div>
-                </motion.div>
-
                 <motion.div variants={staggerItem}>
                   <AnimatePresence mode="wait">
                     {canPublish ? (
@@ -792,7 +878,7 @@ const staggerItem: Variants = {
       </div>
 
       {/* ── Floating Dock ── */}
-      <div className="sticky bottom-[100px] z-50 mx-auto w-full max-w-3xl px-4">
+      <div className="sticky bottom-12 z-50 mx-auto w-full max-w-3xl px-4">
         <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
           <div className={`flex w-full items-center justify-between gap-4 rounded-full border border-[color:var(--workspace-border)] bg-[color:color-mix(in_srgb,var(--workspace-panel)_85%,transparent)] p-3 ${isRtl ? "pr-8" : "pl-8"} shadow-[0_24px_48px_-12px_rgba(0,0,0,0.18)] backdrop-blur-2xl`} dir={isRtl ? "rtl" : "ltr"}>
             <div className="hidden text-[15px] font-black tracking-tight text-[var(--workspace-muted)] sm:block">

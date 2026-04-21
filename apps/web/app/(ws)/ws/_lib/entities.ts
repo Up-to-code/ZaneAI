@@ -9,6 +9,9 @@ export type ListingType = "sale" | "rent";
 export type RentalPeriod = "day" | "week" | "month" | "year";
 export type UnitStatus = "available" | "reserved" | "sold";
 
+export type UnitDirection = "north" | "south" | "east" | "west" | "north_east" | "north_west" | "south_east" | "south_west" | "garden_view" | "sea_view" | "street_view";
+export type PriceCurrency = "EGP" | "USD";
+
 export type UnitReference = {
   id: string;
   projectId?: string;
@@ -36,6 +39,16 @@ export type UnitReference = {
   registrationStatus?: "registered" | "not_registered" | "pending";
   createdAt?: number;
   updatedAt?: number;
+  // Egyptian Market Additions
+  compoundName?: string;
+  unitCode?: string;
+  direction?: UnitDirection;
+  currency?: PriceCurrency;
+  pricePerMeter?: number;
+  maintenanceFees?: string;
+  monthlyInstallment?: string;
+  reception?: number;
+  negotiable?: boolean;
 };
 
 export type ProjectReference = {

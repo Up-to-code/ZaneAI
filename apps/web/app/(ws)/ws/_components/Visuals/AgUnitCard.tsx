@@ -34,6 +34,7 @@ export type AgUnitCardProps = {
   location?: string;
   variant?: "horizontal" | "vertical";
   projectId?: string;
+  unitCode?: string;
 };
 
 const STATUS_BADGE: Record<UnitStatus, string> = {
@@ -63,6 +64,7 @@ const AgUnitCardBase = function AgUnitCard({
   location,
   variant = "vertical",
   projectId,
+  unitCode,
 }: AgUnitCardProps) {
   const { dictionary, locale } = useWebLocale();
   const isRtl = locale === "ar";
@@ -86,7 +88,7 @@ const AgUnitCardBase = function AgUnitCard({
         href={projectId ? `/ws/projects/${projectId}/units/${id}` : "#"}
         className={cn(
           "relative overflow-hidden bg-muted/10 shrink-0",
-          variant === "vertical" ? "h-[260px] w-full" : "w-[180px] md:w-[220px] lg:w-[260px] h-full"
+          variant === "vertical" ? "h-[200px] md:h-[260px] w-full" : "w-[140px] sm:w-[180px] md:w-[220px] lg:w-[260px] h-full"
         )}
       >
         {displayImg ? (
@@ -94,28 +96,28 @@ const AgUnitCardBase = function AgUnitCard({
           <img src={displayImg} alt={label} className="h-full w-full object-cover transition-transform duration-[1.5s] group-hover:scale-105" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-[var(--workspace-panel)]">
-            <Building2 className="h-10 w-10 text-muted-foreground/10" />
+            <Building2 className="h-8 w-8 md:h-10 md:w-10 text-muted-foreground/10" />
           </div>
         )}
         
         {/* Badges Overlay */}
         <div className={cn(
-          "absolute top-5 flex items-center gap-2 px-5 w-full",
+          "absolute top-4 md:top-5 flex items-center gap-2 px-4 md:px-5 w-full",
           isRtl ? "flex-row-reverse text-right" : "flex-row text-left"
         )}>
           <span className={cn(
-            "rounded-full px-4 py-1.5 text-[9px] font-black uppercase tracking-widest leading-none",
+            "rounded-full px-3 md:px-4 py-1 md:py-1.5 text-[8px] md:text-[9px] font-black uppercase tracking-widest leading-none",
             STATUS_BADGE[status]
           )}>
-            {statusLabel ?? (status === "available" ? (isRtl ? "للبيع" : "FOR SALE") : status)}
+            {statusLabel ?? (status === "available" ? dictionary.units.available : status)}
           </span>
-          <span className="rounded-full bg-black/40 backdrop-blur-xl border border-white/10 px-4 py-1.5 text-[9px] font-black uppercase tracking-widest text-white leading-none">
-            {typeLabel ?? (isRtl ? "جديد" : "NEW")}
+          <span className="rounded-full bg-black/40 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 text-[8px] md:text-[9px] font-black uppercase tracking-widest text-white leading-none">
+            {typeLabel ?? dictionary.common.newBadge}
           </span>
         </div>
 
         {/* Carousel Dots Placeholder */}
-        <div className="absolute bottom-5 left-0 right-0 flex items-center justify-center gap-1.5">
+        <div className="absolute bottom-4 md:bottom-5 left-0 right-0 flex items-center justify-center gap-1.5">
            <div className="h-1.5 w-1.5 rounded-full bg-white shadow-xl" />
            <div className="h-1.5 w-1.5 rounded-full bg-white/30" />
            <div className="h-1.5 w-1.5 rounded-full bg-white/30" />
@@ -124,63 +126,72 @@ const AgUnitCardBase = function AgUnitCard({
 
       {/* 📄 Content Section */}
       <div className={cn(
-        "flex flex-1 flex-col p-7 gap-7",
+        "flex flex-1 flex-col p-5 md:p-7 gap-6 md:gap-7",
         variant === "vertical" ? "justify-between" : "justify-center"
       )}>
-        <div className="flex flex-col gap-6">
-          {/* Header: Title & Price Side-by-Side */}
-          <div className="flex items-start justify-between gap-4">
-             <div className="flex flex-col gap-2">
-                <h3 className="text-[24px] font-black tracking-tighter text-foreground leading-tight line-clamp-1 uppercase leading-none">{label}</h3>
-                {location && (
-                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
-                     <MapPin className="h-3 w-3" />
-                     <span className="truncate uppercase tracking-[0.2em]">{location}</span>
-                  </div>
+        <div className="flex flex-col gap-5 md:gap-6">
+          {/* Header: Title & Items */}
+          <div className="flex flex-col gap-4">
+             <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-1.5">
+                   <h3 className="text-[20px] md:text-[24px] font-black tracking-tighter text-foreground leading-tight line-clamp-1 uppercase whitespace-normal">{label}</h3>
+                   {location && (
+                     <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                        <MapPin className="h-3 w-3" />
+                        <span className="truncate uppercase tracking-[0.2em]">{location}</span>
+                     </div>
+                   )}
+                </div>
+
+                {(onEdit || onDelete) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={(
+                        <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-foreground/[0.08] transition hover:bg-foreground/[0.04] active:scale-95">
+                          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      )}
+                    />
+                    <DropdownMenuContent align={isRtl ? "start" : "end"} className="min-w-[180px] p-2 rounded-2xl border border-border bg-popover shadow-2xl animate-in fade-in zoom-in-95">
+                      {onEdit && (
+                        <DropdownMenuItem onClick={onEdit} className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-foreground/[0.03] transition-colors cursor-pointer">
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span>{dictionary.units.editAsset}</span>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator className="my-1 bg-foreground/[0.05]" />
+                      {onDelete && (
+                        <DropdownMenuItem 
+                         onClick={onDelete} 
+                         disabled={isDeleting}
+                         variant="destructive"
+                         className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span>{dictionary.units.deleteAsset}</span>
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
              </div>
-             
-             <div className="flex items-center gap-3">
-               <div className="text-[20px] font-black text-foreground tabular-nums tracking-tighter whitespace-nowrap">
-                  {priceLabel ?? (isRtl ? "طلب سعر" : "REQUEST")}
-               </div>
 
-               {(onEdit || onDelete) && (
-                 <DropdownMenu>
-                   <DropdownMenuTrigger
-                     render={(
-                       <button className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/[0.08] transition hover:bg-foreground/[0.04] active:scale-95">
-                         <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                       </button>
-                     )}
-                   />
-                   <DropdownMenuContent align={isRtl ? "start" : "end"} className="min-w-[180px] p-2 rounded-2xl border border-border bg-popover shadow-2xl animate-in fade-in zoom-in-95">
-                     {onEdit && (
-                       <DropdownMenuItem onClick={onEdit} className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-foreground/[0.03] transition-colors cursor-pointer">
-                         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                         <span>{isRtl ? "تعديل الوحدة" : "EDIT ASSET"}</span>
-                       </DropdownMenuItem>
-                     )}
-                     <DropdownMenuSeparator className="my-1 bg-foreground/[0.05]" />
-                     {onDelete && (
-                       <DropdownMenuItem 
-                        onClick={onDelete} 
-                        disabled={isDeleting}
-                        variant="destructive"
-                        className="flex items-center gap-2.5 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                       >
-                         <Trash2 className="h-3.5 w-3.5" />
-                         <span>{isRtl ? "حذف الوحدة" : "DELETE ASSET"}</span>
-                       </DropdownMenuItem>
-                     )}
-                   </DropdownMenuContent>
-                 </DropdownMenu>
-               )}
+             <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-[18px] md:text-[20px] font-black text-foreground tabular-nums tracking-tighter whitespace-nowrap">
+                     {priceLabel ?? dictionary.projects.types.fallback}
+                  </div>
+                  {unitCode && (
+                    <div className="rounded-md bg-foreground/[0.03] px-2 py-1 text-[8px] md:text-[9px] font-black tracking-widest text-muted-foreground/60 border border-foreground/[0.05]">
+                      {unitCode}
+                    </div>
+                  )}
+                </div>
              </div>
           </div>
 
           {description && (
-            <p className="text-[14px] font-medium leading-relaxed text-muted-foreground/40 line-clamp-2 min-h-[42px]">
+            <p className="text-[13px] md:text-[14px] font-medium leading-relaxed text-muted-foreground/40 line-clamp-2 md:min-h-[42px]">
               {description}
             </p>
           )}
@@ -188,18 +199,18 @@ const AgUnitCardBase = function AgUnitCard({
           <div className="h-px bg-foreground/[0.05]" />
 
           {/* 💎 Commercial Specs Row - Luxury Institutional Tone */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-               <BedDouble className="h-4 w-4 text-slate-400 opacity-60" />
-               <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.25em]">{bedrooms || 0} Bed</span>
+          <div className="flex items-center justify-between gap-2 sm:gap-4 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+               <BedDouble className="h-3.5 w-3.5 md:h-4 md:w-4 text-slate-400 opacity-60" />
+               <span className="text-[8px] md:text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] whitespace-nowrap">{bedrooms || 0} {dictionary.units.beds}</span>
             </div>
-            <div className="flex items-center gap-2">
-               <Bath className="h-4 w-4 text-slate-400 opacity-60" />
-               <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.25em]">{bathrooms || 0} Bath</span>
+            <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+               < Bath className="h-3.5 w-3.5 md:h-4 md:w-4 text-slate-400 opacity-60" />
+               <span className="text-[8px] md:text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] whitespace-nowrap">{bathrooms || 0} {dictionary.units.baths}</span>
             </div>
-            <div className="flex items-center gap-2">
-               <Ruler className="h-4 w-4 text-slate-400 opacity-60" />
-               <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.25em]">{area || 0} m²</span>
+            <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+               <Ruler className="h-3.5 w-3.5 md:h-4 md:w-4 text-slate-400 opacity-60" />
+               <span className="text-[8px] md:text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] whitespace-nowrap">{area || 0} {dictionary.units.sqm}</span>
             </div>
           </div>
         </div>
@@ -207,8 +218,8 @@ const AgUnitCardBase = function AgUnitCard({
         {/* 🚀 Actions Area - Institutional Premium CTA */}
         <div className="flex flex-col">
            {variant === "vertical" && (
-             <button className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-4.5 text-[11px] font-black uppercase tracking-[0.3em] text-background shadow-md shadow-foreground/5 transition-all hover:bg-foreground/90 hover:shadow-lg hover:shadow-foreground/10 active:scale-[0.98]">
-                <span>{isRtl ? "استفسار عن الوحدة" : "ENQUIRE NOW"}</span>
+             <button className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3.5 md:py-4.5 text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-background shadow-md shadow-foreground/5 transition-all hover:bg-foreground/90 hover:shadow-lg hover:shadow-foreground/10 active:scale-[0.98]">
+                <span>{dictionary.units.enquireNow}</span>
                 <ChevronLeft className={cn("h-4 w-4", isRtl ? "" : "rotate-180")} />
              </button>
            )}

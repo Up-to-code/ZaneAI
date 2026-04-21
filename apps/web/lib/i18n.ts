@@ -74,6 +74,25 @@ export type WebDictionary = {
     noData: string;
     last7Days: string;
     last30Days: string;
+    inventoryHealth: string;
+    marketVelocity: string;
+    occupancy: string;
+    topPerformers: string;
+    conversionFunnel: string;
+    growthInsights: string;
+    available: string;
+    reserved: string;
+    sold: string;
+    totalAssets: string;
+    capacity: string;
+    project: string;
+    leads: string;
+    efficiency: string;
+    eoiCount: string;
+    pricePerSqm: string;
+    appreciation: string;
+    installmentAverage: string;
+    delivery: string;
   };
   landing: {
     heroBadge: string;
@@ -129,6 +148,7 @@ export type WebDictionary = {
     newChat: string;
     hideSidebar: string;
     showSidebar: string;
+    preferencesLabel: string;
     allThreads: string;
     searchThreadsPlaceholder: string;
     noMatchingThreads: string;
@@ -152,6 +172,10 @@ export type WebDictionary = {
     contextsAndThreads: string;
     assistantThreadFallback: string;
     workspaceLabel: string;
+  };
+  common: {
+    back: string;
+    newBadge: string;
   };
   footer: {
     brandTitle: string;
@@ -240,6 +264,29 @@ export type WebDictionary = {
     years: string;
     averagePrice: string;
     totalUnits: string;
+    totalPortfolio: string;
+    aggregateInventory: string;
+    portfolioStatus: string;
+    operational: string;
+    active: string;
+    openAssets: string;
+    securityScan: string;
+    startingPrice: string;
+    totalInventory: string;
+    assetCapacity: string;
+    inventoryCatalog: string;
+    inventoryCatalogDesc: string;
+    videoTour: string;
+    gallery: string;
+    backToProjects: string;
+    backToProject: string;
+    technicalEnquiry: string;
+    openChannel: string;
+    publicationStates: {
+      draft: string;
+      published: string;
+      archived: string;
+    };
     types: {
       villas: string;
       apartments: string;
@@ -275,6 +322,14 @@ export type WebDictionary = {
     masterPlanDeveloping: string;
     feedbackCompleteFields: string;
     feedbackError: string;
+    amenityClubhouse: string;
+    amenityCommercial: string;
+    amenitySecurity: string;
+    amenitySchools: string;
+    amenityMedical: string;
+    amenityPools: string;
+    amenityGym: string;
+    amenityLandscape: string;
     editEyebrow: string;
     newEyebrow: string;
   };
@@ -341,6 +396,29 @@ export type WebDictionary = {
     delete: string;
     feedbackEmptyName: string;
     feedbackUnexpectedError: string;
+    // ── New Market Fields ──
+    compoundNamePlaceholder: string;
+    unitCodePlaceholder: string;
+    directionLabel: string;
+    receptionPlaceholder: string;
+    currencyLabel: string;
+    pricePerMeterLabel: string;
+    maintenanceFeesPlaceholder: string;
+    monthlyInstallmentPlaceholder: string;
+    negotiableLabel: string;
+    directions: {
+      north: string;
+      south: string;
+      east: string;
+      west: string;
+      north_east: string;
+      north_west: string;
+      south_east: string;
+      south_west: string;
+      garden_view: string;
+      sea_view: string;
+      street_view: string;
+    };
     rentalPeriods: {
       day: string;
       week: string;
@@ -405,6 +483,17 @@ export type WebDictionary = {
     description: string;
     bedrooms: string;
     bathrooms: string;
+    beds: string;
+    baths: string;
+    sqm: string;
+    enquireNow: string;
+    editAsset: string;
+    deleteAsset: string;
+    searchUnits: string;
+    allTypes: string;
+    allStatuses: string;
+    addAsset: string;
+    noMatchingUnits: string;
     area: string;
     available: string;
     reserved: string;
@@ -876,6 +965,25 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       noData: "لا توجد بيانات كافية حالياً",
       last7Days: "آخر 7 أيام",
       last30Days: "آخر 30 يوم",
+      inventoryHealth: "نبض صحة المخزون",
+      marketVelocity: "سرعة استجابة السوق",
+      occupancy: "نسبة الإشغال",
+      topPerformers: "المشاريع الأعلى أداءً",
+      conversionFunnel: "سرعة التحويل",
+      growthInsights: "نصائح النمو",
+      available: "متاح",
+      reserved: "محجوز",
+      sold: "مباع",
+      totalAssets: "إجمالي الأصول",
+      capacity: "السعة الإجمالية",
+      project: "المشروع",
+      leads: "المهتمين",
+      efficiency: "الكفاءة",
+      eoiCount: "جدية الحجز (EOI)",
+      pricePerSqm: "متوسط سعر المتر",
+      appreciation: "نسبة الارتفاع",
+      installmentAverage: "سنوات التقسيط",
+      delivery: "التسليم",
     },
     landing: {
       heroBadge: "نقود نموذجاً جديداً",
@@ -931,6 +1039,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       newChat: "محادثة جديدة",
       hideSidebar: "إخفاء القائمة",
       showSidebar: "إظهار القائمة",
+      preferencesLabel: "التفضيلات",
       allThreads: "كل المحادثات",
       searchThreadsPlaceholder: "ابحث بعنوان المحادثة",
       noMatchingThreads: "لا توجد محادثات بهذا العنوان",
@@ -954,6 +1063,10 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       contextsAndThreads: "السياقات والمحادثات",
       assistantThreadFallback: "محادثة المساعد",
       workspaceLabel: "مساحة العمل",
+    },
+    common: {
+      back: "رجوع",
+      newBadge: "جديد",
     },
     footer: {
       brandTitle: "مساحة العمل للمطورين والوسطاء",
@@ -1041,7 +1154,30 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       installments: "التقسيط",
       years: "{count} سنة",
       averagePrice: "متوسط السعر",
-      totalUnits: "إجمالي الوحدات",
+      totalUnits: "عدد الوحدات المحققة",
+      totalPortfolio: "إجمالي المحفظة",
+      aggregateInventory: "المخزون الإجمالي",
+      portfolioStatus: "حالة المحفظة",
+      operational: "تشغيل",
+      active: "نشط",
+      openAssets: "عرض المحفظة",
+      securityScan: "فحص أمان المحفظة",
+      startingPrice: "السعر يبدأ من",
+      totalInventory: "إجمالي المخزون",
+      assetCapacity: "السعة الاستيعابية",
+      inventoryCatalog: "كتالوج الوحدات",
+      inventoryCatalogDesc: "إدارة وتحليل وتتبع أداء جميع الوحدات العقارية الفردية ضمن محفظة هذا المشروع.",
+      videoTour: "جولة فيديو",
+      gallery: "المعرض",
+      backToProjects: "العودة للمشاريع",
+      backToProject: "العودة للمشروع",
+      technicalEnquiry: "استفسار تقني",
+      openChannel: "فتح القناة",
+      publicationStates: {
+        draft: "مسودة",
+        published: "منشور",
+        archived: "مؤرشف",
+      },
       types: {
         villas: "فلل",
         apartments: "شقق",
@@ -1063,7 +1199,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       mediaDesc: "سيتم إضافة نظام رفع الصور والـ Master Plan هنا في التحديث القادم لربطه بمعرض المجمع السكني.",
       amenitiesTitle: "المرافق والخدمات",
       amenitiesDesc: "حدد الخدمات المتوفرة داخل سور المجمع السكني (Compound).",
-      lastStep: "الخطوة الأخيرة",
+      lastStep: "تأكيد الطلب",
       saveDraft: "حفظ مجمع سكني",
       createProject: "إنشاء مجمع سكني",
       saving: "جاري الإنشاء...",
@@ -1075,8 +1211,16 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       placeholderInstallmentYears: "سنوات التقسيط (مثال: 8)",
       placeholderExpectedUnits: "عدد الوحدات المتوقع (اختياري)",
       masterPlanDeveloping: "[منطقة رفع المخطط العام (Master Plan) تحت التطوير]",
-      feedbackCompleteFields: "يرجى إكمال الحقول الأساسية: اسم المشروع، المطور، والموقع.",
-      feedbackError: "حدث خطأ غير متوقع.",
+      feedbackCompleteFields: "يرجى ملء كافة الحقول الأساسية قبل المتابعة.",
+      feedbackError: "خطأ أثناء حفظ المشروع. حاول مرة أخرى.",
+      amenityClubhouse: "كلوب هاوس",
+      amenityCommercial: "منطقة تجارية",
+      amenitySecurity: "أمن وحراسة",
+      amenitySchools: "مدارس دولية",
+      amenityMedical: "مراكز طبية",
+      amenityPools: "مسابح",
+      amenityGym: "نادي رياضي",
+      amenityLandscape: "مساحات خضراء",
       editEyebrow: "تعديل المجمع السكني",
       newEyebrow: "إنشاء مجمع سكنى جديد",
     },
@@ -1095,6 +1239,17 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       description: "الوصف",
       bedrooms: "غرف النوم",
       bathrooms: "الحمامات",
+      beds: "غرفة",
+      baths: "حمام",
+      sqm: "م²",
+      enquireNow: "استفسر الآن",
+      editAsset: "تعديل الوحدة",
+      deleteAsset: "حذف الوحدة",
+      searchUnits: "البحث عن الوحدات...",
+      allTypes: "كل الأنواع",
+      allStatuses: "كل الحالات",
+      addAsset: "إضافة وحدة",
+      noMatchingUnits: "لم يتم العثور على وحدات مطابقة",
       area: "المساحة",
       available: "متاحة",
       reserved: "محجوزة",
@@ -1605,6 +1760,28 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       delete: "حذف",
       feedbackEmptyName: "يرجى إدخال عنوان الوحدة على الأقل.",
       feedbackUnexpectedError: "حدث خطأ غير متوقع.",
+      compoundNamePlaceholder: "اسم الكمبوند (مثلاً: مدينتي، ماونتن فيو)",
+      unitCodePlaceholder: "كود الوحدة (مثلاً: B4-F5-03)",
+      directionLabel: "الواجهة / الإطلالة",
+      receptionPlaceholder: "عدد الريسبشن",
+      currencyLabel: "العملة",
+      pricePerMeterLabel: "سعر المتر",
+      maintenanceFeesPlaceholder: "رسوم الصيانة السنوية (ج.م)",
+      monthlyInstallmentPlaceholder: "قيمة القسط الشهري",
+      negotiableLabel: "قابل للتفاوض",
+      directions: {
+        north: "بحري",
+        south: "قبلي",
+        east: "شرقي",
+        west: "غربي",
+        north_east: "شمال شرقي",
+        north_west: "شمال غربي",
+        south_east: "جنوب شرقي",
+        south_west: "جنوب غربي",
+        garden_view: "إطلالة حديقة",
+        sea_view: "إطلالة بحر",
+        street_view: "إطلالة شارع",
+      },
       rentalPeriods: {
         day: "يومي",
         week: "أسبوعي",
@@ -1650,7 +1827,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
         villa: ["حمام سباحة خاص", "حديقة خاصة", "بدروم", "روف", "غرفة سائق", "غرفة خدم", "مدخل خاص", "ملعب خاص"],
         apartment: ["تراس", "غرفة غسيل", "حراسة خاصة", "جراج خاص", "دش مركزي"],
         chalet: ["إطلالة على البحر", "شاطئ خاص", "حمام سباحة مشترك", "ملعب أطفال", "لاند سكيب"],
-        commercial: ["واجهة زجاج", "تهوية مركزية", "مدخل مستقل", "أرضيات بورسلين", "عداد تجاري"],
+        commercial: ["واجهة زجاج", "تهوية مركزية", "مدمدخل مستقل", "أرضيات بورسلين", "عداد تجاري"],
       },
       nearbyPlaceNames: [
         "محطة مترو", "مركز تجاري / مول", "مدرسة دولية", "جامعة",
@@ -1681,6 +1858,25 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       noData: "Not enough data at the moment",
       last7Days: "Last 7 Days",
       last30Days: "Last 30 Days",
+      inventoryHealth: "Inventory Health Pulse",
+      marketVelocity: "Market Response Velocity",
+      occupancy: "Occupancy",
+      topPerformers: "Top Performing Projects",
+      conversionFunnel: "Conversion Velocity",
+      growthInsights: "Growth Insights",
+      available: "Available",
+      reserved: "Reserved",
+      sold: "Sold",
+      totalAssets: "Total Assets",
+      capacity: "Total Capacity",
+      project: "Project",
+      leads: "Leads",
+      efficiency: "Efficiency",
+      eoiCount: "EOI Count",
+      pricePerSqm: "Avg. Price / SQM",
+      appreciation: "Price Appreciation",
+      installmentAverage: "Avg. Installments",
+      delivery: "Delivery",
     },
     landing: {
       heroBadge: "Leading the new paradigm",
@@ -1736,6 +1932,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       newChat: "New chat",
       hideSidebar: "Hide sidebar",
       showSidebar: "Show sidebar",
+      preferencesLabel: "Preferences",
       allThreads: "All conversations",
       searchThreadsPlaceholder: "Search by conversation title",
       noMatchingThreads: "No conversations match this title",
@@ -1759,6 +1956,10 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       contextsAndThreads: "Contexts & Threads",
       assistantThreadFallback: "Assistant Thread",
       workspaceLabel: "Workspace",
+    },
+    common: {
+      back: "Back",
+      newBadge: "NEW",
     },
     footer: {
       brandTitle: "Workspace for developers and brokers",
@@ -1847,6 +2048,29 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       years: "{count} years",
       averagePrice: "Average Price",
       totalUnits: "Total Units",
+      totalPortfolio: "TOTAL PORTFOLIO",
+      aggregateInventory: "AGGREGATE INVENTORY",
+      portfolioStatus: "PORTFOLIO STATUS",
+      operational: "Operational",
+      active: "Active",
+      openAssets: "OPEN ASSETS",
+      securityScan: "Portfolio Security Scan",
+      startingPrice: "STARTING PRICE",
+      totalInventory: "TOTAL INVENTORY",
+      assetCapacity: "ASSET CAPACITY",
+      inventoryCatalog: "Inventory Catalog",
+      inventoryCatalogDesc: "Manage, analyze, and track performance of all individual real estate products within this project portfolio.",
+      videoTour: "VIDEO TOUR",
+      gallery: "GALLERY",
+      backToProjects: "BACK TO PROJECTS",
+      backToProject: "BACK TO PROJECT",
+      technicalEnquiry: "TECHNICAL ENQUIRY",
+      openChannel: "OPEN CHANNEL",
+      publicationStates: {
+        draft: "DRAFT",
+        published: "PUBLISHED",
+        archived: "ARCHIVED",
+      },
       types: {
         villas: "Villas",
         apartments: "Apartments",
@@ -1868,7 +2092,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       mediaDesc: "Image upload and Master Plan system will be added here in the next update.",
       amenitiesTitle: "Amenities & Services",
       amenitiesDesc: "Select the services available within the compound walls.",
-      lastStep: "Last Step",
+      lastStep: "Confirm Release",
       saveDraft: "Save Compound",
       createProject: "Create Compound",
       saving: "Creating...",
@@ -1880,8 +2104,16 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       placeholderInstallmentYears: "Installment years (e.g., 8)",
       placeholderExpectedUnits: "Expected units (Optional)",
       masterPlanDeveloping: "[Master Plan Upload area under development]",
-      feedbackCompleteFields: "Please complete the basic fields: Project Name, Developer, and Location.",
-      feedbackError: "An unexpected error occurred.",
+      feedbackCompleteFields: "Please complete all required fields to proceed.",
+      feedbackError: "An error occurred while saving the project. Please try again.",
+      amenityClubhouse: "Clubhouse",
+      amenityCommercial: "Commercial Strip",
+      amenitySecurity: "24/7 Security",
+      amenitySchools: "International Schools",
+      amenityMedical: "Medical Centers",
+      amenityPools: "Swimming Pools",
+      amenityGym: "Sports Gym",
+      amenityLandscape: "Green Landscapes",
       editEyebrow: "Edit Compound",
       newEyebrow: "Create New Compound",
     },
@@ -1900,6 +2132,17 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       description: "Description",
       bedrooms: "Bedrooms",
       bathrooms: "Bathrooms",
+      beds: "Bed",
+      baths: "Bath",
+      sqm: "m²",
+      enquireNow: "ENQUIRE NOW",
+      editAsset: "EDIT ASSET",
+      deleteAsset: "DELETE ASSET",
+      searchUnits: "SEARCH UNITS...",
+      allTypes: "ALL TYPES",
+      allStatuses: "ALL STATUSES",
+      addAsset: "ADD ASSET",
+      noMatchingUnits: "No matching units found",
       area: "Area",
       available: "Available",
       reserved: "Reserved",
@@ -2408,8 +2651,30 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       setAsCover: "Set as cover",
       enlargeImage: "Enlarge image",
       delete: "Delete",
-      feedbackEmptyName: "Please enter at least the unit title.",
+      feedbackEmptyName: "Please enter at least a unit title.",
       feedbackUnexpectedError: "An unexpected error occurred.",
+      compoundNamePlaceholder: "Compound name (e.g., Madinaty, Mountain View)",
+      unitCodePlaceholder: "Unit code (e.g., B4-F5-03)",
+      directionLabel: "Direction / View",
+      receptionPlaceholder: "Reception rooms",
+      currencyLabel: "Currency",
+      pricePerMeterLabel: "Price per meter",
+      maintenanceFeesPlaceholder: "Annual maintenance fees",
+      monthlyInstallmentPlaceholder: "Monthly installment amount",
+      negotiableLabel: "Negotiable",
+      directions: {
+        north: "North",
+        south: "South",
+        east: "East",
+        west: "West",
+        north_east: "Northeast",
+        north_west: "Northwest",
+        south_east: "Southeast",
+        south_west: "Southwest",
+        garden_view: "Garden view",
+        sea_view: "Sea view",
+        street_view: "Street view",
+      },
       rentalPeriods: {
         day: "Daily",
         week: "Weekly",
@@ -2475,17 +2740,36 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
   },
   fr: {
     performance: {
-      title: "Performance de l'organisation",
-      description: "Aperçu de la portée numérique et de l'engagement pour tous les projets.",
+      title: "Performance de l'Organisation",
+      description: "Un résumé de la portée numérique et de l'engagement pour tous les projets.",
       views: "Vues",
       clicks: "Clics",
-      totalViews: "Total des vues",
-      totalClicks: "Total des clics",
-      ctaBreakdown: "Répartition des actions de communication",
-      trendTitle: "Tendance de performance",
-      noData: "Pas assez de données pour le moment",
-      last7Days: "7 derniers jours",
-      last30Days: "30 derniers jours",
+      totalViews: "Total des Vues",
+      totalClicks: "Total des Clics",
+      ctaBreakdown: "Analyse des Actions",
+      trendTitle: "Tendance d'Activité",
+      noData: "Aucune donnée disponible",
+      last7Days: "7 Derniers Jours",
+      last30Days: "30 Derniers Jours",
+      inventoryHealth: "Pouls de l'inventaire",
+      marketVelocity: "Vitesse du marché",
+      occupancy: "Occupation",
+      topPerformers: "Meilleurs projets",
+      conversionFunnel: "Vitesse de conversion",
+      growthInsights: "Conseils de croissance",
+      available: "Disponible",
+      reserved: "Réservé",
+      sold: "Vendu",
+      totalAssets: "Total des actifs",
+      capacity: "Capacité totale",
+      project: "Projet",
+      leads: "Prospects",
+      efficiency: "Efficacité",
+      eoiCount: "Nombre d'EOI",
+      pricePerSqm: "Prix moyen / m²",
+      appreciation: "Plus-value",
+      installmentAverage: "Moy. Versements",
+      delivery: "Livraison",
     },
     landing: {
       heroBadge: "À la pointe du nouveau modèle",
@@ -2541,6 +2825,7 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       newChat: "Nouvelle conversation",
       hideSidebar: "Masquer la barre latérale",
       showSidebar: "Afficher la barre latérale",
+      preferencesLabel: "Préférences",
       allThreads: "Toutes les conversations",
       searchThreadsPlaceholder: "Rechercher par titre",
       noMatchingThreads: "Aucune conversation ne correspond à ce titre",
@@ -2564,6 +2849,10 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       contextsAndThreads: "Contextes et discussions",
       assistantThreadFallback: "Discussion Assistant",
       workspaceLabel: "Espace de travail",
+    },
+    common: {
+      back: "Retour",
+      newBadge: "NOUVEAU",
     },
     footer: {
       brandTitle: "Espace de travail pour promoteurs et courtiers",
@@ -2651,7 +2940,30 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       installments: "Versements",
       years: "{count} ans",
       averagePrice: "Prix Moyen",
-      totalUnits: "Total des Unités",
+      totalUnits: "Total des unités",
+      totalPortfolio: "PORTEFEUILLE TOTAL",
+      aggregateInventory: "INVENTAIRE GLOBAL",
+      portfolioStatus: "STATUT DU PORTEFEUILLE",
+      operational: "Opérationnel",
+      active: "Actif",
+      openAssets: "OUVRIR LES ACTIFS",
+      securityScan: "Examen de sécurité du portefeuille",
+      startingPrice: "PRIX DE DÉPART",
+      totalInventory: "INVENTAIRE TOTAL",
+      assetCapacity: "CAPACITÉ DES ACTIFS",
+      inventoryCatalog: "Catalogue d'inventaire",
+      inventoryCatalogDesc: "Gérez, analysez et suivez la performance de tous les produits immobiliers individuels au sein de ce portefeuille de projets.",
+      videoTour: "VISITE VIDÉO",
+      gallery: "GALERIE",
+      backToProjects: "RETOUR AUX PROJETS",
+      backToProject: "RETOUR AU PROJET",
+      technicalEnquiry: "DEMANDE TECHNIQUE",
+      openChannel: "OUVRIR LE CANAL",
+      publicationStates: {
+        draft: "BROUILLON",
+        published: "PUBLIÉ",
+        archived: "ARCHIVÉ",
+      },
       types: {
         villas: "Villas",
         apartments: "Appartements",
@@ -2686,7 +2998,15 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       placeholderExpectedUnits: "Unités prévues",
       masterPlanDeveloping: "[Zone de téléchargement en développement]",
       feedbackCompleteFields: "Veuillez remplir les champs obligatoires.",
-      feedbackError: "Une erreur inattendue est survenue.",
+      feedbackError: "Une erreur est survenue lors de l'enregistrement du projet.",
+      amenityClubhouse: "Club-house",
+      amenityCommercial: "Centre commercial",
+      amenitySecurity: "Sécurité 24/7",
+      amenitySchools: "Écoles internationales",
+      amenityMedical: "Centres médicaux",
+      amenityPools: "Piscines",
+      amenityGym: "Salle de sport",
+      amenityLandscape: "Espaces verts",
       editEyebrow: "Modifier le Complexe",
       newEyebrow: "Nouveau Complexe",
     },
@@ -2705,6 +3025,17 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       description: "Description",
       bedrooms: "Chambres",
       bathrooms: "Salles de bain",
+      beds: "Chambre",
+      baths: "Bain",
+      sqm: "m²",
+      enquireNow: "DEMANDER MAINTENANT",
+      editAsset: "MODIFIER L'ACTIF",
+      deleteAsset: "SUPPRIMER L'ACTIF",
+      searchUnits: "RECHERCHER DES UNITÉS...",
+      allTypes: "TOUS LES TYPES",
+      allStatuses: "TOUS LES STATUTS",
+      addAsset: "AJOUTER UN ACTIF",
+      noMatchingUnits: "Aucune unité correspondante trouvée",
       area: "Surface",
       available: "Disponible",
       reserved: "Réservé",
@@ -3215,6 +3546,28 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       delete: "Supprimer",
       feedbackEmptyName: "Veuillez entrer au moins le titre.",
       feedbackUnexpectedError: "Une erreur inattendue est survenue.",
+      compoundNamePlaceholder: "Nom du complexe (ex: Madinaty)",
+      unitCodePlaceholder: "Code de l'unité (ex: B4-F5)",
+      directionLabel: "Direction / Vue",
+      receptionPlaceholder: "Pièces de réception",
+      currencyLabel: "Devise",
+      pricePerMeterLabel: "Prix au mètre",
+      maintenanceFeesPlaceholder: "Frais d'entretien annuels",
+      monthlyInstallmentPlaceholder: "Montant de la mensualité",
+      negotiableLabel: "Négociable",
+      directions: {
+        north: "Nord",
+        south: "Sud",
+        east: "Est",
+        west: "Ouest",
+        north_east: "Nord-est",
+        north_west: "Nord-ouest",
+        south_east: "Sud-est",
+        south_west: "Sud-ouest",
+        garden_view: "Vue jardin",
+        sea_view: "Vue mer",
+        street_view: "Vue rue",
+      },
       rentalPeriods: {
         day: "Journalier",
         week: "Hebdomadaire",

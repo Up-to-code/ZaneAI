@@ -97,9 +97,9 @@ export default function WorkspaceTopNavbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
-        <div className="flex items-center gap-1">
-          <WebLocaleSwitcher className="h-9 w-9 lg:h-10 lg:w-10 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] dark:text-white/80 dark:hover:bg-white/10" />
-          <ThemeToggle className="h-9 w-9 lg:h-10 lg:w-10 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] dark:text-white/80 dark:hover:bg-white/10" />
+        <div className="hidden items-center gap-1 lg:flex">
+          <WebLocaleSwitcher className="h-9 w-9 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] lg:h-10 lg:w-10 dark:text-white/80 dark:hover:bg-white/10" />
+          <ThemeToggle className="h-9 w-9 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] lg:h-10 lg:w-10 dark:text-white/80 dark:hover:bg-white/10" />
         </div>
         
         {verificationBadgeLabel ? (

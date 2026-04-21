@@ -32,6 +32,7 @@ import type * as agent_public_listThreads from "../agent/public/listThreads.js";
 import type * as agent_public_sendUserMessage from "../agent/public/sendUserMessage.js";
 import type * as agent_public_startThread from "../agent/public/startThread.js";
 import type * as agent_public_stopRun from "../agent/public/stopRun.js";
+import type * as analytics_public_getWorkspaceStats from "../analytics/public/getWorkspaceStats.js";
 import type * as analytics_public_trackEvent from "../analytics/public/trackEvent.js";
 import type * as auth_client from "../auth/client.js";
 import type * as auth_createAuth from "../auth/createAuth.js";
@@ -114,6 +115,7 @@ declare const fullApi: ApiFromModules<{
   "agent/public/sendUserMessage": typeof agent_public_sendUserMessage;
   "agent/public/startThread": typeof agent_public_startThread;
   "agent/public/stopRun": typeof agent_public_stopRun;
+  "analytics/public/getWorkspaceStats": typeof analytics_public_getWorkspaceStats;
   "analytics/public/trackEvent": typeof analytics_public_trackEvent;
   "auth/client": typeof auth_client;
   "auth/createAuth": typeof auth_createAuth;

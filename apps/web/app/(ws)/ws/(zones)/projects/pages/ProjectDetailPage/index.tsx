@@ -19,11 +19,7 @@ import ProjectUnitsManager from "./ProjectUnitsManager";
 import type { ProjectMutationActionResult } from "../ProjectsPage/actionTypes";
 import type { ProjectAnalyticsEventType } from "@/server/contracts/properties";
 
-const publicationLabels: Record<WorkspaceProject["publicationState"], string> = {
-  draft: "مسودة",
-  published: "منشور",
-  archived: "مؤرشف",
-};
+
 
 const publicationTone: Record<WorkspaceProject["publicationState"], string> = {
   draft: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/40 dark:bg-amber-950/40 dark:text-amber-400",
@@ -76,7 +72,7 @@ export default function ProjectDetailPage({
               className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 transition hover:text-foreground"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
-              <span>{isRtl ? "العودة للمشاريع" : "BACK TO PROJECTS"}</span>
+              <span>{dictionary.projects.backToProjects}</span>
             </Link>
             
             <div className="flex flex-col gap-2">
@@ -84,7 +80,14 @@ export default function ProjectDetailPage({
                   <MapPin className="h-3 w-3" />
                   <span>{project.location}</span>
                </div>
-               <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground leading-[1.1]">{project.title}</h1>
+               <div className="flex flex-col gap-1">
+                  <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground leading-[1.1]">{project.title}</h1>
+                  {project.developerName && (
+                    <div className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">
+                      {project.developerName}
+                    </div>
+                  )}
+               </div>
                <div className="flex flex-wrap gap-2 mt-1">
                   {project.amenities?.slice(0, 4).map((amenity) => (
                     <span key={amenity} className="rounded-full border border-[var(--workspace-border)] px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{amenity}</span>
@@ -94,12 +97,12 @@ export default function ProjectDetailPage({
           </div>
 
           <div className="flex items-center gap-2.5">
-             <span className={cn(
-               "rounded-full border px-4 py-2 text-[9px] font-black uppercase tracking-widest",
-               publicationTone[project.publicationState]
-             )}>
-                {publicationLabels[project.publicationState]}
-             </span>
+              <span className={cn(
+                "rounded-full border px-4 py-2 text-[9px] font-black uppercase tracking-widest",
+                publicationTone[project.publicationState]
+              )}>
+                 {dictionary.projects.publicationStates[project.publicationState]}
+              </span>
              <div className="h-8 w-px bg-[var(--workspace-border)] mx-1 hidden lg:block" />
              <div className="flex items-center gap-2">
                {project.canEdit && (
@@ -135,11 +138,11 @@ export default function ProjectDetailPage({
           )}>
                <button className="flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-3xl border border-white/20 px-7 py-3.5 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-white/20 active:scale-95">
                   <Play className="h-4 w-4 fill-white" />
-                  <span>{isRtl ? "جولة فيديو" : "VIDEO TOUR"}</span>
+                  <span>{dictionary.projects.videoTour}</span>
                </button>
                <button className="flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-3xl border border-white/20 px-7 py-3.5 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-white/20 active:scale-95">
                   <LayoutGrid className="h-4 w-4" />
-                  <span>{isRtl ? "المعرض" : "GALLERY"}</span>
+                  <span>{dictionary.projects.gallery}</span>
                </button>
           </div>
         </div>
@@ -147,38 +150,44 @@ export default function ProjectDetailPage({
         {/* ── Luxury Metrics Scorecard ── */}
         <div className="flex flex-col lg:flex-row items-stretch gap-0 border border-foreground/[0.08] rounded-[24px] bg-gradient-to-br from-foreground/[0.02] to-transparent overflow-hidden">
            <div className="flex-1 flex flex-col gap-2 p-8 border-b lg:border-b-0 lg:border-r border-foreground/[0.05]">
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">STARTING PRICE</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.startingPrice}</span>
               <span className="text-[28px] font-black tracking-tighter text-foreground tabular-nums">{project.priceLabel}</span>
            </div>
            <div className="flex-1 flex flex-col gap-2 p-8 border-b lg:border-b-0 lg:border-r border-foreground/[0.05]">
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">TOTAL INVENTORY</span>
-              <span className="text-[28px] font-black tracking-tighter text-foreground tabular-nums">{project.units.length} <span className="text-[12px] text-muted-foreground/30 font-bold uppercase ml-1">Assets</span></span>
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.totalInventory}</span>
+              <span className="text-[28px] font-black tracking-tighter text-foreground tabular-nums">{project.units.length} <span className="text-[12px] text-muted-foreground/30 font-bold uppercase ml-1">{dictionary.units.title}</span></span>
            </div>
            <div className="flex-1 flex flex-col gap-2 p-8 border-b lg:border-b-0 lg:border-r border-foreground/[0.05]">
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">ASSET CAPACITY</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.assetCapacity}</span>
               <span className="text-[28px] font-black tracking-tighter text-foreground tabular-nums">{project.expectedUnits || "0"}</span>
            </div>
+           {project.installmentYears && (
+             <div className="flex-1 flex flex-col gap-2 p-8 border-b lg:border-b-0 lg:border-r border-foreground/[0.05]">
+               <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">{dictionary.projects.installments}</span>
+               <span className="text-[28px] font-black tracking-tighter text-foreground tabular-nums">
+                 {project.installmentYears} <span className="text-[12px] text-muted-foreground/30 font-bold uppercase ml-1">{dictionary.projects.years.replace('{count}', '').trim()}</span>
+               </span>
+             </div>
+           )}
            <div className="flex-1 flex flex-col gap-2 p-8 bg-foreground/[0.02]">
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-[var(--workspace-highlight)] opacity-50">PORTFOLIO STATUS</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-[var(--workspace-highlight)] opacity-50">{dictionary.projects.portfolioStatus}</span>
               <div className="flex items-center gap-2">
                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                 <span className="text-[14px] font-black text-emerald-600 uppercase tracking-[0.1em] leading-none">Operational</span>
+                 <span className="text-[14px] font-black text-emerald-600 uppercase tracking-[0.1em] leading-none">{dictionary.projects.operational}</span>
               </div>
            </div>
         </div>
 
         {/* ── Units Catalog Section ── */}
         <div className="flex flex-col gap-10 mt-12">
-           <div className="flex flex-col gap-2">
-              <h2 className="text-4xl font-black tracking-tighter text-foreground uppercase">
-                 {isRtl ? "كتالوج الوحدات" : "Inventory Catalog"}
-              </h2>
-              <p className="text-[15px] font-medium text-muted-foreground max-w-xl leading-relaxed opacity-70">
-                 {isRtl 
-                   ? "إدارة وتحليل وتتبع أداء جميع الوحدات العقارية الفردية ضمن محفظة هذا المشروع."
-                   : "Manage, analyze, and track performance of all individual real estate products within this project portfolio."}
-              </p>
-           </div>
+            <div className="flex flex-col gap-2">
+               <h2 className="text-4xl font-black tracking-tighter text-foreground uppercase">
+                  {dictionary.projects.inventoryCatalog}
+               </h2>
+               <p className="text-[15px] font-medium text-muted-foreground max-w-xl leading-relaxed opacity-70">
+                  {dictionary.projects.inventoryCatalogDesc}
+               </p>
+            </div>
            
            <div className="pt-4">
               <ProjectUnitsManager 
@@ -208,9 +217,9 @@ export default function ProjectDetailPage({
             router.push("/ws/projects");
           });
         }}
-        title={`حذف المشروع: ${project.title}`}
-        description="سيتم حذف المشروع من مساحة العمل الحالية."
-        confirmLabel="حذف المشروع"
+        title={`${dictionary.projects.deleteConfirm}: ${project.title}`}
+        description={dictionary.projects.deleteDescription}
+        confirmLabel={dictionary.projects.deleteConfirm}
       />
     </div>
   );
