@@ -4,7 +4,6 @@ import { use } from "react";
 import ProjectDetailPage from "../pages/ProjectDetailPage";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
-import { getDemoProject } from "../../../_lib/demoData";
 import type { Id } from "@convex/dataModel";
 
 type WorkspaceProjectDetailRouteProps = {
@@ -17,14 +16,12 @@ export default function WorkspaceProjectDetailRoute({
   params,
 }: WorkspaceProjectDetailRouteProps) {
   const { projectId } = use(params);
-  const demoProject = getDemoProject(projectId);
-  const liveProject = useQuery(
+  const project = useQuery(
     api.partnerProperties.getWorkspaceProperty,
-    demoProject ? "skip" : { propertyId: projectId as Id<"projects"> },
+    { propertyId: projectId as Id<"projects"> },
   );
   const publishProperty = useMutation(api.partnerProperties.setWorkspacePropertyPublicationState);
   const deleteProperty = useMutation(api.partnerProperties.deleteWorkspaceProperty);
-  const project = demoProject ?? liveProject;
 
   if (project === undefined) {
     return (
@@ -50,16 +47,10 @@ export default function WorkspaceProjectDetailRoute({
     <ProjectDetailPage
       project={project}
       onPublishProject={async () => {
-        if (demoProject) {
-          return { ok: true, redirectTo: `/ws/projects/${projectId}` };
-        }
         await publishProperty({ propertyId: projectId as Id<"projects">, publicationState: "published" });
         return { ok: true, redirectTo: `/ws/projects/${projectId}` };
       }}
       onDeleteProject={async () => {
-        if (demoProject) {
-          return { ok: true, redirectTo: "/ws/projects" };
-        }
         await deleteProperty({ propertyId: projectId as Id<"projects"> });
         return { ok: true, redirectTo: "/ws/projects" };
       }}

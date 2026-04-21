@@ -1,6 +1,5 @@
 import type { QueryCtx } from "../../_generated/server";
 import type { Doc, Id } from "../../_generated/dataModel";
-import { demoProperties } from "../../shared/demoProperties";
 
 export type ListingDoc = Doc<"listings">;
 export type PropertyCompat = {
@@ -45,41 +44,12 @@ export function toPropertyCompat(listing: ListingDoc): PropertyCompat {
   };
 }
 
-function mapDemoListing(row: (typeof demoProperties)[number]): PropertyCompat {
-  return {
-    _id: `demo:${row.externalId}` as Id<"listings">,
-    _creationTime: 0,
-    externalId: row.externalId,
-    title: row.title,
-    description: row.aiSummary,
-    location: row.location,
-    price: row.price,
-    priceLabel: row.priceLabel,
-    beds: row.beds,
-    baths: row.baths,
-    area: row.area,
-    heroUrl: row.heroUrl,
-    searchText: `${row.title} ${row.location} ${row.tags.join(" ")} ${row.aiSummary}`.toLowerCase(),
-    matchScore: row.matchScore,
-    matchReasons: row.matchReasons,
-    aiSummary: row.aiSummary,
-    tags: row.tags,
-  };
-}
-
-export function isDemoCatalogEnabled() {
-  return process.env.NODE_ENV !== "production";
-}
-
 export async function listCatalogListings(ctx: QueryCtx, limit: number) {
   const rows = await ctx.db
     .query("listings")
     .withIndex("by_status", (q) => q.eq("status", "active"))
     .take(limit);
-  if (rows.length > 0 || !isDemoCatalogEnabled()) {
-    return rows.map(toPropertyCompat);
-  }
-  return demoProperties.slice(0, limit).map(mapDemoListing);
+  return rows.map(toPropertyCompat);
 }
 
 export async function getCatalogListingById(ctx: QueryCtx, listingId: string) {
@@ -89,12 +59,7 @@ export async function getCatalogListingById(ctx: QueryCtx, listingId: string) {
       return toPropertyCompat(listing);
     }
   } catch {
-    // Fall back to demo ids below.
-  }
-  if (!isDemoCatalogEnabled()) {
     return null;
   }
-  const demoId = listingId.startsWith("demo:") ? listingId.slice("demo:".length) : listingId;
-  const demo = demoProperties.find((item) => item.externalId === demoId);
-  return demo ? mapDemoListing(demo) : null;
+  return null;
 }

@@ -12,15 +12,15 @@ export const assistantAgents: readonly RegisteredAssistantAgent[] = [
   {
     id: "orchestrator",
     role: "router",
-    tools: ["route_prompt"],
-    prompt: "Routes each prompt to the leanest useful specialist set.",
+    tools: ["route_prompt", "load_property_search_history"],
+    prompt: "ZaneAI routes each prompt to the leanest useful specialist set and avoids loading history unless needed.",
     motionPreset: "assistant",
   },
   {
     id: "property",
     role: "specialist",
-    tools: ["extract_search_filters", "search_properties", "search_web"],
-    prompt: "Handles property search, shortlist, comparison, and market context.",
+    tools: ["extract_search_filters", "smart_search_properties", "search_web"],
+    prompt: "Handles smart property search, staged fallback, shortlist, comparison, and market context.",
     motionPreset: "property",
   },
   {

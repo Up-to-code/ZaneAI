@@ -61,6 +61,7 @@ export type UnitPropertyFormData = {
   description: string;
   adLicenseNumber: string;
   registrationStatus: "registered" | "not_registered" | "pending";
+  projectId: string; // Used when picking project dynamically
 };
 
 export type AgUnitFormProps = {
@@ -68,6 +69,7 @@ export type AgUnitFormProps = {
   title?: string;
   description?: string;
   submitLabel?: string;
+  projectOptions?: { id: string; title: string; location: string }[];
   onSave: (data: UnitPropertyFormData) => Promise<{ ok: boolean; feedback?: { message: string } }>;
   onCancel?: () => void;
   cancelHref: string;
@@ -99,6 +101,7 @@ const staggerItem: Variants = {
   title,
   description,
   submitLabel,
+  projectOptions,
   onSave,
   onCancel,
   cancelHref,
@@ -217,10 +220,11 @@ const staggerItem: Variants = {
     nearbyPlaces: initialData?.nearbyPlaces ?? [],
     images: initialData?.images ?? [],
     videoUrl: initialData?.videoUrl ?? "",
-    documents: initialData?.documents ?? [],
-    description: initialData?.description ?? "",
-    adLicenseNumber: initialData?.adLicenseNumber ?? "",
-    registrationStatus: initialData?.registrationStatus ?? "not_registered",
+    documents: initialData?.documents || [],
+    description: initialData?.description || "",
+    adLicenseNumber: initialData?.adLicenseNumber || "",
+    registrationStatus: initialData?.registrationStatus || "not_registered",
+    projectId: initialData?.projectId || "",
   });
 
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -238,13 +242,13 @@ const staggerItem: Variants = {
     }
   }, [formData.unitType, uc.amenities, SHARED_AMENITY_LABELS]);
 
-  const canPublish = Boolean(
-    formData.name.trim() &&
-    formData.location.trim() &&
-    formData.price.trim() &&
-    formData.area.trim() &&
-    formData.adLicenseNumber.trim()
-  );
+  const canPublish = useMemo(() => {
+    const required = [
+      formData.name, formData.unitType, formData.price, formData.adLicenseNumber,
+      ...(projectOptions ? [formData.projectId] : [])
+    ];
+    return required.every(Boolean);
+  }, [formData, projectOptions]);
 
   const handleNext = () => {
     if (activeStep === 1 && !formData.name.trim()) {
@@ -823,6 +827,30 @@ const staggerItem: Variants = {
                     <TextInput placeholder={uc.adLicenseLabel} value={formData.adLicenseNumber} onChange={(v) => setFormData({ ...formData, adLicenseNumber: v })} disabled={pending} className={isRtl ? "pr-11" : "pl-11"} error={!formData.adLicenseNumber.trim() ? uc.adLicenseError : undefined} />
                   </div>
                 </motion.div>
+
+                {projectOptions && projectOptions.length > 0 && (
+                  <motion.div variants={staggerItem} className="pt-6 space-y-4 border-t border-foreground/[0.04]">
+                    <FieldLabel>{isRtl ? "اختر المشروع" : "Select Project"}</FieldLabel>
+                    <p className="text-[14px] text-[var(--workspace-muted)] mb-4">
+                      {isRtl ? "يجب ربط الوحدة بمشروع موثق لنشرها ضمن قائمة المشاريع الخاصة بك." : "The unit must be linked to a verified project to be published."}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {projectOptions.map(project => (
+                        <motion.button
+                          key={project.id}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, projectId: project.id })}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={`flex flex-col gap-1 ${isRtl ? "items-end text-right" : "items-start text-left"} p-5 rounded-[20px] border transition-all ${formData.projectId === project.id ? "bg-foreground/5 border-foreground shadow-[0_4px_12px_rgba(0,0,0,0.06)]" : "bg-[var(--workspace-panel)] border-[var(--workspace-border)] hover:border-foreground/20"}`}
+                        >
+                          <span className={`text-[15px] font-black tracking-tight ${formData.projectId === project.id ? "text-foreground" : "text-muted-foreground"}`}>{project.title}</span>
+                          <span className="text-[12px] text-muted-foreground/60 font-semibold">{project.location}</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
 
                 <motion.div variants={staggerItem} className="pt-4 space-y-4">
                   <FieldLabel>{uc.docsTitle}</FieldLabel>

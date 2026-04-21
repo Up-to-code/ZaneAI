@@ -122,7 +122,6 @@ export default function AgPropertyForm({
   onCancel,
   onDelete,
 }: AgPropertyFormProps) {
-  const mockDataEnabled = process.env.NEXT_PUBLIC_MOCK_DATA_ENABLED === "true";
   const [selectedBrokerId, setSelectedBrokerId] = useState<string | null>(initialData?.brokerId ?? null);
   const [brokerSearch, setBrokerSearch] = useState("");
   const [isBrokerDropdownOpen, setIsBrokerDropdownOpen] = useState(false);
@@ -566,13 +565,9 @@ export default function AgPropertyForm({
 
               <div
                 className={cn(
-                  "group col-span-2 mt-2 flex cursor-pointer flex-row-reverse items-center justify-between border-2 p-4 text-right transition-all",
-                  formState.video ? "border-blue-600 bg-blue-50/20" : "border-slate-100 bg-white hover:border-slate-300",
+                  "group col-span-2 mt-2 flex flex-row-reverse items-center justify-between border-2 p-4 text-right transition-all",
+                  formState.video ? "border-blue-600 bg-blue-50/20" : "border-slate-100 bg-white",
                 )}
-                onClick={() => {
-                  if (!mockDataEnabled) return;
-                  setFormState((previous) => ({ ...previous, video: previous.video ? null : "mock-video.mp4" }));
-                }}
               >
                 <div className="flex flex-row-reverse items-center gap-3">
                   <div

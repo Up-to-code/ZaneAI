@@ -4,7 +4,6 @@ import { useMutation, useQuery } from "convex/react";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { api } from "@/persistence/convex/api";
 import { toPropertyCardVM } from "@/persistence/convex/propertyAdapter";
-import { mockProperties } from "@/persistence/mocks/mock-data";
 import { useAppStore } from "@/store";
 import type { PropertyCardVM } from "@/types/domain";
 
@@ -29,7 +28,7 @@ export function useCandidateProperties() {
 
   return useMemo(() => {
     if (e2eQaMode) {
-      return mockProperties;
+      return [];
     }
 
     return ensureArray<any>(rows, "listCandidateProperties").map(toPropertyCardVM);
@@ -45,7 +44,7 @@ export function usePropertyById(propertyId: string | undefined) {
 
   return useMemo(() => {
     if (e2eQaMode) {
-      return mockProperties.find((property) => property.id === propertyId) ?? null;
+      return null;
     }
 
     return row ? toPropertyCardVM(row) : null;
@@ -61,7 +60,7 @@ export function usePropertiesByIds(propertyIds: string[]) {
 
   return useMemo(() => {
     if (e2eQaMode) {
-      return mockProperties.filter((property) => propertyIds.includes(property.id));
+      return [];
     }
 
     return ensureArray<any>(rows, "listByIds").map(toPropertyCardVM);
@@ -150,7 +149,7 @@ export function useSavedProperties() {
       if (e2eQaMode) {
         return e2eSavedPropertyIds.map((propertyId) => ({
           listingId: propertyId,
-          property: mockProperties.find((property) => property.id === propertyId) ?? null,
+          property: null,
         }));
       }
 

@@ -101,4 +101,44 @@ export const agentTables = {
     .index("by_authUserId", ["authUserId"])
     .index("by_messageId", ["messageId"])
     .index("by_runId", ["runId"]),
+  agentToolCalls: defineTable({
+    authUserId: v.string(),
+    threadId: v.string(),
+    runId: v.optional(v.id("agentRuns")),
+    toolName: v.string(),
+    inputHash: v.string(),
+    inputJson: v.string(),
+    outputSummary: v.optional(v.string()),
+    cacheStatus: v.optional(v.union(v.literal("hit"), v.literal("miss"), v.literal("skipped"))),
+    createdAt: v.number(),
+  })
+    .index("by_threadId", ["threadId"])
+    .index("by_runId", ["runId"])
+    .index("by_toolName_and_inputHash", ["toolName", "inputHash"]),
+  propertySearchSessions: defineTable({
+    authUserId: v.string(),
+    threadId: v.string(),
+    runId: v.optional(v.id("agentRuns")),
+    normalizedQuery: v.string(),
+    generatedQuery: v.string(),
+    filtersJson: v.string(),
+    relaxedConstraintsJson: v.string(),
+    resultIds: v.array(v.string()),
+    selectedResultId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_threadId_and_updatedAt", ["threadId", "updatedAt"])
+    .index("by_authUserId_and_updatedAt", ["authUserId", "updatedAt"]),
+  propertySearchResults: defineTable({
+    sessionId: v.id("propertySearchSessions"),
+    propertyId: v.string(),
+    rank: v.number(),
+    score: v.number(),
+    reasons: v.array(v.string()),
+    relaxationStage: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_sessionId", ["sessionId"])
+    .index("by_propertyId", ["propertyId"]),
 };

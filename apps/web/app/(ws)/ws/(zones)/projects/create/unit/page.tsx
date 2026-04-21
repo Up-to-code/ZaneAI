@@ -50,14 +50,10 @@ export default function CreateUnitPage() {
   const createUnit = useMutation(api.workspaceUnits.createUnit);
   const upsertCompliance = useMutation(api.workspaceUnits.upsertListingCompliance);
   const projects = useQuery(api.partnerProperties.listWorkspaceProperties, {});
-  const initialProjectId = searchParams.get("projectId") ?? "";
-  const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId);
-
   const projectOptions = useMemo(
     () => (Array.isArray(projects) ? projects : []),
     [projects],
   );
-  const effectiveProjectId = selectedProjectId || projectOptions[0]?.id || "";
 
   if (projects === undefined) {
     return (
@@ -87,42 +83,28 @@ export default function CreateUnitPage() {
 
   return (
     <div className="space-y-6">
-      <div className="mx-auto w-full max-w-3xl rounded-2xl border border-[var(--workspace-border)] bg-[var(--workspace-panel)] p-4">
-        <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--workspace-muted)]">
-          Parent project
-        </label>
-        <select
-          value={effectiveProjectId}
-          onChange={(event) => setSelectedProjectId(event.target.value)}
-          className="w-full rounded-xl border border-foreground/[0.08] bg-background px-4 py-3 text-sm font-bold text-foreground outline-none"
-        >
-          {projectOptions.map((project: { id: string; title: string; location: string }) => (
-            <option key={project.id} value={project.id}>
-              {project.title} - {project.location}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <AgUnitCreateForm
         title="إنشاء وحدة عقارية"
         description="أكمل بيانات الوحدة العقارية واربطها بمشروع موثق قبل النشر."
         submitLabel="حفظ الوحدة العقارية"
-        cancelHref={effectiveProjectId ? `/ws/projects/${effectiveProjectId}` : "/ws/projects"}
+        cancelHref="/ws/projects"
+        projectOptions={projectOptions}
         onCancel={() => router.back()}
         onSave={async (data) => {
           try {
-            const result = await createUnit(toCreateUnitArgs(effectiveProjectId, data));
+            if (!data.projectId) throw new Error("يجب اختيار مشروع للوحدة");
+            const result = await createUnit(toCreateUnitArgs(data.projectId, data));
             if (data.adLicenseNumber.trim()) {
               await upsertCompliance({
                 unitId: result.unitId,
-                projectId: effectiveProjectId as Id<"projects">,
+                projectId: data.projectId as Id<"projects">,
                 adLicenseNumber: data.adLicenseNumber,
                 registrationStatus: data.registrationStatus,
                 privateNotes: data.documents.length ? `${data.documents.length} document(s) attached locally.` : undefined,
               });
             }
-            router.push(`/ws/projects/${effectiveProjectId}/units/${result.unitId}`);
+            router.push(`/ws/projects/${data.projectId}/units/${result.unitId}`);
             return { ok: true };
           } catch (error: unknown) {
             return {

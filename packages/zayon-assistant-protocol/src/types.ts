@@ -154,6 +154,9 @@ export type AssistantAction =
       minPrice?: number;
       maxPrice?: number;
       minBeds?: number;
+      budgetMode?: "target" | "max" | "range" | "unknown";
+      relaxedConstraints?: string[];
+      sourceSearchSessionId?: string;
     };
   };
 
@@ -171,6 +174,10 @@ export type AssistantBlock =
     subtitle?: string;
     propertyIds: string[];
     querySummary?: string;
+    searchQuery?: string;
+    matchReasons?: string[];
+    relaxationsApplied?: string[];
+    resultSetId?: string;
   }
   | {
     type: "comparison";

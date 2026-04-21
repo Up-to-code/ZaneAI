@@ -132,6 +132,9 @@ const openSearchActionSchema: z.ZodType<OpenSearchAction> = z.object({
     minPrice: z.number().optional(),
     maxPrice: z.number().optional(),
     minBeds: z.number().optional(),
+    budgetMode: z.enum(["target", "max", "range", "unknown"]).optional(),
+    relaxedConstraints: z.array(z.string().min(1)).max(6).optional(),
+    sourceSearchSessionId: z.string().min(1).optional(),
   }),
 });
 
@@ -159,6 +162,10 @@ const propertyListBlockSchema: z.ZodType<PropertyListBlock> = z.object({
   subtitle: z.string().min(1).optional(),
   propertyIds: z.array(z.string().min(1)).min(1).max(6),
   querySummary: z.string().min(1).optional(),
+  searchQuery: z.string().min(1).optional(),
+  matchReasons: z.array(z.string().min(1)).max(6).optional(),
+  relaxationsApplied: z.array(z.string().min(1)).max(6).optional(),
+  resultSetId: z.string().min(1).optional(),
 });
 
 const comparisonBlockSchema: z.ZodType<ComparisonBlock> = z.object({

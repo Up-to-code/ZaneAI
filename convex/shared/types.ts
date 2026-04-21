@@ -17,6 +17,10 @@ export const RUN_STATUSES = [
 export const FACT_SOURCES = ["manual", "message", "agent"] as const;
 export const CACHE_KINDS = [
   "property_search",
+  "route_planning",
+  "query_planning",
+  "typesense_search",
+  "reranking",
   "web_search",
   "fact_extraction",
   "rag_search",

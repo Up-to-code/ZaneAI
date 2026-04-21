@@ -1,12 +1,9 @@
-import { requireWorkspaceData } from "../../../../../_lib/workspaceData";
-import { getDemoOrganizationProfile } from "../../../../../_lib/demoData";
 import { notFound } from "next/navigation";
-import OrganizationProfileUI from "./OrganizationProfileUI";
 
 /**
- * WHY:   Partner directory routes should remain useful after removing the live organizations service.
- * WHAT:  Renders a deterministic organization profile using local demo data.
- * HOW:   Keeps the original route structure and UI component while swapping the data source.
+ * WHY:   Partner directory routes should display real organization profiles from the backend.
+ * WHAT:  Currently shows a placeholder until a real organization profile query is built.
+ * HOW:   Displays a minimal empty state for the directory profile page.
  */
 export default async function OrganizationProfilePageRoute({
   params,
@@ -14,10 +11,18 @@ export default async function OrganizationProfilePageRoute({
   params: Promise<{ type: "broker" | "developer"; slug: string }>;
 }) {
   const { type, slug } = await params;
-  await requireWorkspaceData(`/ws/offers/directory/${type}/${slug}`);
 
-  const profile = getDemoOrganizationProfile(type, slug);
-  if (!profile) notFound();
+  if (!slug) notFound();
 
-  return <OrganizationProfileUI profile={profile} type={type} />;
+  return (
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-5xl items-center justify-center px-6 py-12">
+      <div className="rounded-[32px] border border-border/60 bg-card p-8 text-center shadow-sm space-y-3">
+        <div className="text-2xl font-black text-foreground capitalize">{type} Profile</div>
+        <p className="text-sm text-muted-foreground">
+          Organization profile data will load from the backend. No mock data is being displayed.
+        </p>
+        <p className="text-xs text-muted-foreground/50 font-mono">{slug}</p>
+      </div>
+    </div>
+  );
 }

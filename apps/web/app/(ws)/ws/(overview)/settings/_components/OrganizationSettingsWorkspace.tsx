@@ -210,7 +210,7 @@ export default function OrganizationSettingsWorkspace({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-10 pt-10 border-t border-[color:var(--workspace-border)]">
-          <div aria-live="polite" className="min-h-[20px] text-[11px] font-black uppercase tracking-[0.2em] text-[var(--zane-ai-accent)]">
+          <div aria-live="polite" className="min-h-[20px] text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
             {status}
           </div>
           <button

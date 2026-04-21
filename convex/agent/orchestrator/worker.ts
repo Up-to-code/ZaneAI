@@ -17,6 +17,8 @@ import type {
   AssistantSource,
   AssistantTurn,
 } from "../../../packages/zayon-assistant-protocol/src";
+import type { BudgetMode, SmartPropertySearchResult } from "../../property/lib/recommendation";
+import { orderRowsByTypesenseIds, searchTypesensePropertyIds } from "../../property/lib/typesense";
 import { assistantAgents } from "./registry";
 import { logAgentEvent } from "../lib/debugLog";
 
@@ -35,6 +37,8 @@ type PropertySearchFilters = {
   location?: string;
   minPrice?: number;
   maxPrice?: number;
+  targetPrice?: number;
+  budgetMode?: BudgetMode;
   minBeds?: number;
 };
 
@@ -47,6 +51,9 @@ type PropertyRow = {
   baths: number;
   tags: string[];
   description?: string;
+  recommendationScore?: number;
+  recommendationReasons?: string[];
+  relaxationStage?: string;
 };
 
 type PropertySpecialistResult = {
@@ -56,6 +63,10 @@ type PropertySpecialistResult = {
   comparisonPoints: string[];
   followupQuestion?: string;
   querySummary?: string;
+  generatedQuery: string;
+  normalizedQuery: string;
+  relaxedConstraints: string[];
+  searchSessionId?: string;
   filters: PropertySearchFilters;
   sources: AssistantSource[];
 };
@@ -87,6 +98,8 @@ const propertyFiltersSchema = z.object({
   location: z.string().min(1).nullable(),
   minPrice: z.number().positive().nullable(),
   maxPrice: z.number().positive().nullable(),
+  targetPrice: z.number().positive().nullable(),
+  budgetMode: z.enum(["target", "max", "range", "unknown"]).nullable(),
   minBeds: z.number().int().positive().nullable(),
 });
 
@@ -160,6 +173,15 @@ function hasAnyKeyword(input: string, keywords: string[]) {
   return keywords.some((keyword) => input.includes(keyword));
 }
 
+function isGreetingPrompt(prompt: string) {
+  const normalized = prompt.trim().toLowerCase();
+  return /^(hi|hello|hey|good morning|good evening|salam|مرحبا|اهلا|أهلا)[!. ]*$/.test(normalized);
+}
+
+function needsHistoryLookup(prompt: string) {
+  return /\b(that|those|previous|before|again|show me more|more like|cheaper one|apartment i showed|one before)\b/i.test(prompt);
+}
+
 function routePrompt(prompt: string): {
   route: AssistantRoute;
   specialists: Array<"property" | "funding" | "advisor">;
@@ -219,6 +241,12 @@ async function generateStructuredObject<TSchema extends z.ZodTypeAny>(args: {
   schema: TSchema;
   system: string;
   prompt: string;
+  usage?: {
+    client: ConvexClient;
+    input: WorkerRunInput;
+    agentName: string;
+    cacheStatus?: "hit" | "miss" | "skipped";
+  };
 }) {
   const result = await generateObject({
     model: createModel(),
@@ -227,6 +255,23 @@ async function generateStructuredObject<TSchema extends z.ZodTypeAny>(args: {
     prompt: args.prompt,
     temperature: 0.2,
   });
+
+  if (args.usage) {
+    const usage = result.usage;
+    const units = usage?.totalTokens ?? usage?.inputTokens ?? 1;
+    await args.usage.client.mutation(api.agent.orchestrator.runtime.trackWorkerUsage, {
+      authUserId: args.usage.input.authUserId,
+      threadId: args.usage.input.threadId,
+      runId: args.usage.input.runId as never,
+      quotaKey: "message_tokens",
+      model: getChatModel(),
+      agentName: args.usage.agentName,
+      provider: "openai-compatible",
+      cacheStatus: args.usage.cacheStatus,
+      metadataJson: JSON.stringify(usage ?? {}),
+      units,
+    });
+  }
 
   return result.object;
 }
@@ -290,7 +335,7 @@ function buildPropertySearchPrompt(prompt: string, filters: PropertySearchFilter
     "",
     `Sources: ${JSON.stringify(sources)}`,
     "",
-    "Return the best shortlist grounded in the candidate properties only.",
+    "Return the best shortlist grounded in the candidate properties only. Mention when a result is a nearby or relaxed fallback.",
   ].join("\n");
 }
 
@@ -302,25 +347,114 @@ function toOptionalNumber(value: number | null | undefined) {
   return value ?? undefined;
 }
 
-async function runPropertySpecialist(client: ConvexClient, prompt: string): Promise<PropertySpecialistResult> {
+function hashJson(value: unknown) {
+  const input = JSON.stringify(value);
+  let hash = 5381;
+  for (let index = 0; index < input.length; index += 1) {
+    hash = (hash * 33) ^ input.charCodeAt(index);
+  }
+  return `h${(hash >>> 0).toString(16)}`;
+}
+
+async function recordToolCall(client: ConvexClient, input: WorkerRunInput, args: {
+  toolName: string;
+  input: unknown;
+  outputSummary?: string;
+  cacheStatus?: "hit" | "miss" | "skipped";
+}) {
+  await client.mutation(api.agent.orchestrator.runtime.recordWorkerToolCall, {
+    authUserId: input.authUserId,
+    threadId: input.threadId,
+    runId: input.runId as never,
+    toolName: args.toolName,
+    inputHash: hashJson(args.input),
+    inputJson: JSON.stringify(args.input).slice(0, 8000),
+    outputSummary: args.outputSummary,
+    cacheStatus: args.cacheStatus,
+  });
+}
+
+function buildHistoryContext(searches: Array<{ generatedQuery?: string; resultIds?: string[]; relaxedConstraintsJson?: string }>) {
+  if (searches.length === 0) {
+    return "";
+  }
+  return [
+    "Recent structured property-search history:",
+    ...searches.map((search, index) =>
+      `${index + 1}. ${search.generatedQuery ?? "previous search"} -> ${(search.resultIds ?? []).slice(0, 5).join(", ")}`,
+    ),
+  ].join("\n");
+}
+
+async function runPropertySpecialist(client: ConvexClient, input: WorkerRunInput, prompt: string): Promise<PropertySpecialistResult> {
+  const history = needsHistoryLookup(prompt)
+    ? await client.query(api.agent.orchestrator.runtime.getRecentPropertySearchesForWorker, {
+      authUserId: input.authUserId,
+      threadId: input.threadId,
+      limit: 3,
+    }) as Array<{ generatedQuery?: string; resultIds?: string[]; relaxedConstraintsJson?: string }>
+    : [];
+  if (history.length > 0) {
+    await recordToolCall(client, input, {
+      toolName: "property_search_history",
+      input: { threadId: input.threadId, prompt },
+      outputSummary: `Loaded ${history.length} recent search sessions.`,
+      cacheStatus: "skipped",
+    });
+  }
+
   const extractedFiltersRaw = await generateStructuredObject({
     schema: propertyFiltersSchema,
-    system: "Extract property search filters from the user request. Only return fields that are explicitly or strongly implied.",
-    prompt,
+    system: [
+      "ZaneAI property search planner.",
+      "Extract only useful structured search filters.",
+      "Budget semantics: max/under/up to means budgetMode=max; around/about/average means budgetMode=target.",
+      "Use the user's wording to build a concise query. Do not load or invent memory.",
+    ].join("\n"),
+    prompt: [prompt, buildHistoryContext(history)].filter(Boolean).join("\n\n"),
+    usage: { client, input, agentName: "search_planner", cacheStatus: "miss" },
   });
   const extractedFilters: PropertySearchFilters = {
     ...(toOptionalString(extractedFiltersRaw.query) ? { query: toOptionalString(extractedFiltersRaw.query) } : {}),
     ...(toOptionalString(extractedFiltersRaw.location) ? { location: toOptionalString(extractedFiltersRaw.location) } : {}),
     ...(toOptionalNumber(extractedFiltersRaw.minPrice) ? { minPrice: toOptionalNumber(extractedFiltersRaw.minPrice) } : {}),
     ...(toOptionalNumber(extractedFiltersRaw.maxPrice) ? { maxPrice: toOptionalNumber(extractedFiltersRaw.maxPrice) } : {}),
+    ...(toOptionalNumber(extractedFiltersRaw.targetPrice) ? { targetPrice: toOptionalNumber(extractedFiltersRaw.targetPrice) } : {}),
+    ...(extractedFiltersRaw.budgetMode ? { budgetMode: extractedFiltersRaw.budgetMode } : {}),
     ...(toOptionalNumber(extractedFiltersRaw.minBeds) ? { minBeds: toOptionalNumber(extractedFiltersRaw.minBeds) } : {}),
   };
 
-  const candidates = await client.query(api.property.public.searchProperties.searchProperties, {
+  const smartResult = await client.query(api.property.public.smartSearchProperties.smartSearchProperties, {
     ...extractedFilters,
     query: extractedFilters.query ?? prompt,
-    limit: 4,
-  }) as PropertyRow[];
+    limit: 8,
+  }) as SmartPropertySearchResult;
+
+  let candidates = smartResult.results as PropertyRow[];
+  const typesenseIds = await searchTypesensePropertyIds({
+    ...extractedFilters,
+    query: smartResult.generatedQuery || extractedFilters.query || prompt,
+    limit: 30,
+  });
+  if (typesenseIds.length > 0) {
+    const typesenseRows = await client.query(api.property.public.listByIds.listByIds, {
+      propertyExternalIds: typesenseIds,
+    }) as PropertyRow[];
+    candidates = orderRowsByTypesenseIds(typesenseRows as never, typesenseIds) as unknown as PropertyRow[];
+    await recordToolCall(client, input, {
+      toolName: "typesense_search",
+      input: { filters: extractedFilters, query: smartResult.generatedQuery },
+      outputSummary: `Typesense returned ${typesenseIds.length} candidate ids.`,
+      cacheStatus: "miss",
+    });
+  } else {
+    await recordToolCall(client, input, {
+      toolName: "smart_property_search",
+      input: { filters: extractedFilters, query: smartResult.generatedQuery },
+      outputSummary: `Convex smart search returned ${candidates.length} candidates.`,
+      cacheStatus: "miss",
+    });
+  }
 
   const sources = shouldFetchLiveContext(prompt) ? await searchWeb(prompt) : [];
 
@@ -331,7 +465,10 @@ async function runPropertySpecialist(client: ConvexClient, prompt: string): Prom
       highlights: ["The current brief is still too broad or outside the visible catalog."],
       comparisonPoints: [],
       followupQuestion: "Which area or budget should I lock first?",
-      querySummary: extractedFilters.query,
+      querySummary: smartResult.generatedQuery,
+      generatedQuery: smartResult.generatedQuery,
+      normalizedQuery: smartResult.normalizedQuery,
+      relaxedConstraints: smartResult.relaxedConstraints,
       filters: extractedFilters,
       sources,
     };
@@ -339,33 +476,66 @@ async function runPropertySpecialist(client: ConvexClient, prompt: string): Prom
 
   const ranked = await generateStructuredObject({
     schema: propertyResultSchema,
-    system: "You are the property specialist. Rank the provided candidates, write concise highlights, and avoid inventing properties.",
+    system: [
+      "You are ZaneAI's property recommendation ranker.",
+      "Be concise, useful, and grounded in the candidates only.",
+      "Prefer exact matches, but explain nearby or relaxed alternatives when they are the best available.",
+    ].join("\n"),
     prompt: buildPropertySearchPrompt(prompt, extractedFilters, candidates, sources),
+    usage: { client, input, agentName: "recommendation_ranker", cacheStatus: "miss" },
   });
 
   const validatedPropertyIds = ranked.propertyIds.filter((propertyId) =>
     candidates.some((candidate) => candidate.externalId === propertyId),
   );
 
-  return {
+  const result: PropertySpecialistResult = {
     assistantText: ranked.assistantText,
     highlights: ranked.highlights,
     comparisonPoints: ranked.comparisonPoints,
     followupQuestion: toOptionalString(ranked.followupQuestion),
-    querySummary: toOptionalString(ranked.querySummary),
+    querySummary: toOptionalString(ranked.querySummary) ?? smartResult.generatedQuery,
+    generatedQuery: smartResult.generatedQuery,
+    normalizedQuery: smartResult.normalizedQuery,
+    relaxedConstraints: smartResult.relaxedConstraints,
     propertyIds: validatedPropertyIds.length > 0
       ? validatedPropertyIds
       : candidates.slice(0, 3).map((candidate) => candidate.externalId),
     filters: extractedFilters,
     sources,
   };
+
+  const sessionId = await client.mutation(api.agent.orchestrator.runtime.recordWorkerPropertySearch, {
+    authUserId: input.authUserId,
+    threadId: input.threadId,
+    runId: input.runId as never,
+    normalizedQuery: smartResult.normalizedQuery,
+    generatedQuery: smartResult.generatedQuery,
+    filtersJson: JSON.stringify(extractedFilters),
+    relaxedConstraintsJson: JSON.stringify(smartResult.relaxedConstraints),
+    resultIds: result.propertyIds,
+    results: result.propertyIds.map((propertyId, index) => {
+      const candidate = candidates.find((row) => row.externalId === propertyId);
+      return {
+        propertyId,
+        rank: index + 1,
+        score: candidate?.recommendationScore ?? 0,
+        reasons: candidate?.recommendationReasons ?? [],
+        relaxationStage: candidate?.relaxationStage ?? "exact",
+      };
+    }),
+  }) as string;
+
+  result.searchSessionId = sessionId;
+  return result;
 }
 
-async function runFundingSpecialist(prompt: string): Promise<FundingSpecialistResult> {
+async function runFundingSpecialist(client: ConvexClient, input: WorkerRunInput, prompt: string): Promise<FundingSpecialistResult> {
   const result = await generateStructuredObject({
     schema: fundingResultSchema,
-    system: "You are the funding specialist. Give practical, concise guidance, highlight tradeoffs, and avoid pretending to approve a real loan.",
+    system: "You are ZaneAI's funding specialist. Give practical, concise guidance, highlight tradeoffs, and avoid pretending to approve a real loan.",
     prompt,
+    usage: { client, input, agentName: "funding", cacheStatus: "miss" },
   });
 
   return {
@@ -374,11 +544,21 @@ async function runFundingSpecialist(prompt: string): Promise<FundingSpecialistRe
   };
 }
 
-async function runAdvisorSpecialist(prompt: string): Promise<AdvisorSpecialistResult> {
+async function runAdvisorSpecialist(client: ConvexClient, input: WorkerRunInput, prompt: string): Promise<AdvisorSpecialistResult> {
+  if (isGreetingPrompt(prompt)) {
+    return {
+      assistantText: "Hey, how can I help you find something today?",
+      title: "ZaneAI",
+      body: "Hey, how can I help you find something today?",
+      bullets: [],
+    };
+  }
+
   const result = await generateStructuredObject({
     schema: advisorResultSchema,
-    system: "You are the advisor specialist. Reply clearly, calmly, and in a way that can power a lightweight assistant UI block.",
+    system: "You are ZaneAI. Reply clearly and calmly. Keep simple requests short; only go deeper when the user asks for analysis.",
     prompt,
+    usage: { client, input, agentName: "advisor", cacheStatus: "miss" },
   });
 
   return {
@@ -428,10 +608,15 @@ function buildPropertyActions(result: PropertySpecialistResult): AssistantAction
 
   actions.push({
     id: "open-search",
-    title: "Open search",
-    name: "open_search",
-    payload: result.filters,
-  });
+      title: "Open search",
+      name: "open_search",
+      payload: {
+        ...result.filters,
+        query: result.generatedQuery,
+        relaxedConstraints: result.relaxedConstraints,
+        sourceSearchSessionId: result.searchSessionId,
+      },
+    });
 
   return actions.slice(0, 8);
 }
@@ -460,6 +645,10 @@ function buildAssistantTurn(args: {
         subtitle: propertyResult.querySummary,
         propertyIds: propertyResult.propertyIds,
         querySummary: propertyResult.querySummary,
+        searchQuery: propertyResult.generatedQuery,
+        matchReasons: propertyResult.highlights,
+        relaxationsApplied: propertyResult.relaxedConstraints,
+        resultSetId: propertyResult.searchSessionId,
       });
     } else {
       blocks.push({
@@ -801,13 +990,13 @@ export const agentTurnWorkflow = workflow("agent-turn", async (ctx, input: Worke
 
       if (specialist === "property") {
         specialistResults.property = await ctx.step("run-property-specialist", async () =>
-          await runPropertySpecialist(client, input.prompt));
+          await runPropertySpecialist(client, input, input.prompt));
       } else if (specialist === "funding") {
         specialistResults.funding = await ctx.step("run-funding-specialist", async () =>
-          await runFundingSpecialist(input.prompt));
+          await runFundingSpecialist(client, input, input.prompt));
       } else {
         specialistResults.advisor = await ctx.step("run-advisor-specialist", async () =>
-          await runAdvisorSpecialist(input.prompt));
+          await runAdvisorSpecialist(client, input, input.prompt));
       }
 
       await emitStage(client, {

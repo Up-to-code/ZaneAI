@@ -11,6 +11,7 @@
 import type * as agent_internal_assistantTurns from "../agent/internal/assistantTurns.js";
 import type * as agent_internal_debug from "../agent/internal/debug.js";
 import type * as agent_internal_events from "../agent/internal/events.js";
+import type * as agent_internal_memory from "../agent/internal/memory.js";
 import type * as agent_internal_runs from "../agent/internal/runs.js";
 import type * as agent_internal_usage from "../agent/internal/usage.js";
 import type * as agent_lib_component from "../agent/lib/component.js";
@@ -40,6 +41,7 @@ import type * as auth_createAuthOptions from "../auth/createAuthOptions.js";
 import type * as auth_internal_anonymousLink from "../auth/internal/anonymousLink.js";
 import type * as auth_profile from "../auth/profile.js";
 import type * as auth_requireAuth from "../auth/requireAuth.js";
+import type * as buyer from "../buyer.js";
 import type * as core_lib from "../core/lib.js";
 import type * as http from "../http.js";
 import type * as listings from "../listings.js";
@@ -62,13 +64,17 @@ import type * as partnerWorkspace_lib from "../partnerWorkspace/lib.js";
 import type * as property_internal_listCandidateProperties from "../property/internal/listCandidateProperties.js";
 import type * as property_internal_listSavedProperties from "../property/internal/listSavedProperties.js";
 import type * as property_internal_searchProperties from "../property/internal/searchProperties.js";
+import type * as property_internal_smartSearchProperties from "../property/internal/smartSearchProperties.js";
 import type * as property_lib_catalog from "../property/lib/catalog.js";
+import type * as property_lib_recommendation from "../property/lib/recommendation.js";
 import type * as property_lib_search from "../property/lib/search.js";
+import type * as property_lib_typesense from "../property/lib/typesense.js";
 import type * as property_public_getById from "../property/public/getById.js";
 import type * as property_public_listByIds from "../property/public/listByIds.js";
 import type * as property_public_listCandidateProperties from "../property/public/listCandidateProperties.js";
 import type * as property_public_listSavedProperties from "../property/public/listSavedProperties.js";
 import type * as property_public_searchProperties from "../property/public/searchProperties.js";
+import type * as property_public_smartSearchProperties from "../property/public/smartSearchProperties.js";
 import type * as property_public_toggleSavedProperty from "../property/public/toggleSavedProperty.js";
 import type * as schema_agent from "../schema/agent.js";
 import type * as schema_buyer from "../schema/buyer.js";
@@ -94,6 +100,7 @@ declare const fullApi: ApiFromModules<{
   "agent/internal/assistantTurns": typeof agent_internal_assistantTurns;
   "agent/internal/debug": typeof agent_internal_debug;
   "agent/internal/events": typeof agent_internal_events;
+  "agent/internal/memory": typeof agent_internal_memory;
   "agent/internal/runs": typeof agent_internal_runs;
   "agent/internal/usage": typeof agent_internal_usage;
   "agent/lib/component": typeof agent_lib_component;
@@ -123,6 +130,7 @@ declare const fullApi: ApiFromModules<{
   "auth/internal/anonymousLink": typeof auth_internal_anonymousLink;
   "auth/profile": typeof auth_profile;
   "auth/requireAuth": typeof auth_requireAuth;
+  buyer: typeof buyer;
   "core/lib": typeof core_lib;
   http: typeof http;
   listings: typeof listings;
@@ -145,13 +153,17 @@ declare const fullApi: ApiFromModules<{
   "property/internal/listCandidateProperties": typeof property_internal_listCandidateProperties;
   "property/internal/listSavedProperties": typeof property_internal_listSavedProperties;
   "property/internal/searchProperties": typeof property_internal_searchProperties;
+  "property/internal/smartSearchProperties": typeof property_internal_smartSearchProperties;
   "property/lib/catalog": typeof property_lib_catalog;
+  "property/lib/recommendation": typeof property_lib_recommendation;
   "property/lib/search": typeof property_lib_search;
+  "property/lib/typesense": typeof property_lib_typesense;
   "property/public/getById": typeof property_public_getById;
   "property/public/listByIds": typeof property_public_listByIds;
   "property/public/listCandidateProperties": typeof property_public_listCandidateProperties;
   "property/public/listSavedProperties": typeof property_public_listSavedProperties;
   "property/public/searchProperties": typeof property_public_searchProperties;
+  "property/public/smartSearchProperties": typeof property_public_smartSearchProperties;
   "property/public/toggleSavedProperty": typeof property_public_toggleSavedProperty;
   "schema/agent": typeof schema_agent;
   "schema/buyer": typeof schema_buyer;
@@ -196,6 +208,7 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
+  actionCache: import("@convex-dev/action-cache/_generated/component.js").ComponentApi<"actionCache">;
   convexOrchestrator: import("@akshatgiri/convex-orchestrator/_generated/component.js").ComponentApi<"convexOrchestrator">;
   migrations: import("@convex-dev/migrations/_generated/component.js").ComponentApi<"migrations">;
   rag: import("@convex-dev/rag/_generated/component.js").ComponentApi<"rag">;

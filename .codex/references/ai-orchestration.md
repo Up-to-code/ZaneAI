@@ -1,8 +1,13 @@
-# Zayon AI Orchestration
+# ZaneAI Orchestration
 
 ## Default framework
 
 Use `@jackchen_me/open-multi-agent` for multi-agent coordination unless a task is clearly experimental.
+
+ZaneAI's default assistant path is token-aware: answer directly when the current
+message is sufficient, load structured history only when the route requires it,
+and use specialist agents only when the user asks for search, comparison,
+funding, or fresh market context.
 
 ## Team topology
 
@@ -15,6 +20,11 @@ Use `@jackchen_me/open-multi-agent` for multi-agent coordination unless a task i
 ## Orchestrator rules
 
 - Accept one unified goal plus user context.
+- Do not store generic conversation memory outside the Convex Agent thread.
+- Persist only structured operational memory: tool calls, property search sessions,
+  generated queries, result IDs, selected properties, and relaxed constraints.
+- Use staged property fallback: exact area, relaxed exact, nearby area, relaxed
+  nearby, then broad alternatives.
 - Run independent tasks in parallel where possible.
 - Merge duplicates before returning ranked properties.
 - Persist run metadata and agent events for auditability.

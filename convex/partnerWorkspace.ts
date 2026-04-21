@@ -74,7 +74,14 @@ async function readInviteFromToken(ctx: Parameters<typeof getProfileByAuthUserId
 export const getWorkspaceState = query({
   args: {},
   handler: async (ctx) => {
-    const { authUser, profile } = await requireProfile(ctx);
+    let authUser, profile;
+    try {
+      const res = await requireProfile(ctx);
+      authUser = res.authUser;
+      profile = res.profile;
+    } catch (error) {
+      return null;
+    }
     const membership = await getDefaultMembership(ctx, profile._id);
     const organization = membership ? await ctx.db.get(membership.organizationId) : null;
     const projects = organization

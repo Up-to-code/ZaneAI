@@ -1,18 +1,21 @@
 import { v } from "convex/values";
 
 import { query } from "../../_generated/server";
-import { searchCatalogProperties } from "../lib/search";
+import { smartSearchCatalogProperties } from "../lib/search";
 
-export const searchProperties = query({
+const budgetMode = v.union(v.literal("target"), v.literal("max"), v.literal("range"), v.literal("unknown"));
+
+export const smartSearchProperties = query({
   args: {
     query: v.optional(v.string()),
     location: v.optional(v.string()),
     maxPrice: v.optional(v.number()),
     minPrice: v.optional(v.number()),
     targetPrice: v.optional(v.number()),
-    budgetMode: v.optional(v.union(v.literal("target"), v.literal("max"), v.literal("range"), v.literal("unknown"))),
+    budgetMode: v.optional(budgetMode),
     minBeds: v.optional(v.number()),
     limit: v.optional(v.number()),
   },
-  handler: async (ctx, args) => await searchCatalogProperties(ctx, args),
+  handler: async (ctx, args) => await smartSearchCatalogProperties(ctx, args),
 });
+

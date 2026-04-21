@@ -674,7 +674,6 @@ export type WebDictionary = {
     range: string;
     topKeyword: string;
     noClearSignal: string;
-    mockDataBanner: string;
   };
   settings: {
     workspaceLabel: string;
@@ -1430,7 +1429,6 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       range: "الفترة",
       topKeyword: "الكلمة الأبرز",
       noClearSignal: "لا توجد إشارة واضحة",
-      mockDataBanner: "هذه الصفحة تعرض حالياً بيانات تجريبية حتى تتوفر بيانات سوق حقيقية كافية لهذا النطاق.",
     },
     settings: {
       workspaceLabel: "إعدادات مساحة العمل",
@@ -2323,7 +2321,6 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       range: "Range",
       topKeyword: "Top keyword",
       noClearSignal: "No clear signal",
-      mockDataBanner: "This page is currently showing sample data until enough real market data is available for this scope.",
     },
     settings: {
       workspaceLabel: "Workspace settings",
@@ -3216,7 +3213,6 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       range: "Période",
       topKeyword: "Mot-clé principal",
       noClearSignal: "Aucun signal clair",
-      mockDataBanner: "Cette page affiche actuellement des données d'exemple jusqu'à ce que suffisamment de données réelles soient disponibles pour ce périmètre.",
     },
     settings: {
       workspaceLabel: "Paramètres de l'espace",

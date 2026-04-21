@@ -1,10 +1,7 @@
 import { cn } from "@/lib/i18n";
 import Link from "next/link";
 import ZonePageIntro from "../../_components/ZoneShell/ZonePageIntro";
-import { getLocaleDateFormat } from "@/lib/i18n";
 import { getWorkspaceLocaleContext } from "../../_lib/workspaceLocale";
-import { demoNotifications } from "../../_lib/demoData";
-import NotificationOpenLink from "../../_components/NotificationOpenLink";
 
 type WorkspaceNotificationsPageProps = {
   searchParams: Promise<{
@@ -12,30 +9,17 @@ type WorkspaceNotificationsPageProps = {
   }>;
 };
 
-function formatNotificationTimestamp(timestamp: number, locale: string) {
-  return new Date(timestamp).toLocaleString(locale, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 /**
- * WHY:   The notifications center should remain navigable after removing live workspace signals.
- * WHAT:  Renders the existing notifications UI backed entirely by fixture data.
- * HOW:   Applies the current filter against static demo notifications and keeps the interaction model unchanged.
+ * WHY:   The notifications center should display real notification data from the backend.
+ * WHAT:  Currently shows an empty notifications state until a real notifications query is built.
+ * HOW:   Renders the page with an empty notification list and filter controls.
  */
 export default async function WorkspaceNotificationsPage({ searchParams }: WorkspaceNotificationsPageProps) {
-  const { locale, dictionary } = await getWorkspaceLocaleContext();
+  const { dictionary } = await getWorkspaceLocaleContext();
   const { filter } = await searchParams;
-  const notifications = demoNotifications;
-  const summary = {
-    unreadCount: notifications.filter((item) => !item.isRead).length,
-  };
+  const notifications: never[] = [];
+  const summary = { unreadCount: 0 };
   const activeFilter = filter === "unread" ? "unread" : "all";
-  const filteredNotifications =
-    activeFilter === "unread" ? notifications.filter((item) => !item.isRead) : notifications;
 
   return (
     <div className="flex min-h-full flex-col">
@@ -73,59 +57,14 @@ export default async function WorkspaceNotificationsPage({ searchParams }: Works
           </div>
 
           <div className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/50">
-            {summary.unreadCount > 0
-              ? dictionary.notifications.unreadSummary.replace("{count}", String(summary.unreadCount))
-              : dictionary.notifications.noPending}
+            {dictionary.notifications.noPending}
           </div>
         </div>
 
         <div className="grid gap-2 text-right">
-          {filteredNotifications.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-border bg-muted/10 p-12 text-center text-[13px] font-bold text-muted-foreground/60 shadow-sm transition-all hover:bg-muted/15">
-              {dictionary.notifications.empty}
-            </div>
-          ) : (
-            filteredNotifications.map((item) => (
-              <NotificationOpenLink
-                key={item.id}
-                notificationId={item.id}
-                href={item.href}
-                isRead={item.isRead}
-                className="group relative block rounded-2xl border border-border bg-card p-5 transition-all hover:border-foreground/20 hover:shadow-lg hover:shadow-black/[0.02]"
-              >
-                <div className="flex items-start justify-between gap-6">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5">
-                      {!item.isRead ? (
-                        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600" />
-                      ) : (
-                        <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-border" />
-                      )}
-                      <div className="truncate text-[15px] font-black tracking-tight text-foreground group-hover:text-blue-600 transition-colors">
-                        {item.title}
-                      </div>
-                    </div>
-                    <div className="mt-2 line-clamp-2 text-[13px] font-medium leading-[1.6] text-muted-foreground/80">
-                      {item.summary}
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
-                      <span className="bg-muted px-2 py-0.5 rounded-md">{item.source}</span>
-                      <div className="h-1 w-1 rounded-full bg-border" />
-                      <span>{formatNotificationTimestamp(item.createdAt, getLocaleDateFormat(locale))}</span>
-                    </div>
-                  </div>
-                  <div className={cn(
-                    "rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest transition-all",
-                    item.isRead
-                      ? "bg-muted text-muted-foreground/60"
-                      : "bg-blue-600 text-white shadow-sm group-hover:scale-105"
-                  )}>
-                    {item.isRead ? dictionary.notifications.read : dictionary.notifications.new}
-                  </div>
-                </div>
-              </NotificationOpenLink>
-            ))
-          )}
+          <div className="rounded-3xl border border-dashed border-border bg-muted/10 p-12 text-center text-[13px] font-bold text-muted-foreground/60 shadow-sm transition-all hover:bg-muted/15">
+            {dictionary.notifications.empty}
+          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,6 @@ import type { ProjectFormData } from "@/app/(ws)/ws/public";
 import ProjectFormScreen from "../../shared/forms/ProjectFormScreen";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
-import { getDemoProject } from "../../../../_lib/demoData";
 import type { Id } from "@convex/dataModel";
 import type { WorkspaceProject } from "../../types/projectTypes";
 
@@ -54,14 +53,12 @@ function mapProjectToFormData(project: WorkspaceProject) {
 
 export default function EditProjectRoute({ params }: EditProjectRouteProps) {
   const { projectId } = use(params);
-  const demoProject = getDemoProject(projectId);
-  const liveProject = useQuery(
+  const project = useQuery(
     api.partnerProperties.getWorkspaceProperty,
-    demoProject ? "skip" : { propertyId: projectId as Id<"projects"> },
+    { propertyId: projectId as Id<"projects"> },
   );
   const updateProperty = useMutation(api.partnerProperties.updateWorkspaceProperty);
   const deleteProperty = useMutation(api.partnerProperties.deleteWorkspaceProperty);
-  const project = demoProject ?? liveProject;
 
   if (project === undefined) {
     return (
@@ -91,9 +88,6 @@ export default function EditProjectRoute({ params }: EditProjectRouteProps) {
       description="Update the partner record, revise the media pack, and keep publishing under your control."
       submitLabel="Save property"
       onSave={async (data) => {
-        if (demoProject) {
-          return { ok: true, redirectTo: `/ws/projects/${projectId}` };
-        }
         await updateProperty({
           propertyId: projectId as Id<"projects">,
           data,
@@ -101,9 +95,7 @@ export default function EditProjectRoute({ params }: EditProjectRouteProps) {
         return { ok: true, redirectTo: `/ws/projects/${projectId}` };
       }}
       onDelete={async () => {
-        if (!demoProject) {
-          await deleteProperty({ propertyId: projectId as Id<"projects"> });
-        }
+        await deleteProperty({ propertyId: projectId as Id<"projects"> });
         return { redirectTo: "/ws/projects" };
       }}
     />

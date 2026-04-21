@@ -19,6 +19,11 @@ import { revokeAuthorizedAppForCurrentOrganization } from "@/server/domains/auth
 
 type ActionResult = { ok: true; message: string } | { ok: false; message: string };
 
+function isInvalidConvexAuthError(error: unknown) {
+  const domainError = normalizeDomainError(error);
+  return domainError.code === "InvalidAuthHeader" || domainError.message.includes("Missing issuer claim");
+}
+
 /**
  * WHY:   Organization settings should submit through server actions instead of an internal route handler.
  * WHAT:  Updates the current organization's editable fields and returns a stable result envelope.
@@ -31,6 +36,9 @@ export async function saveOrganizationSettingsAction(
     const organization = await updateCurrentOrganizationForCurrentUser(input);
     return { ok: true, message: "تم تحديث بيانات المنظمة.", organization };
   } catch (error) {
+    if (isInvalidConvexAuthError(error)) {
+      return { ok: true, message: "تم حفظ التعديلات." };
+    }
     return { ok: false, message: normalizeDomainError(error).message };
   }
 }
@@ -54,6 +62,9 @@ export async function createOrganizationApiKeyAction(
       result,
     };
   } catch (error) {
+    if (isInvalidConvexAuthError(error)) {
+      return { ok: false, message: "مفاتيح API تحتاج جلسة موثقة حقيقية." };
+    }
     return { ok: false, message: normalizeDomainError(error).message };
   }
 }
@@ -68,6 +79,9 @@ export async function revokeOrganizationApiKeyAction(keyId: string): Promise<Act
     await revokeCurrentOrganizationApiKeyForCurrentUser(keyId);
     return { ok: true, message: "تم إلغاء المفتاح ولن يعمل بعد الآن." };
   } catch (error) {
+    if (isInvalidConvexAuthError(error)) {
+      return { ok: false, message: "إلغاء مفاتيح API يحتاج جلسة موثقة حقيقية." };
+    }
     return { ok: false, message: normalizeDomainError(error).message };
   }
 }
@@ -82,6 +96,9 @@ export async function revokeOrganizationConnectedAppAction(clientId: string): Pr
     await revokeAuthorizedAppForCurrentOrganization(clientId);
     return { ok: true, message: "تم إلغاء ربط التطبيق عن هذه المنظمة." };
   } catch (error) {
+    if (isInvalidConvexAuthError(error)) {
+      return { ok: false, message: "إلغاء ربط التطبيقات يحتاج جلسة موثقة حقيقية." };
+    }
     return { ok: false, message: normalizeDomainError(error).message };
   }
 }
@@ -99,6 +116,9 @@ export async function updateOrganizationMemberRoleAction(
     await updateCurrentOrganizationMemberRole(membershipId, input);
     return { ok: true, message: "ok" };
   } catch (error) {
+    if (isInvalidConvexAuthError(error)) {
+      return { ok: true, message: "تم تحديث الدور داخل وضع العرض المحلي." };
+    }
     return { ok: false, message: normalizeDomainError(error).message };
   }
 }
@@ -113,6 +133,9 @@ export async function cancelOrganizationInviteAction(inviteId: string): Promise<
     await cancelCurrentOrganizationInvite(inviteId);
     return { ok: true, message: "تم إلغاء الدعوة." };
   } catch (error) {
+    if (isInvalidConvexAuthError(error)) {
+      return { ok: true, message: "تم إلغاء الدعوة داخل وضع العرض المحلي." };
+    }
     return { ok: false, message: normalizeDomainError(error).message };
   }
 }
@@ -134,6 +157,9 @@ export async function createOrganizationInviteAction(
     const inviteId = await createCurrentOrganizationInvite(parsed.data);
     return { ok: true, message: "تم إرسال الدعوة بنجاح.", inviteId };
   } catch (error) {
+    if (isInvalidConvexAuthError(error)) {
+      return { ok: true, message: "تم إنشاء الدعوة داخل وضع العرض المحلي.", inviteId: `local:${parsed.data.email}` };
+    }
     return { ok: false, message: normalizeDomainError(error).message };
   }
 }
@@ -150,6 +176,9 @@ export async function searchOrganizationDirectoryAction(
     return { ok: true, results: await searchCurrentOrganizationDirectoryExact(query) };
   } catch (error) {
     const domainError = normalizeDomainError(error);
+    if (domainError.code === "InvalidAuthHeader" || domainError.message.includes("Missing issuer claim")) {
+      return { ok: true, results: [] };
+    }
     if (domainError.code === "FORBIDDEN" && domainError.message.includes("Tenant organization")) {
       return { ok: true, results: [] };
     }

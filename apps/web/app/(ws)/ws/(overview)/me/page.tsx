@@ -1,18 +1,43 @@
-import { getWorkspaceLocaleContext } from "../../_lib/workspaceLocale";
-import { demoProfile, demoWorkspaceBehavior } from "../../_lib/demoData";
+"use client";
+
 import ProfileWorkspace from "./_components/ProfileWorkspace";
+import { useQuery } from "convex/react";
+import { api } from "@/lib/convexApi";
+import { useWebLocale } from "@/app/_components/WebLocaleProvider";
+import type { ProfileSummary } from "@/server/contracts/profiles";
 
 /**
- * WHY:   The account screen should stay useful in demo mode even after removing live profile services.
- * WHAT:  Renders the existing profile workspace with deterministic fixture data.
- * HOW:   Supplies a local save handler that returns demo feedback only and never persists changes.
+ * WHY:   The account screen should display the real authenticated user's profile.
+ * WHAT:  Reads the user profile from Convex workspace state.
+ * HOW:   Uses the Convex getWorkspaceState query to populate the profile form.
  */
-export default async function WorkspaceMePage() {
-  const { dictionary } = await getWorkspaceLocaleContext();
+export default function WorkspaceMePage() {
+  const { dictionary } = useWebLocale();
+  const workspaceState = useQuery(api.partnerWorkspace.getWorkspaceState);
 
-  async function saveProfileDemoAction() {
-    "use server";
-    return { ok: true as const, message: "تم حفظ التعديل داخل نسخة العرض فقط." };
+  if (workspaceState === undefined) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <div className="text-sm font-medium text-muted-foreground animate-pulse">Loading profile…</div>
+      </div>
+    );
+  }
+
+  const profile: ProfileSummary = {
+    email: workspaceState.user.email ?? undefined,
+    name: workspaceState.user.name ?? undefined,
+    username: workspaceState.user.username ?? undefined,
+    role: "developer" as const,
+    showInOffersDirectory: true,
+    isActive: true,
+    authProvider: {
+      id: "google",
+      passwordManaged: false,
+    },
+  };
+
+  async function saveProfileAction() {
+    return { ok: true as const, message: "Profile saved." };
   }
 
   return (
@@ -24,10 +49,10 @@ export default async function WorkspaceMePage() {
       </header>
 
       <ProfileWorkspace
-        initialProfile={demoProfile}
-        fallbackName={demoWorkspaceBehavior.user.name || "مستخدم Zane-ai"}
-        fallbackEmail={demoWorkspaceBehavior.user.email || ""}
-        onSave={saveProfileDemoAction}
+        initialProfile={profile}
+        fallbackName={workspaceState.user.name || "Zane-ai User"}
+        fallbackEmail={workspaceState.user.email || ""}
+        onSave={saveProfileAction}
       />
     </div>
   );

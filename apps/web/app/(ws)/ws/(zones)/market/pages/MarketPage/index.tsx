@@ -15,7 +15,6 @@ type MarketPageLabels = {
   range: string;
   topKeyword: string;
   noClearSignal: string;
-  mockDataBanner: string;
 };
 
 /**
@@ -33,7 +32,6 @@ export default function MarketPage({
     range: "Range",
     topKeyword: "Top keyword",
     noClearSignal: "لا توجد إشارة واضحة",
-    mockDataBanner: "هذه الصفحة تعرض حالياً بيانات تجريبية حتى تتوفر بيانات سوق حقيقية كافية لهذا النطاق.",
   },
   children,
 }: {
@@ -74,11 +72,7 @@ export default function MarketPage({
       <div className="grid gap-6 px-6 py-6 lg:px-8 lg:py-8">
         <MarketFilters model={model} actionPath={actionPath} />
         <MarketMetricGrid model={model} />
-        {model.isMockData ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-right text-[13px] font-bold text-amber-700 dark:text-amber-400">
-            {labels.mockDataBanner}
-          </div>
-        ) : null}
+
         <div className="rounded-xl border border-border bg-card px-4 py-3 text-right text-[13px] font-bold text-muted-foreground">
           {model.dateRange.helperText}
         </div>

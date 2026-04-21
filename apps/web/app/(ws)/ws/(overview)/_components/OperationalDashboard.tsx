@@ -40,7 +40,6 @@ export default function OperationalDashboard({ workspaceState }: OperationalDash
       total: workspaceState.metrics.propertyCount,
       published: workspaceState.metrics.publishedPropertyCount,
       drafts: workspaceState.metrics.draftPropertyCount,
-      totalUnits: workspaceState.metrics.propertyCount * 12, // Simulation
     };
   }, [workspaceState.metrics]);
 
@@ -131,7 +130,7 @@ export default function OperationalDashboard({ workspaceState }: OperationalDash
               <div className="flex flex-col gap-4 rounded-[32px] lg:rounded-[40px] border border-border bg-card p-8 lg:p-10">
                  <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Published Units</span>
                  <div className="flex items-baseline gap-3">
-                    <span className="text-5xl lg:text-6xl font-black tracking-tighter text-foreground">{inventorySummary.published * 8}</span>
+                    <span className="text-5xl lg:text-6xl font-black tracking-tighter text-foreground">{inventorySummary.published}</span>
                     <span className="text-[10px] lg:text-xs font-bold text-muted-foreground uppercase leading-none">{dictionary.units.title}</span>
                  </div>
               </div>

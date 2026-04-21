@@ -324,7 +324,7 @@ export default function UnitDetailPage({
               </div>
 
               <div className="flex items-center justify-between p-6 rounded-2xl border border-dashed border-border text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
-                 <span>ASSET ID: {unitId.startsWith("unit-") ? "MOCK-ASSET" : unitId.toUpperCase()}</span>
+                 <span>ASSET ID: {unitId.toUpperCase()}</span>
                  <span>REF: ZAY-2026-XQ</span>
               </div>
            </div>

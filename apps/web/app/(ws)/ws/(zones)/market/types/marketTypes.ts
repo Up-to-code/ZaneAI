@@ -7,7 +7,6 @@ import type { MarketSnapshot } from "@/server/contracts/market";
  */
 export type WorkspaceMarketPageModel = MarketSnapshot & {
   hasAnyData: boolean;
-  isMockData: boolean;
   scopeLabel: string;
   priorityLabels: Record<"high" | "medium" | "watch", string>;
   compactCharts: {

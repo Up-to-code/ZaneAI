@@ -28,7 +28,6 @@ function buildScopeLabel(snapshot: MarketSnapshot): string {
 export function mapMarketSnapshotToPageModel(snapshot: MarketSnapshot): WorkspaceMarketPageModel {
   return {
     ...snapshot,
-    isMockData: false,
     hasAnyData:
       snapshot.topCities.length > 0 ||
       snapshot.topAreas.length > 0 ||

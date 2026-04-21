@@ -3,6 +3,7 @@ import AgUnitCard from "@/app/(ws)/ws/_components/Visuals/AgUnitCard";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/lib/convexApi";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
@@ -28,46 +29,6 @@ type DisplayUnit = UnitReference & {
 import type { WebDictionary } from "@/lib/i18n";
 
 type UnitDictionary = WebDictionary;
-
-type UnitFormData = {
-  label: string;
-  unitType: UnitType;
-  floor: string;
-  bedrooms: string;
-  bathrooms: string;
-  area: string;
-  priceLabel: string;
-  status: UnitStatus;
-  description: string;
-  compoundName: string;
-  unitCode: string;
-  direction: string;
-  currency: "EGP" | "USD";
-  maintenanceFees: string;
-  monthlyInstallment: string;
-  reception: string;
-  negotiable: boolean;
-};
-
-const emptyForm: UnitFormData = {
-  label: "",
-  unitType: "apartment",
-  floor: "",
-  bedrooms: "",
-  bathrooms: "",
-  area: "",
-  priceLabel: "",
-  status: "available",
-  description: "",
-  compoundName: "",
-  unitCode: "",
-  direction: "",
-  currency: "EGP",
-  maintenanceFees: "",
-  monthlyInstallment: "",
-  reception: "",
-  negotiable: false,
-};
 
 function getUnitTypeLabel(type: UnitType, dictionary: UnitDictionary): string {
   return dictionary.units[type] ?? type;
@@ -97,6 +58,7 @@ export default function ProjectUnitsManager({
   projectImage?: string;
   projectLocation?: string;
 }) {
+  const router = useRouter();
   const { dictionary, locale } = useWebLocale();
   const isRtl = locale === "ar";
   const usesInitialUnits = initialUnits !== undefined && projectId.startsWith("property-");
@@ -105,92 +67,18 @@ export default function ProjectUnitsManager({
     usesInitialUnits ? "skip" : { projectId: projectId as Id<"projects"> },
   );
   const units = usesInitialUnits ? initialUnits.map(mapReferenceToDisplayUnit) : liveUnits;
-  const createUnit = useMutation(api.workspaceUnits.createUnit);
-  const updateUnit = useMutation(api.workspaceUnits.updateUnit);
   const deleteUnit = useMutation(api.workspaceUnits.deleteUnit);
 
-  const [showForm, setShowForm] = useState(false);
-  const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
-  const [form, setForm] = useState<UnitFormData>(emptyForm);
-  const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function openCreateForm() {
-    setEditingUnitId(null);
-    setForm(emptyForm);
-    setShowForm(true);
+    if (usesInitialUnits) return;
+    router.push(`/ws/projects/${projectId}/units/create`);
   }
 
   function openEditForm(unit: DisplayUnit) {
-    setEditingUnitId(unit._id);
-    setForm({
-      label: unit.label,
-      unitType: unit.unitType,
-      floor: unit.floor ?? "",
-      bedrooms: unit.bedrooms?.toString() ?? "",
-      bathrooms: unit.bathrooms?.toString() ?? "",
-      area: unit.area ?? "",
-      priceLabel: unit.priceLabel ?? "",
-      status: unit.status,
-      description: unit.description || "",
-      compoundName: unit.compoundName || "",
-      unitCode: unit.unitCode || "",
-      direction: (unit as any).direction || "",
-      currency: (unit as any).currency || "EGP",
-      maintenanceFees: (unit as any).maintenanceFees || "",
-      monthlyInstallment: (unit as any).monthlyInstallment || "",
-      reception: (unit as any).reception?.toString() || "",
-      negotiable: (unit as any).negotiable || false,
-    });
-    setShowForm(true);
-  }
-
-  function closeForm() {
-    setShowForm(false);
-    setEditingUnitId(null);
-    setForm(emptyForm);
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    try {
-      const payload = {
-        label: form.label.trim(),
-        unitType: form.unitType,
-        floor: form.floor.trim() || undefined,
-        bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
-        bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
-        area: form.area.trim() || undefined,
-        priceLabel: form.priceLabel.trim() || undefined,
-        status: form.status,
-        description: form.description.trim() || undefined,
-        compoundName: form.compoundName.trim() || undefined,
-        unitCode: form.unitCode.trim() || undefined,
-        direction: form.direction.trim() || undefined,
-        currency: form.currency,
-        maintenanceFees: form.maintenanceFees.trim() || undefined,
-        monthlyInstallment: form.monthlyInstallment.trim() || undefined,
-        reception: form.reception ? Number(form.reception) : undefined,
-        negotiable: form.negotiable,
-      };
-
-      if (editingUnitId) {
-        if (usesInitialUnits) {
-          closeForm();
-          return;
-        }
-        await updateUnit({ unitId: editingUnitId as Id<"units">, data: payload });
-      } else {
-        if (usesInitialUnits) {
-          closeForm();
-          return;
-        }
-        await createUnit({ projectId: projectId as Id<"projects">, ...payload });
-      }
-      closeForm();
-    } finally {
-      setSaving(false);
-    }
+    if (usesInitialUnits) return;
+    router.push(`/ws/projects/${projectId}/units/${unit._id}/edit`);
   }
 
   async function handleDelete(unitId: string) {
@@ -285,252 +173,6 @@ export default function ProjectUnitsManager({
         </div>
       </div>
 
-      {/* ── Unit Form ────────────────────────────────────── */}
-      <AnimatePresence>
-      {showForm && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-2 overflow-hidden rounded-[24px] border border-[color:var(--workspace-border)] bg-[var(--workspace-panel)] p-6 shadow-sm"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[16px] font-black tracking-tight text-foreground">
-              {editingUnitId ? dictionary.units.edit : dictionary.units.create}
-            </h3>
-            <button type="button" onClick={closeForm} className="flex h-8 w-8 items-center justify-center rounded-full bg-background transition hover:bg-muted text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Label */}
-            <div className="flex flex-col gap-2 lg:col-span-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.label}</label>
-              <input
-                value={form.label}
-                onChange={(e) => setForm({ ...form, label: e.target.value })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04] placeholder:text-muted-foreground/20"
-                placeholder={isRtl ? "مثلاً: وحدة A-101" : "e.g. Unit A-101"}
-              />
-            </div>
-
-            {/* Price */}
-            <div className="flex flex-col gap-2 lg:col-span-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.price}</label>
-              <input
-                value={form.priceLabel}
-                onChange={(e) => setForm({ ...form, priceLabel: e.target.value })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04] placeholder:text-muted-foreground/20"
-                placeholder={isRtl ? "مثلاً: 4,200,000 ج.م" : "e.g. EGP 4,200,000"}
-              />
-            </div>
-
-            {/* Unit Type */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.type}</label>
-              <select
-                value={form.unitType}
-                onChange={(e) => setForm({ ...form, unitType: e.target.value as UnitType })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-              >
-                {UNIT_TYPES.map((t) => (
-                  <option key={t} value={t}>{getUnitTypeLabel(t, dictionary)}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.status}</label>
-              <select
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value as UnitStatus })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-              >
-                {UNIT_STATUSES.map((s) => (
-                  <option key={s} value={s}>{getUnitStatusLabel(s, dictionary)}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Bedrooms */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.bedrooms}</label>
-              <input
-                type="number"
-                value={form.bedrooms}
-                onChange={(e) => setForm({ ...form, bedrooms: e.target.value })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                min={0}
-              />
-            </div>
-
-            {/* Bathrooms */}
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.bathrooms}</label>
-              <input
-                type="number"
-                value={form.bathrooms}
-                onChange={(e) => setForm({ ...form, bathrooms: e.target.value })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                min={0}
-              />
-            </div>
-            
-            {/* Floor */}
-            <div className="flex flex-col gap-2 lg:col-span-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.floor}</label>
-              <input
-                value={form.floor}
-                onChange={(e) => setForm({ ...form, floor: e.target.value })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                placeholder={isRtl ? "مثلاً: الدور الثالث" : "e.g. 3rd Floor"}
-              />
-            </div>
-            
-            {/* Area */}
-            <div className="flex flex-col gap-2 lg:col-span-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.area}</label>
-              <input
-                value={form.area}
-                onChange={(e) => setForm({ ...form, area: e.target.value })}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                placeholder={isRtl ? "مثلاً: 185 م²" : "e.g. 185 sqm"}
-              />
-            </div>
-
-            {/* Description (full width) */}
-            <div className="flex flex-col gap-2 lg:col-span-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.units.description}</label>
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={4}
-                className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04] resize-none placeholder:text-muted-foreground/20"
-              />
-            </div>
-
-            {/* Egyptian Market Fields */}
-            <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-foreground/[0.04]">
-               {/* Compound Name */}
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.compoundNamePlaceholder}</label>
-                  <input
-                    value={form.compoundName}
-                    onChange={(e) => setForm({ ...form, compoundName: e.target.value })}
-                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                    placeholder="e.g. Malqa Residence"
-                  />
-               </div>
-
-               {/* Unit Code */}
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.unitCodePlaceholder}</label>
-                  <input
-                    value={form.unitCode}
-                    onChange={(e) => setForm({ ...form, unitCode: e.target.value })}
-                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                    placeholder="e.g. M-A-101"
-                  />
-               </div>
-
-               {/* Direction */}
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.directionLabel}</label>
-                  <input
-                    value={form.direction}
-                    onChange={(e) => setForm({ ...form, direction: e.target.value })}
-                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                    placeholder="e.g. North"
-                  />
-               </div>
-
-               {/* Reception */}
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.receptionPlaceholder}</label>
-                  <input
-                    type="number"
-                    value={form.reception}
-                    onChange={(e) => setForm({ ...form, reception: e.target.value })}
-                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                    min={0}
-                  />
-               </div>
-
-               {/* Maintenance Fees */}
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.maintenanceFeesPlaceholder}</label>
-                  <input
-                    value={form.maintenanceFees}
-                    onChange={(e) => setForm({ ...form, maintenanceFees: e.target.value })}
-                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                    placeholder="e.g. 10%"
-                  />
-               </div>
-
-               {/* Monthly Installment */}
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{dictionary.unitCreate.monthlyInstallmentPlaceholder}</label>
-                  <input
-                    value={form.monthlyInstallment}
-                    onChange={(e) => setForm({ ...form, monthlyInstallment: e.target.value })}
-                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                    placeholder="e.g. EGP 25,000"
-                  />
-               </div>
-
-               {/* Currency Select */}
-               <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">Currency</label>
-                  <select
-                    value={form.currency}
-                    onChange={(e) => setForm({ ...form, currency: e.target.value as any })}
-                    className="rounded-xl border border-foreground/[0.06] bg-foreground/[0.02] px-5 py-4 text-[13px] font-bold text-foreground outline-none transition focus:border-foreground/10 focus:bg-foreground/[0.04]"
-                  >
-                    <option value="EGP">EGP</option>
-                    <option value="USD">USD</option>
-                  </select>
-               </div>
-
-               {/* Negotiable Checkbox */}
-               <div className="flex items-center gap-3 pt-6">
-                  <input
-                    type="checkbox"
-                    id="negotiable"
-                    checked={form.negotiable}
-                    onChange={(e) => setForm({ ...form, negotiable: e.target.checked })}
-                    className="h-4 w-4 rounded border-foreground/[0.1] bg-foreground/[0.02] text-foreground focus:ring-foreground/20"
-                  />
-                  <label htmlFor="negotiable" className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground cursor-pointer">
-                    {dictionary.unitCreate.negotiableLabel}
-                  </label>
-               </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={closeForm}
-              className="rounded-xl border border-foreground/[0.06] bg-transparent px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 transition hover:bg-foreground/[0.02] hover:text-foreground"
-            >
-              {dictionary.units.cancel}
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving || !form.label.trim()}
-              className="rounded-full bg-foreground px-10 py-4 text-[11px] font-black uppercase tracking-[0.3em] text-background transition-all hover:bg-foreground/90 disabled:opacity-50"
-            >
-              {saving ? "..." : dictionary.units.saveUnit}
-            </button>
-          </div>
-        </motion.div>
-      )}
-      </AnimatePresence>
-      
       {/* ── Units Grid ────────────────────────────────────── */}
       <div className="mt-2">
         {!filteredUnits || filteredUnits.length === 0 ? (

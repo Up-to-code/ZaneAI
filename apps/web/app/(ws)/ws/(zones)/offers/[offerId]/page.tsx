@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
-import OfferDetailPage from "../pages/OfferDetailPage";
-import { getDemoOffer } from "../../../_lib/demoData";
 
 /**
- * WHY:   Offer detail routes should still demonstrate the final UI after moving web into demo mode.
- * WHAT:  Renders one static offer detail record with the existing visual page.
- * HOW:   Resolves the offer from local fixtures and omits all live mutations.
+ * WHY:   Offer detail routes need real data from the backend.
+ * WHAT:  Currently shows a placeholder until a real offers query is built.
+ * HOW:   Displays a "coming soon" state for offer details.
  */
 export default async function WorkspaceOfferDetailRoute({
   params,
@@ -13,27 +11,20 @@ export default async function WorkspaceOfferDetailRoute({
   params: Promise<{ offerId: string }>;
 }) {
   const { offerId } = await params;
-  const offer = getDemoOffer(offerId);
-  if (!offer) {
+
+  if (!offerId) {
     notFound();
   }
 
-  async function archiveDemoOffer() {
-    "use server";
-    return { redirectTo: "/ws/offers" };
-  }
-
-  async function openDemoConversation() {
-    "use server";
-    return { conversationId: `demo-offer-${offerId}` };
-  }
-
   return (
-    <OfferDetailPage
-      offer={offer}
-      onMessage={openDemoConversation}
-      onArchive={offer.canArchive ? archiveDemoOffer : undefined}
-      editHref={offer.canEditDraft ? `/ws/offers/${offerId}/edit` : null}
-    />
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-5xl items-center justify-center px-6 py-12">
+      <div className="rounded-[32px] border border-border/60 bg-card p-8 text-center shadow-sm space-y-3">
+        <div className="text-2xl font-black text-foreground">Offer Detail</div>
+        <p className="text-sm text-muted-foreground">
+          Offer data will load from your workspace backend. No mock data is being displayed.
+        </p>
+        <p className="text-xs text-muted-foreground/50 font-mono">{offerId}</p>
+      </div>
+    </div>
   );
 }

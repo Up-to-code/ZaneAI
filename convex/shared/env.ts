@@ -60,6 +60,10 @@ export function getTavilyApiKey() {
   return process.env.TAVILY_API_KEY ?? null;
 }
 
+export function hasTypesenseConfig() {
+  return Boolean(process.env.TYPESENSE_HOST && process.env.TYPESENSE_API_KEY);
+}
+
 export function hasOpenAIKey() {
   return Boolean(process.env.OPENAI_API_KEY);
 }

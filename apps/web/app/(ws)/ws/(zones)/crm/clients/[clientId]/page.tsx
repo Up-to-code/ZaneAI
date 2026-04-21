@@ -1,45 +1,32 @@
-import { notFound, redirect } from "next/navigation";
-import ClientDetailPage from "../../pages/ClientDetailPage";
-import { getDemoCrmClient } from "../../../../_lib/demoData";
+import { notFound } from "next/navigation";
 
 type WorkspaceCrmClientDetailRouteProps = {
   params: Promise<{ clientId: string }>;
 };
 
-function getCurrentTimestamp() {
-  return Number(new Date());
-}
-
 /**
- * WHY:   Client detail routes should remain valid in demo mode without the CRM service.
- * WHAT:  Resolves one CRM fixture and renders the existing detail screen.
- * HOW:   Keeps the route contract intact while swapping the data source to local demo records.
+ * WHY:   Client detail routes need real data from the CRM backend.
+ * WHAT:  Currently shows a placeholder until a real CRM Convex query is built.
+ * HOW:   Displays a minimal empty state for the client detail page.
  */
 export default async function WorkspaceCrmClientDetailRoute({
   params,
 }: WorkspaceCrmClientDetailRouteProps) {
   const { clientId } = await params;
-  const client = getDemoCrmClient(clientId);
 
-  if (!client) {
+  if (!clientId) {
     notFound();
   }
 
-  async function updateFollowUp(formData: FormData) {
-    "use server";
-
-    const nextFollowUpRaw = String(formData.get("nextFollowUpAt") ?? "").trim();
-    if (!nextFollowUpRaw || Number.isNaN(Date.parse(nextFollowUpRaw))) return;
-
-    redirect(`/ws/crm/clients/${clientId}`);
-  }
-
   return (
-    <ClientDetailPage
-      client={client}
-      nowTimestamp={getCurrentTimestamp()}
-      onFollowUpSubmit={updateFollowUp}
-      editHref={`/ws/crm/clients/${clientId}/edit`}
-    />
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-5xl items-center justify-center px-6 py-12">
+      <div className="rounded-[32px] border border-border/60 bg-card p-8 text-center shadow-sm space-y-3">
+        <div className="text-2xl font-black text-foreground">Client Detail</div>
+        <p className="text-sm text-muted-foreground">
+          CRM data will load from the backend once the CRM query is implemented.
+        </p>
+        <p className="text-xs text-muted-foreground/50 font-mono">{clientId}</p>
+      </div>
+    </div>
   );
 }

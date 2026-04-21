@@ -22,30 +22,6 @@ export const getWorkspaceStats = query({
       .filter((q) => q.gt(q.field("createdAt"), startTime))
       .collect();
 
-    // Mock data for initial demonstration if no events exist
-    if (events.length === 0) {
-      const mockEvents = [];
-      for (let i = 0; i < days; i++) {
-        const time = now - i * 24 * 60 * 60 * 1000;
-        // Views
-        const viewsCount = Math.floor(Math.random() * 50) + 20;
-        for (let j = 0; j < viewsCount; j++) {
-          mockEvents.push({ eventName: "project_view", createdAt: time });
-        }
-        // Clicks
-        const clicksCount = Math.floor(Math.random() * 15) + 5;
-        for (let j = 0; j < clicksCount; j++) {
-          mockEvents.push({ eventName: "project_click", createdAt: time });
-        }
-      }
-      // CTA clicks
-      for (let i = 0; i < 42; i++) mockEvents.push({ eventName: "cta_whatsapp_click", createdAt: now });
-      for (let i = 0; i < 28; i++) mockEvents.push({ eventName: "cta_email_click", createdAt: now });
-      
-      // @ts-ignore
-      events = mockEvents;
-    }
-
     // Grouping logic
     const dailyStats: Record<string, { date: string; views: number; clicks: number }> = {};
     const ctaBreakdown = {

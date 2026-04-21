@@ -55,6 +55,12 @@ function isTenantOwner(role: string | null | undefined) {
   return role === "owner";
 }
 
+function isInvalidConvexAuthError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  const code = (error as { code?: unknown }).code;
+  return code === "InvalidAuthHeader" || error.message.includes("InvalidAuthHeader") || error.message.includes("Missing issuer claim");
+}
+
 export default async function WorkspaceSettingsPage({
   searchParams,
 }: {
@@ -73,12 +79,12 @@ export default async function WorkspaceSettingsPage({
     label: dictionary.settings[tab.labelKey],
     icon: tab.icon,
   }));
-  const organization = team.organization;
-  const members = team.members;
-  const invites = team.invites;
-  const canManage = isManagerRole(team.currentMembershipRole) || isTenantOwner(team.currentTenantRole);
+  const organization = team?.organization;
+  const members = team?.members ?? [];
+  const invites = team?.invites ?? [];
+  const canManage = team ? (isManagerRole(team.currentMembershipRole) || isTenantOwner(team.currentTenantRole)) : false;
   const canViewApiKeys = canManage;
-  const canCreateApiKeys = isTenantOwner(team.currentTenantRole);
+  const canCreateApiKeys = team ? isTenantOwner(team.currentTenantRole) : false;
   const canRevokeApiKeys = canManage;
   const showLegacyNotice = readSearchParam(resolvedSearchParams, "source") === "legacy-account-apps";
 
@@ -86,29 +92,35 @@ export default async function WorkspaceSettingsPage({
   try {
     apiKeys = activeTab === "api-keys" ? await listCurrentOrganizationApiKeysForCurrentUser() : [];
   } catch (error) {
-    console.error("API Keys fetch failed:", error);
+    if (!isInvalidConvexAuthError(error)) {
+      console.error("API Keys fetch failed:", error);
+    }
   }
 
   let apps: OAuthAuthorizedAppSummary[] = [];
   try {
     apps = activeTab === "apps" ? await listAuthorizedAppsForCurrentOrganization() : [];
   } catch (error) {
-    console.error("Apps fetch failed:", error);
+    if (!isInvalidConvexAuthError(error)) {
+      console.error("Apps fetch failed:", error);
+    }
   }
 
   let complianceRuleset = null;
   try {
     complianceRuleset = activeTab === "verification" ? await getComplianceRulesetForCurrentOrg() : null;
   } catch (error) {
-    console.error("Compliance fetch failed:", error);
+    if (!isInvalidConvexAuthError(error)) {
+      console.error("Compliance fetch failed:", error);
+    }
   }
 
   const roleLabel =
-    team.currentMembershipRole === "manager" ||
-    team.currentMembershipRole === "member" ||
-    team.currentMembershipRole === "viewer"
+    team?.currentMembershipRole === "manager" ||
+    team?.currentMembershipRole === "member" ||
+    team?.currentMembershipRole === "viewer"
       ? getOrganizationMemberRoleLabel(team.currentMembershipRole)
-      : team.currentMembershipRole ?? dictionary.settings.unavailable;
+      : team?.currentMembershipRole ?? dictionary.settings.unavailable;
 
   const content =
     activeTab === "members" ? (

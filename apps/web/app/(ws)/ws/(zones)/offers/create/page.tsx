@@ -1,14 +1,25 @@
-import CreateOfferForm from "../shared/forms/CreateOfferForm";
-import { demoPrimaryOrganization, demoProjects, demoWorkspaceBehavior } from "../../../_lib/demoData";
-import type { OfferPropertyOption } from "../types/offerTypes";
+"use client";
 
-export default async function CreateOfferPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const params = await searchParams;
-  const properties: OfferPropertyOption[] = demoProjects.map((project) => ({
+import CreateOfferForm from "../shared/forms/CreateOfferForm";
+import { useQuery } from "convex/react";
+import { api } from "@/lib/convexApi";
+import type { OfferPropertyOption } from "../types/offerTypes";
+import { useSearchParams } from "next/navigation";
+
+export default function CreateOfferPage() {
+  const params = Object.fromEntries(useSearchParams().entries());
+  const workspaceState = useQuery(api.partnerWorkspace.getWorkspaceState);
+  const projects = useQuery(api.partnerProperties.listWorkspaceProperties);
+
+  if (workspaceState === undefined || projects === undefined) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <div className="text-sm font-medium text-muted-foreground animate-pulse">Loading…</div>
+      </div>
+    );
+  }
+
+  const properties: OfferPropertyOption[] = (projects ?? []).map((project: { id: string; title: string; location: string; image: string; priceLabel: string; shortDescription?: string; publicationState: string }) => ({
     id: project.id,
     title: project.title,
     location: project.location,
@@ -17,31 +28,44 @@ export default async function CreateOfferPage({
     shortDescription: project.shortDescription,
     publicationState: project.publicationState,
   }));
-  const propertyId = Array.isArray(params.propertyId) ? params.propertyId[0] : params.propertyId;
-  const mode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
-  const clientName = Array.isArray(params.clientName) ? params.clientName[0] : params.clientName;
-  const clientPhone = Array.isArray(params.clientPhone) ? params.clientPhone[0] : params.clientPhone;
-  const clientBudget = Array.isArray(params.clientBudget) ? params.clientBudget[0] : params.clientBudget;
-  const clientBudgetMin = Array.isArray(params.clientBudgetMin) ? params.clientBudgetMin[0] : params.clientBudgetMin;
-  const clientBudgetMax = Array.isArray(params.clientBudgetMax) ? params.clientBudgetMax[0] : params.clientBudgetMax;
-  const clientLocation = Array.isArray(params.clientLocation) ? params.clientLocation[0] : params.clientLocation;
-  const clientArea = Array.isArray(params.clientArea) ? params.clientArea[0] : params.clientArea;
-  const clientBedsMin = Array.isArray(params.clientBedsMin) ? params.clientBedsMin[0] : params.clientBedsMin;
-  const clientBathsMin = Array.isArray(params.clientBathsMin) ? params.clientBathsMin[0] : params.clientBathsMin;
-  const clientSqftMin = Array.isArray(params.clientSqftMin) ? params.clientSqftMin[0] : params.clientSqftMin;
-  const clientSqftMax = Array.isArray(params.clientSqftMax) ? params.clientSqftMax[0] : params.clientSqftMax;
-  const clientNeed = Array.isArray(params.clientNeed) ? params.clientNeed[0] : params.clientNeed;
+
+  const propertyId = params.propertyId;
+  const mode = params.mode;
+  const clientName = params.clientName;
+  const clientPhone = params.clientPhone;
+  const clientBudget = params.clientBudget;
+  const clientBudgetMin = params.clientBudgetMin;
+  const clientBudgetMax = params.clientBudgetMax;
+  const clientLocation = params.clientLocation;
+  const clientArea = params.clientArea;
+  const clientBedsMin = params.clientBedsMin;
+  const clientBathsMin = params.clientBathsMin;
+  const clientSqftMin = params.clientSqftMin;
+  const clientSqftMax = params.clientSqftMax;
+  const clientNeed = params.clientNeed;
 
   async function createOffer() {
-    "use server";
-    return { redirectTo: "/ws/offers/offer-1" };
+    return { redirectTo: "/ws/offers" };
   }
+
+  const audience = (workspaceState.audience as "broker" | "developer") ?? "developer";
+  const organization = workspaceState.organization ?? {
+    id: "",
+    name: "",
+    slug: "",
+    type: "developer",
+    status: "active",
+    description: "",
+    website: "",
+    contactEmail: "",
+    phone: "",
+  };
 
   return (
     <CreateOfferForm
       properties={properties}
-      audience={demoWorkspaceBehavior.audience}
-      organization={demoPrimaryOrganization}
+      audience={audience}
+      organization={organization}
       simplifiedFieldsOnly
       initialData={{
         propertyId,
