@@ -49,6 +49,8 @@ export const Text = React.forwardRef<RNText, TextProps>(
   }
 );
 
+Text.displayName = "Text";
+
 function extractTextContent(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") {
     return String(node);

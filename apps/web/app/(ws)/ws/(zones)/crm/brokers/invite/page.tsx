@@ -18,6 +18,8 @@ export default function InviteBrokerPage() {
 
       <div className="px-6 py-6 lg:px-8 lg:py-8">
         <InviteMemberForm
+          canManage
+          hasOrganization
           onCreateInvite={createOrganizationInviteAction}
           onSearchDirectory={searchOrganizationDirectoryAction}
         />

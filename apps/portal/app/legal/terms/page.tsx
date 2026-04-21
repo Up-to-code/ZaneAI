@@ -1,52 +1,67 @@
-import { Section } from "@/components/ui/portal";
-import { cookies } from "next/headers";
-import { resolveLocale, WEB_LOCALE_COOKIE, getWebDictionary } from "@/lib/i18n";
-import { FileText } from "lucide-react";
+import { LegalArticle, Section } from "@/components/ui/portal";
 
-export default async function TermsPage() {
-  const cookieStore = await cookies();
-  const locale = resolveLocale(cookieStore.get(WEB_LOCALE_COOKIE)?.value);
-  const dictionary = getWebDictionary(locale);
+const updatedAt = "April 21, 2026";
 
+export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-white dark:bg-black pt-20 transition-all selection:bg-primary selection:text-white">
-      <Section className="py-20 lg:py-28 border-b border-border/50 bg-slate-50/20 dark:bg-zinc-950/20">
-        <div className="mx-auto max-w-3xl px-6 lg:px-10 text-center space-y-8 flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-white dark:bg-black px-4 py-1.5 text-xs font-bold text-foreground relative isolate [transform:translateZ(0)] shadow-sm">
-             <span className="text-xl leading-none -mt-1 text-primary">★</span>
-             {dictionary.footer.terms}
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground leading-[1.05]" dir="auto">
-            Platform Terms of <br/> <span className="text-primary text-opacity-90">Service.</span>
-          </h1>
-          <p className="text-sm font-medium text-muted-foreground pt-4" dir="auto">Last updated: April 15, 2026</p>
+    <main className="min-h-screen bg-white pt-20 text-foreground transition-all dark:bg-black">
+      <Section className="border-b border-border/50 py-20 lg:py-28">
+        <div className="mx-auto max-w-3xl px-6 text-center lg:px-10">
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-primary">Terms of Service</p>
+          <h1 className="mt-6 text-4xl font-bold tracking-tighter md:text-6xl">Zayon Egypt MVP Terms</h1>
+          <p className="mt-6 text-sm font-medium text-muted-foreground">Last updated: {updatedAt}</p>
         </div>
       </Section>
 
-      <Section className="py-20 lg:py-24">
-        <div className="mx-auto max-w-3xl px-6 lg:px-10">
-          <div className="space-y-16">
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground" dir="auto">1. Agreement to Terms</h2>
-              <p className="text-lg font-medium text-muted-foreground leading-relaxed" dir="auto">
-                By accessing or using the Zane-ai portal and Zane-ai workspace, you agree to be bound by these legal terms. These terms govern your institutional access to our real estate intelligence platform.
-              </p>
-            </div>
+      <Section className="py-16 lg:py-20">
+        <div className="mx-auto max-w-3xl space-y-12 px-6 text-base font-medium leading-8 text-muted-foreground lg:px-10">
+          <LegalArticle title="1. Platform Role" titleClassName="text-2xl font-bold text-foreground">
+            <p>
+              Zayon is a real estate discovery, matching, and workflow platform. It is not a broker of record, developer,
+              law firm, bank, valuation office, escrow service, or government registry. Listings are supplied by
+              workspace organizations and must be verified before a buyer relies on them.
+            </p>
+          </LegalArticle>
 
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground" dir="auto">2. Intellectual Property</h2>
-              <p className="text-lg font-medium text-muted-foreground leading-relaxed" dir="auto">
-                The "Pure Canvas" design system, brand graphics, and proprietary intelligence models are the exclusive property of Zane-ai Digital Solutions. Unauthorized reproduction is strictly prohibited.
-              </p>
-            </div>
+          <LegalArticle title="2. Buyer Responsibilities" titleClassName="text-2xl font-bold text-foreground">
+            <p>
+              Buyers are responsible for checking project status, ad license details, ownership documents, payment
+              terms, fees, delivery dates, availability, and official records before reservation, payment, or contract
+              signature. AI match scores and summaries are decision aids only.
+            </p>
+          </LegalArticle>
 
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground" dir="auto">3. Institutional Usage</h2>
-              <p className="text-lg font-medium text-muted-foreground leading-relaxed" dir="auto">
-                Access to the workspace is strictly for certified real estate developers and licensed brokers. Zane-ai reserves the right to revoke access for non-compliance with regional regulatory standards.
-              </p>
-            </div>
-          </div>
+          <LegalArticle title="3. Partner Responsibilities" titleClassName="text-2xl font-bold text-foreground">
+            <p>
+              Developers, brokers, and workspace users must submit accurate inventory, pricing, media, license numbers,
+              compliance documents, and availability. They may not publish misleading, duplicate, unavailable,
+              unlicensed, or unverifiable listings.
+            </p>
+          </LegalArticle>
+
+          <LegalArticle title="4. AI Use" titleClassName="text-2xl font-bold text-foreground">
+            <p>
+              AI may search, summarize, rank, compare, and suggest next steps. AI does not approve listings, guarantee
+              investment returns, create binding offers, schedule confirmed visits, or contact third parties without a
+              user action and an authorized workflow.
+            </p>
+          </LegalArticle>
+
+          <LegalArticle title="5. Account and Security" titleClassName="text-2xl font-bold text-foreground">
+            <p>
+              Users must keep account credentials secure and may not attempt to bypass role permissions, scrape private
+              workspace data, reverse engineer platform services, submit malicious files, or use Zayon to distribute
+              unlawful or deceptive advertising.
+            </p>
+          </LegalArticle>
+
+          <LegalArticle title="6. Launch Notice" titleClassName="text-2xl font-bold text-foreground">
+            <p>
+              These MVP terms are a working product baseline. Final public terms, limitation of liability,
+              dispute-resolution language, consumer notices, and jurisdiction clauses require counsel review before
+              production launch.
+            </p>
+          </LegalArticle>
         </div>
       </Section>
     </main>

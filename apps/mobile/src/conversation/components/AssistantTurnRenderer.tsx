@@ -85,13 +85,10 @@ function ActionButtons({
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const actions = turn.actions.filter((action) => actionIds.includes(action.id));
-  const isArabicTurn = isArabic(turn.assistantText);
-
-  if (!actions.length) {
-    return null;
-  }
-
+  const actions = useMemo(
+    () => turn.actions.filter((action) => actionIds.includes(action.id)),
+    [actionIds, turn.actions],
+  );
   const preparedActions = useMemo<PromptChipData[]>(() =>
     actions.map((action) => ({
       id: action.id,
@@ -100,6 +97,10 @@ function ActionButtons({
     })),
     [actions, onAction, turn]
   );
+
+  if (!actions.length) {
+    return null;
+  }
 
   return (
     <PromptChips 

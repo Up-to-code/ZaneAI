@@ -47,6 +47,10 @@ function orderGalleryImages(images: UploadedFileReference[], coverImageKey?: str
   return [coverImage, ...images.filter((image) => image.key !== coverImageKey)];
 }
 
+function resolveGalleryAspectRatio(value: "auto" | "landscape" | "square" | "portrait" | undefined) {
+  return value === "auto" || value === undefined ? "landscape" : value;
+}
+
 function resolveGalleryImages(property: PropertyDetail) {
   const presentation = parsePropertyBody(property.body)?.presentation;
   const fallbackImages = property.media?.length
@@ -82,7 +86,7 @@ export function mapPropertyToWorkspaceProject(property: PropertyDetail): Workspa
     gallery: {
       coverImageKey: presentation?.coverImageKey ?? galleryImages[0]?.key ?? null,
       displayMode: presentation?.galleryDisplayMode ?? "cover",
-      aspectRatio: presentation?.galleryAspectRatio ?? "landscape",
+      aspectRatio: resolveGalleryAspectRatio(presentation?.galleryAspectRatio),
     },
     amenities: presentation?.amenities ?? [],
     parking: {

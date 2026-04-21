@@ -91,6 +91,7 @@ export function useConversationController() {
   const sendUserMessageMutation = useMutation(api.agent.public.sendUserMessage.sendUserMessage);
   const stopRunMutation = useMutation(api.agent.public.stopRun.stopRun);
   const toggleSavedListingMutation = useMutation(api.listings.toggleSavedListing);
+  const createBuyerIntentMutation = useMutation(api.buyer.createBuyerIntent);
   const runtimeHealth = useAgentRuntimeHealth();
   const resolvedThreadId = resolveActiveConversationThreadId({
     activeThreadId,
@@ -585,6 +586,20 @@ export function useConversationController() {
     }
 
     if (action.name === "contact_agent") {
+      if (!isAuthenticated) {
+        track("contact_agent", { ...basePayload, authRequired: true });
+        router.push("/(auth)");
+        return;
+      }
+      if (action.payload.propertyId) {
+        await createBuyerIntentMutation({
+          listingId: action.payload.propertyId,
+          intentType: "contact",
+          source: "assistant",
+          threadId: activeThreadId ?? undefined,
+          prompt: action.payload.prompt,
+        });
+      }
       track("contact_agent", basePayload);
       if (action.payload.prompt) {
         await sendPrompt(action.payload.prompt);
@@ -602,6 +617,20 @@ export function useConversationController() {
     }
 
     if (action.name === "schedule_visit") {
+      if (!isAuthenticated) {
+        track("schedule_visit", { ...basePayload, authRequired: true });
+        router.push("/(auth)");
+        return;
+      }
+      if (action.payload.propertyId) {
+        await createBuyerIntentMutation({
+          listingId: action.payload.propertyId,
+          intentType: "schedule_visit",
+          source: "assistant",
+          threadId: activeThreadId ?? undefined,
+          prompt: action.payload.prompt,
+        });
+      }
       track("schedule_visit", basePayload);
       if (action.payload.prompt) {
         await sendPrompt(action.payload.prompt);

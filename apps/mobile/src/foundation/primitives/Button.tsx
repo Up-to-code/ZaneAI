@@ -1,16 +1,23 @@
-import { Pressable, StyleSheet, View } from "react-native";
-import { useMemo, type ComponentProps, type ReactNode } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  type PressableProps,
+  type StyleProp,
+  type TextStyle,
+} from "react-native";
+import { useMemo, type ReactNode } from "react";
 
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 
-type ButtonProps = ComponentProps<typeof Pressable> & {
+type ButtonProps = PressableProps & {
   label: string;
   variant?: "primary" | "secondary" | "ghost";
   leading?: ReactNode;
   trailing?: ReactNode;
-  textStyle?: ComponentProps<typeof Text>["style"];
+  textStyle?: StyleProp<TextStyle>;
 };
 
 export function Button({ 

@@ -3,8 +3,11 @@ import { useRouter } from "expo-router";
 import Animated, { FadeInUp, FadeInDown } from "react-native-reanimated";
 import { X, Building2, Home } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMutation } from "convex/react";
 
 import { useAppStore } from "@/store";
+import { useAuthSession } from "@/auth/useAuthSession";
+import { api } from "@/persistence/convex/api";
 import { Text } from "@/foundation/primitives/Text";
 import { Button } from "@/foundation/primitives/Button";
 import { Screen } from "@/foundation/primitives/Screen";
@@ -17,6 +20,8 @@ export default function OnboardingTypesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { isAuthenticated } = useAuthSession();
+  const updateBuyerPreferences = useMutation(api.buyer.updateBuyerPreferences);
   
   const setOnboardingComplete = useAppStore((state) => state.setOnboardingComplete);
   const preferenceProfile = useAppStore((state) => state.preferenceProfile);
@@ -34,7 +39,19 @@ export default function OnboardingTypesScreen() {
     patchPreferenceProfile({ propertyTypes: newTypes });
   };
 
-  const finalizeJourney = () => {
+  const finalizeJourney = async () => {
+    if (isAuthenticated) {
+      await updateBuyerPreferences({
+        patch: {
+          minBudget: preferenceProfile.budgetRange[0],
+          maxBudget: preferenceProfile.budgetRange[1],
+          locations: preferenceProfile.locations,
+          propertyTypes: selectedTypes,
+          confidence: Math.max(preferenceProfile.confidence, 0.7),
+          updatedFrom: "mobile_onboarding",
+        },
+      });
+    }
     setOnboardingComplete(true);
     router.replace("/(app)");
   };

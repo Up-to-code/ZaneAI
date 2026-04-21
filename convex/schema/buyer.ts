@@ -50,6 +50,9 @@ export const buyerTables = {
     organizationId: v.id("organizations"),
     intentType,
     status: intentStatus,
+    source: v.optional(v.string()),
+    threadId: v.optional(v.string()),
+    prompt: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

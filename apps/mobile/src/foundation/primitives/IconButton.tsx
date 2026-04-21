@@ -1,10 +1,9 @@
-import { Pressable, StyleSheet } from "react-native";
-import { useMemo, type ComponentProps, type ReactNode } from "react";
+import { Pressable, StyleSheet, type PressableProps } from "react-native";
+import { useMemo, type ReactNode } from "react";
 
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 
-type IconButtonProps = ComponentProps<typeof Pressable> & {
+type IconButtonProps = PressableProps & {
   children: ReactNode;
   active?: boolean;
 };

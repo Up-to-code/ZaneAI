@@ -49,6 +49,7 @@ export default function PropertyDetailScreen() {
   );
   const compareIds = useAppStore((state) => state.comparePropertyIds);
   const toggleSavedListing = useMutation(api.listings.toggleSavedListing);
+  const createBuyerIntent = useMutation(api.buyer.createBuyerIntent);
   const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
 
   if (!property) {
@@ -315,14 +316,42 @@ export default function PropertyDetailScreen() {
           <Button
             label="Contact agent"
             trailing={<MessageSquareMore size={16} color={colors.textPrimary} />}
-            onPress={() => track("contact_agent", { propertyId: property.id })}
+            onPress={async () => {
+              if (!isAuthenticated) {
+                Alert.alert("Sign in required", "Sign in to contact the listing team and keep your request history.");
+                router.push("/(auth)");
+                track("contact_agent", { propertyId: property.id, authRequired: true });
+                return;
+              }
+              await createBuyerIntent({
+                listingId: property.id,
+                intentType: "contact",
+                source: "property_detail",
+              });
+              track("contact_agent", { propertyId: property.id, source: "property_detail" });
+              Alert.alert("Request saved", "The listing team can follow up from your request.");
+            }}
             style={styles.ctaPrimary}
           />
           <Button
             label="Schedule"
             variant="secondary"
             trailing={<CalendarDays size={16} color={colors.textPrimary} />}
-            onPress={() => track("schedule_visit", { propertyId: property.id })}
+            onPress={async () => {
+              if (!isAuthenticated) {
+                Alert.alert("Sign in required", "Sign in to request a visit and keep your schedule history.");
+                router.push("/(auth)");
+                track("schedule_visit", { propertyId: property.id, authRequired: true });
+                return;
+              }
+              await createBuyerIntent({
+                listingId: property.id,
+                intentType: "schedule_visit",
+                source: "property_detail",
+              });
+              track("schedule_visit", { propertyId: property.id, source: "property_detail" });
+              Alert.alert("Visit requested", "Your visit request has been saved.");
+            }}
           />
         </View>
       </View>

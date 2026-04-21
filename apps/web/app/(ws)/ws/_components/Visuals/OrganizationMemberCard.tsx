@@ -16,10 +16,12 @@ export default function OrganizationMemberCard({
   member,
   organizationType,
   footer,
+  className,
 }: {
   member: OrganizationMemberDisplay;
   organizationType: OrganizationSummary["type"] | null | undefined;
   footer?: ReactNode;
+  className?: string;
 }) {
   const { direction, dictionary } = useWebLocale();
   const m = dictionary.members;
@@ -27,7 +29,10 @@ export default function OrganizationMemberCard({
 
   return (
     <article
-      className="group relative flex flex-col gap-6 py-6 px-1 border-b border-[color:var(--workspace-border)] transition-all hover:bg-[var(--workspace-shell)]/5"
+      className={cn(
+        "group relative flex flex-col gap-6 py-6 px-1 border-b border-[color:var(--workspace-border)] transition-all hover:bg-[var(--workspace-shell)]/5",
+        className,
+      )}
       dir={direction}
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
