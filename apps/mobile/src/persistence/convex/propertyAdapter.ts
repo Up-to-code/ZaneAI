@@ -10,6 +10,7 @@ type ListingPropertyRow = {
   externalId?: string;
   _id?: string;
   heroUrl: string;
+  imageUrls?: string[];
   title: string;
   description?: string;
   priceLabel: string;
@@ -29,6 +30,8 @@ type ListingPropertyRow = {
   amenities?: PropertyCardVM["amenities"];
   broker?: PropertyCardVM["broker"];
   priceAnalysis?: PropertyCardVM["priceAnalysis"];
+  developerName?: string;
+  compoundName?: string;
 };
 
 export function toPropertyCardVM(property: ListingPropertyRow): PropertyCardVM {
@@ -37,6 +40,7 @@ export function toPropertyCardVM(property: ListingPropertyRow): PropertyCardVM {
   return {
     id,
     heroUrl: property.heroUrl,
+    imageUrls: property.imageUrls?.length ? property.imageUrls : [property.heroUrl],
     title: property.title,
     description: property.description ?? summary,
     priceLabel: property.priceLabel,
@@ -60,5 +64,7 @@ export function toPropertyCardVM(property: ListingPropertyRow): PropertyCardVM {
       description: "Broker profile will be available when listing enrichment is connected.",
     },
     priceAnalysis: property.priceAnalysis ?? FALLBACK_PRICE_ANALYSIS,
+    developerName: property.developerName,
+    compoundName: property.compoundName,
   };
 }

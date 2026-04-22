@@ -63,7 +63,12 @@ function PropertyFallback({ propertyId }: { propertyId: string }) {
 
 function renderProperties(propertyIds: string[], renderPropertyPreview?: (propertyId: string) => ReactNode) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={rendererStyles.propertyRail}
+      contentContainerStyle={rendererStyles.propertyRailContent}
+    >
       {propertyIds.map((propertyId) => (
         <Fragment key={propertyId}>
           {renderPropertyPreview ? renderPropertyPreview(propertyId) : <PropertyFallback propertyId={propertyId} />}
@@ -141,7 +146,7 @@ function RenderBlock({
       );
     case "property_list":
       return (
-        <Section title={block.title} tone={turn.motion.preset} isAr={isAr}>
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr} cardless>
           {block.subtitle ? <Text style={styles.subtleText}>{block.subtitle}</Text> : null}
           {renderProperties(block.propertyIds, renderPropertyPreview)}
           {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
@@ -149,7 +154,7 @@ function RenderBlock({
       );
     case "comparison":
       return (
-        <Section title={block.title} tone={turn.motion.preset} isAr={isAr}>
+        <Section title={block.title} tone={turn.motion.preset} isAr={isAr} cardless>
           {renderProperties(block.propertyIds, renderPropertyPreview)}
           <View style={styles.bulletsWrap}>
             {block.points.map((point) => {
@@ -356,6 +361,14 @@ const rendererStyles = StyleSheet.create({
   followupSuggestionContent: {
     paddingHorizontal: theme.spacing.xl,
   },
+  propertyRail: {
+    marginHorizontal: -theme.spacing.xl,
+  },
+  propertyRailContent: {
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    paddingBottom: theme.spacing.xs,
+  },
 });
 
 const createStyles = (colors: any) =>
@@ -390,7 +403,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.surfaceRaised,
     },
     card_property: {
-      borderColor: colors.accent,
+      borderColor: colors.border,
       backgroundColor: colors.surfaceRaised,
     },
     card_funding: {

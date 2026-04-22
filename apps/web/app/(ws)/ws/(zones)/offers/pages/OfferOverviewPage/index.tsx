@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import OfferPaginationNav from "../../shared/components/OfferPaginationNav";
 import OfferListItem from "../../shared/components/OfferListItem";
@@ -13,6 +14,7 @@ import {
   type OffersSortValue,
   type PaginatedCollection,
 } from "../../shared/lib/offersPageData";
+import AgSearchInput from "@/app/(ws)/ws/_components/AgUi/AgSearchInput";
 
 function sortLabel(sort: OffersSortValue, newestFirst: string, oldestFirst: string) {
   return sort === "updated_asc" ? oldestFirst : newestFirst;
@@ -37,11 +39,6 @@ const inputClassName =
 
 const labelClassName = "text-[12px] font-bold text-foreground";
 
-/**
- * WHY:   The main offers page should feel like one calm marketplace surface with lightweight controls and a focused list.
- * WHAT:  Renders a compact theme-aware header, a flat paginated list of offer cards, and a slim searchable filter rail.
- * HOW:   Receives a server-prepared, deduplicated, sorted collection plus Saudi suggestion lists and keeps the active filter state in a sidebar form.
- */
 export default function OfferOverviewPage({
   items,
   pagination,
@@ -57,11 +54,26 @@ export default function OfferOverviewPage({
   sort: OffersSortValue;
   filters: OffersPageFilters;
 }) {
-  const { locale } = useWebLocale();
+  const { locale, dictionary } = useWebLocale();
   const copy = getOfferUiCopy(locale);
   const activeFilterCount = countActiveFilters(filters, sort);
   const locationSelectorOptions = filterOptions.locations.map((option) => ({ label: option, value: option }));
   const areaSelectorOptions = filterOptions.areas.map((option) => ({ label: option, value: option }));
+  
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredItems = useMemo(() => {
+    if (!searchQuery) return items;
+    const lowerQuery = searchQuery.toLowerCase();
+    return items.filter(
+      (item) =>
+        item.property?.title.toLowerCase().includes(lowerQuery) ||
+        item.property?.location?.toLowerCase().includes(lowerQuery) ||
+        item.clientContext?.clientName.toLowerCase().includes(lowerQuery) ||
+        item.message?.toLowerCase().includes(lowerQuery)
+    );
+  }, [items, searchQuery]);
+
   const summaryPills = [
     formatOfferCountLabel(locale, copy.overview.offersCount, pagination.totalItems),
     copy.overview.marketScope,
@@ -72,7 +84,7 @@ export default function OfferOverviewPage({
     <div className="flex min-h-full flex-col pb-24">
       <div className="grid gap-6 px-6 py-6 lg:px-8 lg:py-8">
         <section className="rounded-[24px] border border-border/70 bg-card/85 p-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/75 lg:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3 text-right">
               <span className="inline-flex items-center rounded-full border border-[color:var(--workspace-highlight-soft)] bg-[color:var(--workspace-highlight-soft)] px-3 py-1 text-[11px] font-bold text-[color:var(--workspace-highlight-strong)]">
                 {copy.overview.dashboardBadge}
@@ -97,40 +109,47 @@ export default function OfferOverviewPage({
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              {activeFilterCount > 0 ? (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
+              <AgSearchInput 
+                value={searchQuery} 
+                onChange={setSearchQuery} 
+                className="sm:min-w-[240px]"
+              />
+              <div className="flex items-center justify-end gap-3">
+                {activeFilterCount > 0 ? (
+                  <Link
+                    href="/ws/offers"
+                    className="inline-flex items-center justify-center rounded-full border border-border/70 bg-background/80 px-4 py-2.5 text-[13px] font-bold text-foreground transition hover:bg-background"
+                  >
+                    {copy.overview.reset}
+                  </Link>
+                ) : null}
                 <Link
-                  href="/ws/offers"
-                  className="inline-flex items-center justify-center rounded-full border border-border/70 bg-background/80 px-4 py-2.5 text-[13px] font-bold text-foreground transition hover:bg-background"
+                  href="/ws/offers/create"
+                  className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-[13px] font-bold text-background transition hover:bg-foreground/90"
                 >
-                  {copy.overview.reset}
+                  {copy.overview.createOffer}
                 </Link>
-              ) : null}
-              <Link
-                href="/ws/offers/create"
-                className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-[13px] font-bold text-background transition hover:bg-foreground/90"
-              >
-                {copy.overview.createOffer}
-              </Link>
+              </div>
             </div>
           </div>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <div className="space-y-4">
-            {items.length > 0 ? (
+            {filteredItems.length > 0 ? (
               <div className="grid gap-4" data-slot="offers-grid">
-                {items.map((item) => (
+                {filteredItems.map((item) => (
                   <OfferListItem key={item.id} item={item} />
                 ))}
               </div>
             ) : (
               <div className="rounded-[28px] border border-dashed border-border/70 bg-card/80 px-6 py-14 text-center text-[14px] font-medium text-muted-foreground">
-                {copy.overview.noMatchingOffers}
+                {searchQuery ? dictionary.common.noResults : copy.overview.noMatchingOffers}
               </div>
             )}
 
-            {pagination.totalItems > 0 ? (
+            {pagination.totalItems > 0 && !searchQuery ? (
               <OfferPaginationNav
                 page={pagination.page}
                 pageCount={pagination.pageCount}

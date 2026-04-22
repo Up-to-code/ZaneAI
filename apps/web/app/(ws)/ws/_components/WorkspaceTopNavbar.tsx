@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Search } from "lucide-react";
 import WebLocaleSwitcher from "@/app/_components/WebLocaleSwitcher";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import type { WorkspaceZoneKey } from "@/server/contracts/workspace";
@@ -98,6 +98,20 @@ export default function WorkspaceTopNavbar({
 
       <div className="flex shrink-0 items-center gap-1.5 lg:gap-3">
         <div className="hidden items-center gap-1 lg:flex">
+          <button
+            type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] lg:h-10 lg:w-10 dark:text-white/80 dark:hover:bg-white/10"
+            title={dictionary.common.search}
+            onClick={() => {
+              const input = document.querySelector("[data-search-input='true']") as HTMLInputElement;
+              if (input) {
+                input.focus();
+                input.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }}
+          >
+            <Search className="h-4 w-4" />
+          </button>
           <WebLocaleSwitcher className="h-9 w-9 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] lg:h-10 lg:w-10 dark:text-white/80 dark:hover:bg-white/10" />
           <ThemeToggle className="h-9 w-9 border-none bg-transparent text-[var(--zane-ai-deep)] transition hover:bg-[var(--zane-ai-line)] lg:h-10 lg:w-10 dark:text-white/80 dark:hover:bg-white/10" />
         </div>

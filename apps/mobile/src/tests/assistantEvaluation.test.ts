@@ -116,10 +116,12 @@ test("ZaneAI routes evaluation prompts to the least expensive useful path", () =
 
 test("ZaneAI model policy pins cheap orchestrator, finance, and legal models", () => {
   assert.equal(getWorkerModelPolicy("orchestrator").modelId, "google/gemini-2.5-flash-lite");
-  assert.equal(getWorkerModelPolicy("funding").modelId, "qwen/qwen3.5-flash-02-23");
-  assert.equal(getWorkerModelPolicy("finance_editor").modelId, "qwen/qwen3.5-flash-02-23");
+  assert.equal(getWorkerModelPolicy("funding").modelId, "google/gemini-2.5-flash-lite");
+  assert.equal(getWorkerModelPolicy("finance_editor").modelId, "google/gemini-2.5-flash-lite");
+  assert.equal(getWorkerModelPolicy("finance_editor").maxOutputTokens >= 700, true);
   assert.equal(getWorkerModelPolicy("legal").modelId, "google/gemma-4-26b-a4b-it");
   assert.equal(getWorkerModelPolicy("legal_editor").modelId, "google/gemma-4-26b-a4b-it");
+  assert.equal(getWorkerModelPolicy("legal_editor").maxOutputTokens >= 700, true);
 });
 
 test("ZaneAI keeps simple advisor turns text-only", () => {

@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, View, Pressable, TextInput } from "react-native";
-import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -17,12 +17,19 @@ const FILTERS = ["All", "For Sale", "For Rent", "Villas", "Apartments", "Studios
 
 export default function ListingScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ filter?: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+
+  useEffect(() => {
+    if (typeof params.filter === "string" && FILTERS.includes(params.filter)) {
+      setActiveFilter(params.filter);
+    }
+  }, [params.filter]);
   
   const rawProperties = useCandidateProperties();
 

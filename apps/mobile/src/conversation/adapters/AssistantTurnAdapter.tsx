@@ -51,8 +51,8 @@ export function AssistantTurnAdapter({ message, onAction, onSuggestionPress }: A
         }
 
         return (
-          <View style={{ width: 280 }}>
-            <PropertyCard property={property} compact />
+          <View style={{ width: 252 }}>
+            <PropertyCard property={property} variant="chat" />
           </View>
         );
       }}

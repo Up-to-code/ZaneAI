@@ -628,14 +628,37 @@ async function generateStructuredObject<TSchema extends z.ZodTypeAny>(args: {
   };
 }) {
   const policy = args.usage ? getWorkerModelPolicy(args.usage.agentName) : null;
-  const result = await generateObject({
-    model: createModel(policy?.modelId ?? getWorkerModelPolicy("orchestrator").modelId),
-    schema: args.schema,
-    system: args.system,
-    prompt: args.prompt,
-    temperature: 0.2,
-    ...(policy ? { maxOutputTokens: policy.maxOutputTokens } : {}),
-  });
+  const jsonModeInstruction = [
+    "Return only valid JSON that matches the requested schema.",
+    "Do not include markdown, prose, code fences, or any text outside the JSON object.",
+  ].join(" ");
+  const modelId = policy?.modelId ?? getWorkerModelPolicy("orchestrator").modelId;
+  const system = [args.system, jsonModeInstruction].filter(Boolean).join("\n\n");
+  const prompt = [jsonModeInstruction, args.prompt].filter(Boolean).join("\n\n");
+  const generateWithMaxTokens = async (maxOutputTokens: number | undefined) =>
+    await generateObject({
+      model: createModel(modelId),
+      schema: args.schema,
+      system,
+      prompt,
+      temperature: 0.2,
+      ...(maxOutputTokens ? { maxOutputTokens } : {}),
+    });
+
+  let result;
+  try {
+    result = await generateWithMaxTokens(policy?.maxOutputTokens);
+  } catch (error) {
+    const finishReason = typeof error === "object" && error !== null && "finishReason" in error
+      ? (error as { finishReason?: string }).finishReason
+      : undefined;
+    if (finishReason !== "length") {
+      throw error;
+    }
+
+    const retryMaxOutputTokens = Math.max((policy?.maxOutputTokens ?? 500) * 2, 1_000);
+    result = await generateWithMaxTokens(retryMaxOutputTokens);
+  }
 
   if (args.usage) {
     const usage = result.usage;

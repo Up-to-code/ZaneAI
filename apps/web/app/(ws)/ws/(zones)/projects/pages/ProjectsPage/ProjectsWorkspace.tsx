@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Building2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 import { cn } from "@/lib/i18n";
@@ -11,6 +11,7 @@ import type { WorkspaceProject } from "../../types/projectTypes";
 import type { ProjectMutationActionResult } from "./actionTypes";
 import type { ProjectAnalyticsEventType } from "@/server/contracts/properties";
 import ProjectPortfolioCard from "./ProjectPortfolioCard";
+import AgSearchInput from "@/app/(ws)/ws/_components/AgUi/AgSearchInput";
 
 type ProjectsWorkspaceProps = {
   initialProjects: WorkspaceProject[];
@@ -33,6 +34,7 @@ export default function ProjectsWorkspace({
   const isRtl = locale === "ar";
   const [projects] = useState(initialProjects);
   const [filterKey, setFilterKey] = useState("projects"); // Default to projects view
+  const [searchQuery, setSearchQuery] = useState("");
 
   const allUnits = useMemo(
     () =>
@@ -47,13 +49,33 @@ export default function ProjectsWorkspace({
     [projects],
   );
 
-  const filteredProjects = useMemo(() => projects, [projects]);
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery) return projects;
+    const lowerQuery = searchQuery.toLowerCase();
+    return projects.filter(
+      (p) =>
+        p.title.toLowerCase().includes(lowerQuery) ||
+        p.developerName?.toLowerCase().includes(lowerQuery) ||
+        p.location?.toLowerCase().includes(lowerQuery),
+    );
+  }, [projects, searchQuery]);
+
+  const filteredUnits = useMemo(() => {
+    if (!searchQuery) return allUnits;
+    const lowerQuery = searchQuery.toLowerCase();
+    return allUnits.filter(
+      (u) =>
+        u.label.toLowerCase().includes(lowerQuery) ||
+        u.projectTitle.toLowerCase().includes(lowerQuery) ||
+        u.unitType?.toLowerCase().includes(lowerQuery),
+    );
+  }, [allUnits, searchQuery]);
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="flex w-full flex-col gap-6 md:gap-8 px-5 py-8 md:px-8 md:py-12 lg:px-12 lg:py-16 bg-background min-h-screen">
       
       {/* ── Institutional Header: Portfolio ── */}
-      <div className="flex flex-col justify-between gap-6 md:gap-8 lg:flex-row lg:items-end">
+      <div className="flex flex-col justify-between gap-6 md:gap-10 lg:flex-row lg:items-end">
         <div className="flex flex-col gap-4 md:gap-5">
            <div className={cn("flex items-center gap-2.5", isRtl && "flex-row-reverse")}>
              <div className="h-px w-6 md:w-8 bg-foreground/20" />
@@ -72,13 +94,20 @@ export default function ProjectsWorkspace({
            </p>
         </div>
         
-        <Link
-          href="/ws/projects/create"
-          className="group flex h-14 w-full items-center justify-between rounded-full bg-foreground px-8 md:px-10 text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-background transition-all hover:scale-[1.02] active:scale-[0.98] lg:w-[280px]"
-        >
-          <span>{dictionary.projects.create}</span>
-          <Plus className="h-4 w-4" strokeWidth={4} />
-        </Link>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 lg:w-auto">
+          <AgSearchInput 
+            value={searchQuery} 
+            onChange={setSearchQuery} 
+            className="sm:min-w-[280px]"
+          />
+          <Link
+            href="/ws/projects/create"
+            className="group flex h-12 w-full items-center justify-between rounded-full bg-foreground px-8 md:px-10 text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-background transition-all hover:scale-[1.02] active:scale-[0.98] sm:w-[220px]"
+          >
+            <span>{dictionary.projects.create}</span>
+            <Plus className="h-4 w-4" strokeWidth={4} />
+          </Link>
+        </div>
       </div>
 
       {/* ── Portfolio Aggregate Scorecard ── */}
@@ -125,14 +154,14 @@ export default function ProjectsWorkspace({
             {filteredProjects.length === 0 && (
               <div className="flex min-h-[40vh] items-center justify-center rounded-[48px] border border-dashed border-[var(--workspace-border)] bg-[var(--workspace-panel)]/50 p-12 text-center">
                 <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
-                   {dictionary.projects.noProjectsFound}
+                   {searchQuery ? dictionary.common.noResults || "No matching results" : dictionary.projects.noProjectsFound}
                 </span>
               </div>
             )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {allUnits.map((unit) => (
+            {filteredUnits.map((unit) => (
               <AgUnitCard
                 key={`${unit.projectId}-${unit.id}`}
                 id={unit.id}
@@ -151,10 +180,10 @@ export default function ProjectsWorkspace({
                 variant="vertical"
               />
             ))}
-            {allUnits.length === 0 && (
+            {filteredUnits.length === 0 && (
               <div className="col-span-full py-12 text-center rounded-[32px] border border-dashed border-border/50">
                 <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
-                  {dictionary.projects.noUnitsFound}
+                  {searchQuery ? dictionary.common.noResults || "No matching results" : dictionary.projects.noUnitsFound}
                 </span>
               </div>
             )}

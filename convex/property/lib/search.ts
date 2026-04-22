@@ -1,5 +1,11 @@
 import type { QueryCtx } from "../../_generated/server";
-import { getCatalogListingById, listCatalogListings, toPropertyCompat, type PropertyCompat } from "./catalog";
+import {
+  getCatalogListingById,
+  listCatalogListings,
+  toPropertyCompat,
+  toPropertyCompatWithAssets,
+  type PropertyCompat,
+} from "./catalog";
 import {
   recommendProperties,
   type BudgetMode,
@@ -36,7 +42,8 @@ export async function searchCatalogProperties(ctx: QueryCtx, args: PropertySearc
       .withSearchIndex("search_listings", (q) => q.search("searchText", args.query!.trim()).eq("status", "active"))
       .take(limit);
     if (rows.length > 0) {
-      return filterListings(rows.map(toPropertyCompat), args).slice(0, limit);
+      const properties = await Promise.all(rows.map((row) => toPropertyCompatWithAssets(ctx, row)));
+      return filterListings(properties, args).slice(0, limit);
     }
   }
   const rows = await listCatalogListings(ctx, 50);
@@ -53,7 +60,7 @@ export async function smartSearchCatalogProperties(ctx: QueryCtx, args: Property
       .query("listings")
       .withSearchIndex("search_listings", (q) => q.search("searchText", args.query!.trim()).eq("status", "active"))
       .take(broadLimit);
-    for (const row of rows.map(toPropertyCompat)) {
+    for (const row of await Promise.all(rows.map((listing) => toPropertyCompatWithAssets(ctx, listing)))) {
       candidates.set(row.externalId, row);
     }
   }

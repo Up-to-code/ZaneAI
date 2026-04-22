@@ -457,7 +457,7 @@ const createStyles = (colors: any, colorScheme: "light" | "dark") => {
     fontFamily: "Manrope_500Medium",
   },
   brandingWrap: {
-    marginBottom: 6,
+    marginBottom: 4,
   },
   statusLine: {
     flexDirection: "row",

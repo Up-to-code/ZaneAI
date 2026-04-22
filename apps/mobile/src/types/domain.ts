@@ -124,6 +124,7 @@ export type PriceAnalysisVM = {
 export type PropertyCardVM = {
   id: string;
   heroUrl: string;
+  imageUrls?: string[];
   title: string;
   description?: string; // added description
   priceLabel: string;
@@ -138,6 +139,8 @@ export type PropertyCardVM = {
   amenities: AmenityVM[];
   broker: BrokerVM;
   priceAnalysis: PriceAnalysisVM;
+  developerName?: string;
+  compoundName?: string;
 };
 
 export type PreferenceProfile = {

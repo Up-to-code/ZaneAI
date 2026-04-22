@@ -176,6 +176,8 @@ export type WebDictionary = {
   common: {
     back: string;
     newBadge: string;
+    search: string;
+    noResults: string;
   };
   footer: {
     brandTitle: string;
@@ -1066,6 +1068,8 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
     common: {
       back: "رجوع",
       newBadge: "جديد",
+      search: "بحث سريع...",
+      noResults: "لا توجد نتائج مطابقة لبحثك",
     },
     footer: {
       brandTitle: "مساحة العمل للمطورين والوسطاء",
@@ -1957,7 +1961,9 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
     },
     common: {
       back: "Back",
-      newBadge: "NEW",
+      newBadge: "New",
+      search: "Quick search...",
+      noResults: "No matching results found",
     },
     footer: {
       brandTitle: "Workspace for developers and brokers",
@@ -2849,7 +2855,9 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
     },
     common: {
       back: "Retour",
-      newBadge: "NOUVEAU",
+      newBadge: "Nouveau",
+      search: "Recherche rapide...",
+      noResults: "Aucun résultat trouvé",
     },
     footer: {
       brandTitle: "Espace de travail pour promoteurs et courtiers",

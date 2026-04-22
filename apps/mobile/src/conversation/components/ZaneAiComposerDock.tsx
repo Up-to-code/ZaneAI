@@ -10,8 +10,6 @@ import {
   View,
   type KeyboardEventName,
   type LayoutChangeEvent,
-  type NativeSyntheticEvent,
-  type TextInputContentSizeChangeEventData,
 } from "react-native";
 import Animated, { FadeIn, FadeInDown, FadeInUp, FadeOut, FadeOutDown, LinearTransition } from "react-native-reanimated";
 import { ArrowDown, ArrowUp, Maximize2, Mic, Square, X } from "lucide-react-native";
@@ -22,6 +20,7 @@ import { PromptChips, type PromptChipData } from "./PromptChips";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { Text } from "@/foundation/primitives/Text";
+import { composerStateConstants, useComposerState } from "@/conversation/hooks/useComposerState";
 import { useComposerSheetMotion } from "@/conversation/hooks/useComposerSheetMotion";
 import { useDetectionHeightAndWidthOfTheScreen } from "@/lib/detectionHeightAndWidthOfTheScreen";
 import { useAppStore } from "@/store";
@@ -224,8 +223,15 @@ const EXPANDED_COPY: Record<"ar" | "en" | "fr", { title: string; done: string; p
   fr: { title: "Écrire en détail", done: "Terminé", placeholder: "Écris ta question ou les détails..." },
 };
 
-const INPUT_MIN_HEIGHT = 24;
-const INPUT_MAX_HEIGHT = 108;
+const { INPUT_MIN_HEIGHT, INPUT_MAX_HEIGHT } = composerStateConstants;
+const ARABIC_BODY_FONT = "Cairo_400Regular";
+const ARABIC_LABEL_FONT = "Cairo_700Bold";
+const DEFAULT_BODY_FONT = "Manrope_500Medium";
+const DEFAULT_LABEL_FONT = "Manrope_700Bold";
+
+function usesArabicScript(value: string) {
+  return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(value);
+}
 
 export function ZaneAiComposerDock({
   onSend,
@@ -248,7 +254,6 @@ export function ZaneAiComposerDock({
   const screen = useDetectionHeightAndWidthOfTheScreen();
   const sheetMotion = useComposerSheetMotion(screen.screenClass === "compact");
   const styles = useMemo(() => createStyles(colors, insets), [colors, insets]);
-  const [inputHeight, setInputHeight] = useState(INPUT_MIN_HEIGHT);
   const [expandedComposerOpen, setExpandedComposerOpen] = useState(false);
   const dockInputRef = useRef<TextInput | null>(null);
   const sheetInputRef = useRef<TextInput | null>(null);
@@ -263,6 +268,13 @@ export function ZaneAiComposerDock({
   const setVoiceError = useAppStore((state) => state.setVoiceError);
   const setVoiceState = useAppStore((state) => state.setVoiceState);
   const { voiceState, audioLevel, error, start, stop } = useVoiceComposer();
+  const {
+    inputHeight,
+    inputExpanded,
+    showExpandComposer,
+    handleContentSizeChange,
+    resetComposerState,
+  } = useComposerState(draftText);
 
   const isNewThread = messageCount === 0;
   const isRecording =
@@ -271,12 +283,6 @@ export function ZaneAiComposerDock({
     voiceState === "transcribing";
   const isVoicePending = voiceState === "requesting_permission";
   const hasText = draftText.trim().length > 0;
-  const inputExpanded = draftText.includes("\n") || draftText.trim().length > 52;
-  const estimatedLineCount = Math.max(
-    draftText.split("\n").length,
-    Math.ceil(draftText.length / 34),
-  );
-  const showExpandComposer = estimatedLineCount > 3 || inputHeight >= 74;
   const isRtl = isRtlDirection(direction);
   const sheetKeyboardOffset = Platform.OS === "ios" && keyboardHeight > 0
     ? Math.max(keyboardHeight - insets.bottom, 0) + screen.composerSheet.keyboardGap
@@ -354,17 +360,10 @@ export function ZaneAiComposerDock({
     setComposerDockHeight(event.nativeEvent.layout.height);
   };
 
-  const handleContentSizeChange = (
-    event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>,
-  ) => {
-    const contentHeight = Math.round(event.nativeEvent.contentSize.height);
-    setInputHeight(Math.min(Math.max(contentHeight, INPUT_MIN_HEIGHT), INPUT_MAX_HEIGHT));
-  };
-
   const submitDraft = () => {
     const value = draftText.trim();
     if (!value || disabled) return;
-    setInputHeight(INPUT_MIN_HEIGHT); // Force reset to avoid "ghost" height spikes
+    resetComposerState();
     onSend(value);
     setDraftText("");
   };
@@ -420,6 +419,14 @@ export function ZaneAiComposerDock({
   const promptLocale = uiLocale ?? "en";
   const editingCopy = EDITING_COPY[promptLocale];
   const expandedCopy = EXPANDED_COPY[promptLocale];
+  const composerUsesArabicFont = usesArabicScript(draftText)
+    || usesArabicScript(surfaceCopy.composerPlaceholder)
+    || usesArabicScript(expandedCopy.placeholder);
+  const composerFontFamily = composerUsesArabicFont ? ARABIC_BODY_FONT : DEFAULT_BODY_FONT;
+  const editingLabelFontFamily = usesArabicScript(editingCopy.label) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
+  const editingCancelFontFamily = usesArabicScript(editingCopy.cancel) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
+  const sheetTitleFontFamily = usesArabicScript(expandedCopy.title) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
+  const sheetDoneFontFamily = usesArabicScript(expandedCopy.done) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
   const preparedPrompts = useMemo<PromptChipData[]>(() =>
     PLACE_PROMPTS[promptLocale].map(p => ({
       id: p.id,
@@ -486,13 +493,13 @@ export function ZaneAiComposerDock({
                 exiting={FadeOutDown.duration(120)}
                 style={[styles.editingStrip, isRtl ? styles.editingStripRtl : null]}
               >
-                <Text style={styles.editingLabel}>{editingCopy.label}</Text>
+                <Text style={[styles.editingLabel, { fontFamily: editingLabelFontFamily }]}>{editingCopy.label}</Text>
                 <Pressable
                   onPress={onCancelEdit}
                   hitSlop={10}
                   style={({ pressed }) => [styles.editingCancel, pressed ? styles.actionPressed : null]}
                 >
-                  <Text style={styles.editingCancelText}>{editingCopy.cancel}</Text>
+                  <Text style={[styles.editingCancelText, { fontFamily: editingCancelFontFamily }]}>{editingCopy.cancel}</Text>
                 </Pressable>
               </Animated.View>
             </View>
@@ -535,6 +542,7 @@ export function ZaneAiComposerDock({
                     onBlur={() => setComposerFocused(false)}
                     style={[
                       styles.input,
+                      { fontFamily: composerFontFamily },
                       inputExpanded ? styles.inputExpanded : styles.inputCompact,
                       { height: inputHeight },
                       isRtl ? { textAlign: "right", writingDirection: "rtl" } : null,
@@ -665,7 +673,7 @@ export function ZaneAiComposerDock({
                     <X size={18} color={colors.textSecondary} strokeWidth={2.2} />
                   </Pressable>
                 </View>
-                <Text style={[styles.sheetTitle, { fontSize: screen.composerSheet.titleFontSize }]}>
+                <Text style={[styles.sheetTitle, { fontFamily: sheetTitleFontFamily, fontSize: screen.composerSheet.titleFontSize }]}>
                   {expandedCopy.title}
                 </Text>
                 <View style={[styles.sheetHeaderSide, styles.sheetHeaderSideEnd, { width: screen.composerSheet.headerSideWidth }]}>
@@ -682,7 +690,7 @@ export function ZaneAiComposerDock({
                       pressed ? styles.actionPressed : null,
                     ]}
                   >
-                    <Text style={styles.sheetDoneText}>{expandedCopy.done}</Text>
+                    <Text style={[styles.sheetDoneText, { fontFamily: sheetDoneFontFamily }]}>{expandedCopy.done}</Text>
                   </Pressable>
                 </View>
               </View>
@@ -705,6 +713,7 @@ export function ZaneAiComposerDock({
                   style={[
                     styles.sheetInput,
                     {
+                      fontFamily: composerFontFamily,
                       fontSize: screen.composerSheet.inputFontSize,
                       lineHeight: screen.composerSheet.inputLineHeight,
                     },
@@ -905,8 +914,8 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     backgroundColor: "transparent",
   },
   inputCompact: {
-    paddingTop: 1,
-    paddingBottom: 1,
+    paddingTop: Platform.OS === "ios" ? 8 : 4,
+    paddingBottom: Platform.OS === "ios" ? 8 : 4,
   },
   inputExpanded: {
     paddingTop: 6,

@@ -119,7 +119,7 @@ const STEP_POLICIES: Record<WorkerModelStep, StepPolicyTemplate> = {
   },
   finance_editor: {
     modelRole: "financeEditor",
-    maxOutputTokens: 280,
+    maxOutputTokens: 700,
     disableReasoning: true,
     expectedCostTier: "lowest",
     domain: "finance",
@@ -135,7 +135,7 @@ const STEP_POLICIES: Record<WorkerModelStep, StepPolicyTemplate> = {
   },
   legal_editor: {
     modelRole: "legalEditor",
-    maxOutputTokens: 320,
+    maxOutputTokens: 700,
     disableReasoning: true,
     expectedCostTier: "lowest",
     domain: "legal",

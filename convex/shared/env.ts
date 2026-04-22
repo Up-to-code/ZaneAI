@@ -19,8 +19,8 @@ const AGENT_MODEL_ENV = {
 
 const DEFAULT_AGENT_MODELS = {
   orchestrator: "google/gemini-2.5-flash-lite",
-  finance: "qwen/qwen3.5-flash-02-23",
-  financeEditor: "qwen/qwen3.5-flash-02-23",
+  finance: "google/gemini-2.5-flash-lite",
+  financeEditor: "google/gemini-2.5-flash-lite",
   legal: "google/gemma-4-26b-a4b-it",
   legalEditor: "google/gemma-4-26b-a4b-it",
   search: "google/gemini-2.5-flash-lite",

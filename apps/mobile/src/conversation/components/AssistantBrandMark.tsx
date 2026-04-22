@@ -26,6 +26,12 @@ type AssistantBrandMarkProps = {
 };
 
 const AnimatedGlyphText = Animated.createAnimatedComponent(RNText);
+const ARABIC_LABEL_FONT = "Cairo_700Bold";
+const DEFAULT_LABEL_FONT = "Manrope_700Bold";
+
+function usesArabicScript(value: string) {
+  return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(value);
+}
 
 type SweepGlyphProps = {
   glyph: string;
@@ -84,6 +90,7 @@ function AnimatedBrandLabel({
   const glyphs = useMemo(() => Array.from(label), [label]);
   const progress = useSharedValue(0);
   const isRtl = direction === "rtl";
+  const labelFontFamily = usesArabicScript(label) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
 
   useEffect(() => {
     if (textMotion !== "light_sweep") {
@@ -107,6 +114,7 @@ function AnimatedBrandLabel({
       <RNText
         style={[
           styles.label,
+          { fontFamily: labelFontFamily },
           emphasis === "stopping" ? styles.labelStopping : null,
           isRtl ? styles.labelRtl : null,
         ]}
@@ -127,7 +135,11 @@ function AnimatedBrandLabel({
           progress={progress}
           baseColor={baseColor}
           highlightColor={highlightColor}
-          style={[styles.labelGlyph, isRtl ? styles.labelGlyphRtl : null]}
+          style={[
+            styles.labelGlyph,
+            { fontFamily: labelFontFamily },
+            isRtl ? styles.labelGlyphRtl : null,
+          ]}
         />
       ))}
     </RNText>
@@ -227,12 +239,12 @@ const createStyles = (colors: any) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     borderRadius: theme.radii.pill,
-    borderWidth: 1,
-    backgroundColor: colors.backgroundSoft,
-    borderColor: colors.border,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    borderColor: "transparent",
   },
   containerRtl: {
     flexDirection: "row-reverse",
@@ -260,7 +272,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: "transparent",
   },
   markWrap_active: {
-    backgroundColor: "rgba(236,45,53,0.06)",
+    backgroundColor: "transparent",
   },
   markWrap_stopping: {
     backgroundColor: "transparent",

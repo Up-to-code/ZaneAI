@@ -1,685 +1,1141 @@
-import { ScrollView, StyleSheet, View, Pressable, Alert } from "react-native";
+import React, { useMemo, useState, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Dimensions,
+  FlatList,
+  Modal,
+  Alert,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Image } from "expo-image";
-import { useMemo } from "react";
 import {
   ArrowLeft,
-  Bookmark,
-  Scale,
+  Heart,
+  Share2,
   MapPin,
   BedDouble,
   Bath,
   Ruler,
-  CalendarDays,
-  MessageSquareMore,
+  Sparkles,
+  CheckCircle2,
+  Calendar,
+  Wallet,
+  ShieldCheck,
+  Building2,
+  ArrowRight,
+  Info,
   ChevronRight,
-  TrendingUp
+  Car,
+  Wind,
+  Waves,
+  Map,
+  Flame,
+  Droplets,
+  Zap,
+  Phone,
+  ChefHat,
+  Tv,
+  Wifi,
+  Dumbbell,
 } from "lucide-react-native";
-import * as LucideIcons from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { Button } from "@/foundation/primitives/Button";
-import { Screen } from "@/foundation/primitives/Screen";
-import { Text } from "@/foundation/primitives/Text";
-import { theme } from "@/foundation/theme/tokens";
+import { Image } from "expo-image";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { toggleE2ESavedProperty } from "@/e2e/store";
-import { track } from "@/persistence/analytics/track";
-import { api } from "@/persistence/convex/api";
-import { usePropertyById, useSavedProperties } from "@/persistence/convex/usePropertyData";
-import { useAppStore } from "@/store";
-import { useMutation } from "convex/react";
-import { useAuthSession } from "@/auth/useAuthSession";
+import { theme } from "@/foundation/theme/tokens";
+import { useCandidateProperties, usePropertyById } from "@/persistence/convex/usePropertyData";
+import { PropertyCard } from "@/decision/components/PropertyCard";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function PropertyDetailScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const params = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isAuthenticated, isGuest } = useAuthSession();
-  const e2eQaMode = useAppStore((state) => state.e2eQaMode);
-  const toggleGuestMirrorSavedProperty = useAppStore((state) => state.toggleGuestMirrorSavedProperty);
+  const { colors } = useTheme();
+  
+  const property = usePropertyById(id);
+  const recommendations = useCandidateProperties().filter(p => p.id !== id).slice(0, 5);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
+  const [isAmenitiesModalVisible, setIsAmenitiesModalVisible] = useState(false);
+  const [isContactSheetVisible, setIsContactSheetVisible] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
-  const property = usePropertyById(params.id);
-  const savedListings = useSavedProperties();
-  const savedIds = useMemo(
-    () => savedListings.map((item: { listingId: string }) => item.listingId),
-    [savedListings],
-  );
-  const compareIds = useAppStore((state) => state.comparePropertyIds);
-  const toggleSavedListing = useMutation(api.listings.toggleSavedListing);
-  const createBuyerIntent = useMutation(api.buyer.createBuyerIntent);
-  const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (!property) {
     return (
-      <Screen style={styles.centered}>
-        <Text variant="title">Property not found</Text>
-        <Pressable onPress={() => router.back()} style={styles.backFallback}>
-          <ArrowLeft size={18} color={colors.textSecondary} />
-          <Text tone="secondary">Go back</Text>
-        </Pressable>
-      </Screen>
+      <View style={[styles.screen, styles.centered]}>
+        <Info size={40} color={colors.textMuted} />
+        <Text style={{ color: colors.textSecondary, fontFamily: "Manrope_600SemiBold" }}>
+          PROPERTY NOT FOUND
+        </Text>
+      </View>
     );
   }
 
-  const isSaved = savedIds.includes(property.id);
-  const isCompared = compareIds.includes(property.id);
+  const renderImageItem = ({ item }: { item: string }) => (
+    <Image
+      source={{ uri: item }}
+      style={styles.heroImage}
+      contentFit="cover"
+      transition={200}
+    />
+  );
+
+  const getAmenityIcon = (label: string) => {
+    const l = label.toLowerCase();
+    if (l.includes("gas")) return <Flame size={16} color={colors.accent} />;
+    if (l.includes("water")) return <Droplets size={16} color={colors.accent} />;
+    if (l.includes("electri") || l.includes("meter")) return <Zap size={16} color={colors.accent} />;
+    if (l.includes("landline") || l.includes("phone")) return <Phone size={16} color={colors.accent} />;
+    if (l.includes("kitchen")) return <ChefHat size={16} color={colors.accent} />;
+    if (l.includes("parking") || l.includes("garage")) return <Car size={16} color={colors.accent} />;
+    if (l.includes("view") || l.includes("sea")) return <Waves size={16} color={colors.accent} />;
+    if (l.includes("construction") || l.includes("year")) return <Calendar size={16} color={colors.accent} />;
+    if (l.includes("tv") || l.includes("satellite")) return <Tv size={16} color={colors.accent} />;
+    if (l.includes("wifi") || l.includes("internet")) return <Wifi size={16} color={colors.accent} />;
+    if (l.includes("security") || l.includes("guard")) return <ShieldCheck size={16} color={colors.accent} />;
+    if (l.includes("pool")) return <Waves size={16} color={colors.accent} />;
+    if (l.includes("gym")) return <Dumbbell size={16} color={colors.accent} />;
+    return <Info size={16} color={colors.accent} />;
+  };
+
+  const RecommendationCard = ({ property }: { property: any }) => (
+    <Pressable 
+      style={styles.recCard}
+      onPress={() => router.push(`/(app)/property/${property.id}`)}
+    >
+      <View style={styles.recImageContainer}>
+        <Image source={{ uri: property.heroUrl }} style={styles.recImage} />
+        <View style={styles.recHeart}>
+          <Heart size={14} color="#FFFFFF" fill="rgba(0,0,0,0.1)" />
+        </View>
+      </View>
+      <View style={styles.recContent}>
+        <Text style={styles.recPrice}>{property.priceLabel}</Text>
+        <View style={styles.recMetaRow}>
+          <Text style={styles.recMetaText}>{property.area}m²</Text>
+          <View style={styles.recMetaDot} />
+          <Text style={styles.recMetaText}>{property.beds} BED</Text>
+        </View>
+        <Text style={styles.recLocation} numberOfLines={1}>
+          {property.locationLabel.split(",")[0].toUpperCase()}
+        </Text>
+      </View>
+    </Pressable>
+  );
 
   return (
-    <Screen style={styles.screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Hero Image */}
-        <View style={styles.heroWrap}>
-          <Image source={property.heroUrl} style={styles.hero} contentFit="cover" />
-
-          <View style={[styles.heroControls, { top: insets.top + 8 }]}>
-            <Pressable style={styles.heroBtn} onPress={() => router.back()} accessibilityLabel="Go back">
-              <ArrowLeft size={20} color={colors.textPrimary} />
-            </Pressable>
-            <View style={styles.heroActions}>
-              <Pressable
-                testID="property.save"
-                accessibilityLabel="Save property"
-                style={[styles.heroBtn, isSaved && styles.heroBtnActive]}
-                onPress={() => {
-                  if (!isAuthenticated && !isGuest && !e2eQaMode) {
-                    Alert.alert("Sign in required", "Create an account or sign in to save properties across devices.");
-                    return;
-                  }
-                  if (e2eQaMode) {
-                    toggleE2ESavedProperty(property.id);
-                  } else if (isAuthenticated) {
-                    void toggleSavedListing({ listingId: property.id });
-                  } else {
-                    toggleGuestMirrorSavedProperty(property.id);
-                  }
-                  track("property_save", { propertyId: property.id, saved: !isSaved });
-                }}
-              >
-                <Bookmark
-                  size={20}
-                  color={isSaved ? colors.accent : colors.textPrimary}
-                  fill={isSaved ? colors.accent : "transparent"}
-                />
-              </Pressable>
-              <Pressable
-                testID="property.compare"
-                accessibilityLabel="Compare property"
-                style={[styles.heroBtn, isCompared && styles.heroBtnActive]}
-                onPress={() => {
-                  toggleCompareProperty(property.id);
-                  track("property_compare", { propertyId: property.id });
-                }}
-              >
-                <Scale size={20} color={isCompared ? colors.accent : colors.textPrimary} />
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.matchBadge}>
-            <Text variant="label" style={styles.matchText}>{property.matchScore}</Text>
-            <Text variant="caption" style={styles.matchLabel}>match</Text>
-          </View>
+    <View style={styles.screen}>
+      {/* Header Actions */}
+      <View style={[styles.floatingHeader, { top: insets.top + 10 }]}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.headerButton}
+        >
+          <ArrowLeft size={20} color={colors.textPrimary} />
+        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={styles.headerButton}
+            onPress={() => setIsSaved(!isSaved)}
+          >
+            <Heart 
+              size={20} 
+              color={isSaved ? colors.accent : colors.textPrimary} 
+              fill={isSaved ? colors.accent : "transparent"} 
+            />
+          </Pressable>
+          <Pressable style={styles.headerButton}>
+            <Share2 size={20} color={colors.textPrimary} />
+          </Pressable>
         </View>
+      </View>
 
-        {/* Info Block */}
-        <View style={styles.cardGroup}>
-          <View style={styles.header}>
-            <Text variant="display" style={styles.price}>{property.priceLabel}</Text>
-            <Text variant="title" tone="primary" style={styles.title}>{property.title}</Text>
-            <View style={styles.locationRow}>
-              <MapPin size={14} color={colors.accent} />
-              <Text tone="secondary">{property.locationLabel}</Text>
-            </View>
-          </View>
-
-          <View style={styles.statsRow}>
-            {[
-              { icon: <BedDouble size={18} color={colors.accent} />, label: `${property.beds} Beds` },
-              { icon: <Bath size={18} color={colors.accent} />, label: `${property.baths} Baths` },
-              { icon: <Ruler size={18} color={colors.accent} />, label: `${property.area.toLocaleString()} sqft` },
-            ].map(({ icon, label }) => (
-              <View key={label} style={styles.statCard}>
-                {icon}
-                <Text variant="label">{label}</Text>
-              </View>
+      <ScrollView 
+        style={styles.scroll} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+      >
+        {/* Image Swiper */}
+        <View style={styles.heroContainer}>
+          <FlatList
+            data={property.imageUrls || [property.heroUrl]}
+            renderItem={renderImageItem}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => {
+              const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+              setActiveImageIndex(index);
+            }}
+            keyExtractor={(_, index) => index.toString()}
+          />
+          <View style={styles.pagination}>
+            {(property.imageUrls || [property.heroUrl]).map((_, index) => (
+              <View 
+                key={index} 
+                style={[
+                  styles.paginationDot, 
+                  activeImageIndex === index && styles.paginationDotActive
+                ]} 
+              />
             ))}
           </View>
+        </View>
 
-          {property.tags.length > 0 && (
-            <View style={styles.tagsWrap}>
-              {property.tags.map((tag) => (
-                <View key={tag} style={styles.tag}>
-                  <Text variant="caption" style={styles.tagText}>{tag}</Text>
+        <View style={styles.mainContent}>
+          {/* Pricing & High-Level Identity */}
+          <View style={styles.pricingSection}>
+            <View style={styles.priceHeader}>
+              <Text style={styles.priceLabel}>TOTAL INVESTMENT</Text>
+              <Text style={styles.priceText}>{property.priceLabel}</Text>
+            </View>
+            <View style={styles.badgeRow}>
+              <View style={styles.matchBadge}>
+                <CheckCircle2 size={12} color={colors.success} />
+                <Text style={styles.matchBadgeText}>{property.matchScore}% MATCH</Text>
+              </View>
+              <View style={styles.tagBadge}>
+                <Text style={styles.tagBadgeText}>PREMIUM LISTING</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Compound & Developer Context */}
+          {(property.compoundName || property.developerName) && (
+            <View style={styles.contextSection}>
+              {property.compoundName && (
+                <View style={styles.compoundBlock}>
+                  <Map size={16} color={colors.accent} />
+                  <Text style={styles.compoundText}>{property.compoundName.toUpperCase()}</Text>
                 </View>
-              ))}
+              )}
+              {property.developerName && (
+                <View style={styles.developerBadge}>
+                  <Building2 size={12} color={colors.textMuted} />
+                  <Text style={styles.developerLabel}>BY {property.developerName.toUpperCase()}</Text>
+                </View>
+              )}
             </View>
           )}
-        </View>
 
-        {/* Description Section */}
-        {property.description && (
-          <View style={styles.cardGroup}>
-            <View style={styles.section}>
-              <Text variant="title" style={{ color: colors.textPrimary, marginBottom: 8 }}>About this property</Text>
-              <Text tone="secondary" style={{ lineHeight: 22 }}>{property.description}</Text>
+          <View style={styles.titleSection}>
+            <Text style={styles.titleText}>{property.title.toUpperCase()}</Text>
+            <View style={styles.locationRow}>
+              <MapPin size={14} color={colors.textMuted} />
+              <Text style={styles.locationText}>{property.locationLabel.toUpperCase()}</Text>
+            </View>
+            <View style={styles.referenceRow}>
+              <Text style={styles.referenceLabel}>REF ID:</Text>
+              <Text style={styles.referenceValue}>{property.id.toUpperCase()}</Text>
             </View>
           </View>
-        )}
 
-        {/* Top Amenities */}
-        {property.amenities && property.amenities.length > 0 && (
-          <View style={styles.cardGroup}>
-            <View style={styles.section}>
-              <Text variant="title" style={{ color: colors.textPrimary, marginBottom: 16 }}>Amenities</Text>
+          <View style={styles.divider} />
 
-              <View style={styles.amenitiesGrid}>
-                {property.amenities.slice(0, 8).map(amenity => {
-                  const Icon = (LucideIcons as any)[amenity.iconName] || LucideIcons.CheckCircle;
-                  return (
-                    <View key={amenity.id} style={styles.amenityItem}>
-                      <View style={styles.amenityIconWrap}>
-                        <Icon size={20} color={colors.accent} strokeWidth={1.5} />
-                      </View>
-                      <Text variant="caption" tone="secondary">{amenity.label}</Text>
-                    </View>
-                  )
-                })}
-              </View>
-
-              <Pressable
-                style={styles.viewAllRow}
-                onPress={() => router.push(`/(app)/property/${property.id}/amenities`)}
-              >
-                <Text tone="primary" style={{ fontWeight: "600" }}>View all {property.amenities.length} amenities</Text>
-                <ChevronRight size={16} color={colors.textSecondary} />
-              </Pressable>
+          {/* Quick Specs Grid */}
+          <View style={styles.specsGrid}>
+            <View style={styles.specItem}>
+              <BedDouble size={20} color={colors.textPrimary} />
+              <Text style={styles.specValue}>{property.beds}</Text>
+              <Text style={styles.specLabel}>BEDS</Text>
+            </View>
+            <View style={styles.specItem}>
+              <Bath size={20} color={colors.textPrimary} />
+              <Text style={styles.specValue}>{property.baths}</Text>
+              <Text style={styles.specLabel}>BATHS</Text>
+            </View>
+            <View style={styles.specItem}>
+              <Ruler size={20} color={colors.textPrimary} />
+              <Text style={styles.specValue}>{property.area}</Text>
+              <Text style={styles.specLabel}>SQM</Text>
+            </View>
+            <View style={styles.specItem}>
+              <Building2 size={20} color={colors.textPrimary} />
+              <Text style={styles.specValue}>LUX</Text>
+              <Text style={styles.specLabel}>FINISH</Text>
             </View>
           </View>
-        )}
 
-        {/* Market Insights (Price Chart Placeholder) */}
-        {property.priceAnalysis && (
-          <View style={styles.cardGroup}>
-            <View style={styles.section}>
-              <Text variant="title" style={{ color: colors.textPrimary, marginBottom: 16 }}>Market Insights</Text>
+          <View style={styles.divider} />
 
-              <View style={styles.priceInsightBox}>
-                <View style={styles.priceInsightHeader}>
-                  <Text tone="secondary">Asking Price</Text>
-                  <Text variant="title" style={{ color: colors.textPrimary }}>AED {(property.priceAnalysis.propertyAskPrice / 1000000).toFixed(2)}M</Text>
-                </View>
-                <View style={styles.priceInsightHeader}>
-                  <Text tone="secondary">Area Average</Text>
-                  <Text variant="title" style={{ color: colors.textPrimary }}>AED {(property.priceAnalysis.areaAveragePrice / 1000000).toFixed(2)}M</Text>
-                </View>
-              </View>
-
-              {/* Pseudo-chart bars */}
-              <View style={styles.chartArea}>
-                <View style={styles.chartLine} />
-                <View style={styles.chartBars}>
-                  {property.priceAnalysis.historicalData.map((data, idx) => {
-                    const maxVal = Math.max(...property.priceAnalysis.historicalData.map(d => d.value));
-                    const heightPct = (data.value / maxVal) * 100;
-                    return (
-                      <View key={idx} style={styles.chartPillarWrap}>
-                        <View style={[styles.chartBar, { height: `${heightPct}%` as any, backgroundColor: idx === 5 ? colors.accent : colors.surfaceRaised }]} />
-                        <Text variant="caption" style={{ fontSize: 10, color: colors.textMuted, marginTop: 4 }}>{data.month}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-
-              <View style={styles.chartCallout}>
-                <TrendingUp size={16} color={colors.accent} />
-                <Text tone="secondary" variant="caption">Steady 4% growth across 6 months in this layout type.</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Broker Profile Card */}
-        {property.broker && (
-          <View style={styles.cardGroup}>
-            <View style={styles.sectionHeader}>
-              <Text variant="title" style={styles.sectionTitle}>Listing Agent</Text>
-            </View>
-            <Pressable
-              style={styles.brokerCard}
-              onPress={() => router.push(`/(app)/broker/${property.broker.id}`)}
+          {/* Description Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>DESCRIPTION</Text>
+            <Text style={styles.descriptionText} numberOfLines={4}>
+              {property.description}
+            </Text>
+            <Pressable 
+              onPress={() => setIsDescriptionModalVisible(true)}
+              style={styles.readMoreButton}
             >
-              <Image source={property.broker.avatarUrl} style={styles.brokerAvatar} contentFit="cover" />
-              <View style={styles.brokerInfo}>
-                <Text variant="title" style={{ fontSize: 16 }}>{property.broker.name}</Text>
-                <Text tone="secondary" variant="caption">{property.broker.agency}</Text>
-                <View style={styles.brokerMeta}>
-                  <LucideIcons.Star size={12} color="#FBBF24" fill="#FBBF24" />
-                  <Text variant="caption" style={{ fontWeight: "700" }}>{property.broker.rating}</Text>
-                  <Text variant="caption" tone="muted"> • {property.broker.activeListingsCount} active listings</Text>
-                </View>
-              </View>
-              <ChevronRight size={20} color={colors.textSecondary} />
+              <Text style={styles.readMoreText}>READ FULL DESCRIPTION</Text>
+              <ArrowRight size={14} color={colors.accent} />
             </Pressable>
           </View>
-        )}
 
-        <View style={styles.sectionHeader}>
-          <Text variant="title" style={styles.sectionTitle}>ZaneAI Intelligence</Text>
-        </View>
-
-        <View style={styles.cardGroup}>
-          <View style={styles.section}>
-            <Text style={styles.aiSummary}>{property.aiSummary}</Text>
+          {/* AI Signal Card */}
+          <View style={styles.aiCard}>
+            <View style={styles.aiHeader}>
+              <Sparkles size={18} color={colors.accent} />
+              <Text style={styles.aiTitle}>INSTITUTIONAL SIGNAL</Text>
+            </View>
+            <Text style={styles.aiBody}>{property.aiSummary}</Text>
           </View>
 
-          {property.matchReasons.length > 0 && (
-            <>
-              <View style={styles.divider} />
-              <View style={styles.section}>
-                <Text variant="caption" tone="muted" style={styles.sectionEyebrow}>WHY IT FITS</Text>
-                <View style={styles.reasonList}>
-                  {property.matchReasons.map((reason) => (
-                    <View key={reason} style={styles.reasonRow}>
-                      <View style={styles.reasonDot} />
-                      <Text tone="secondary">{reason}</Text>
-                    </View>
-                  ))}
-                </View>
+          {/* Amenities Section */}
+          {property.amenities.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>AMENITIES & FEATURES</Text>
+                {property.amenities.length > 8 && (
+                  <Pressable 
+                    onPress={() => setIsAmenitiesModalVisible(true)}
+                    style={styles.readMoreButton}
+                  >
+                    <Text style={styles.readMoreText}>VIEW ALL ({property.amenities.length})</Text>
+                  </Pressable>
+                )}
               </View>
-            </>
+              <View style={styles.amenitiesGrid}>
+                {property.amenities.slice(0, 8).map((amenity) => (
+                  <View key={amenity.id} style={styles.amenityItem}>
+                    <View style={styles.amenityIconContainer}>
+                      {getAmenityIcon(amenity.label)}
+                    </View>
+                    <Text style={styles.amenityText} numberOfLines={1}>{amenity.label.toUpperCase()}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
           )}
 
           <View style={styles.divider} />
+
+          {/* Broker & Agency Hierarchy Card */}
           <View style={styles.section}>
-            <Text variant="caption" tone="muted" style={styles.sectionEyebrow}>CONFIDENCE SCORE</Text>
-            <View style={styles.scoreTrackBackground}>
-              <View style={[styles.scoreTrackFill, { width: `${property.matchScore}%` as any }]} />
+            <Text style={styles.sectionTitle}>LISTING EXPERT & AGENCY</Text>
+            <View style={styles.agencyBrokerCard}>
+              <View style={styles.agencyHeader}>
+                <View style={styles.agencyLogoContainer}>
+                  <Building2 size={24} color={colors.accent} />
+                </View>
+                <View style={styles.agencyInfo}>
+                  <Text style={styles.agencyNameLarge}>{property.broker.agency.toUpperCase()}</Text>
+                  <Text style={styles.legalLabel}>LICENSED REAL ESTATE AGENCY</Text>
+                </View>
+              </View>
+              
+              <View style={styles.agencyDivider} />
+              
+              <Pressable 
+                style={styles.brokerSubCard}
+                onPress={() => router.push(`/(app)/broker/${property.broker.id}`)}
+              >
+                <Image 
+                  source={{ uri: property.broker.avatarUrl }} 
+                  style={styles.brokerAvatarSmall}
+                />
+                <View style={styles.brokerInfo}>
+                  <Text style={styles.brokerNameSmall}>{property.broker.name.toUpperCase()}</Text>
+                  <Text style={styles.brokerRole}>CERTIFIED ADVISOR</Text>
+                </View>
+                <ChevronRight size={18} color={colors.textMuted} />
+              </Pressable>
             </View>
-            <Text tone="secondary" variant="caption">
-              Score of {property.matchScore}/100 — Strong signal across location, resale, and lifestyle fit.
-            </Text>
           </View>
+
+          <View style={styles.divider} />
+
+          {/* Recommendations Section - Minimal Horizontal Cards */}
+          {recommendations.length > 0 && (
+            <View style={styles.recSection}>
+              <Text style={styles.recSectionTitle}>SIMILAR PROPERTIES</Text>
+              <View style={styles.recListWrapper}>
+                <FlatList
+                  data={recommendations}
+                  renderItem={({ item }) => <RecommendationCard property={item} />}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={{ paddingHorizontal: 8 }}
+                />
+                
+                {/* Simulated Left Fade */}
+                <View style={[styles.edgeFade, { left: 0, width: 8, opacity: 1, backgroundColor: colors.background }]} pointerEvents="none" />
+                <View style={[styles.edgeFade, { left: 8, width: 8, opacity: 0.7, backgroundColor: colors.background }]} pointerEvents="none" />
+                <View style={[styles.edgeFade, { left: 16, width: 8, opacity: 0.4, backgroundColor: colors.background }]} pointerEvents="none" />
+                <View style={[styles.edgeFade, { left: 24, width: 8, opacity: 0.1, backgroundColor: colors.background }]} pointerEvents="none" />
+                
+                {/* Simulated Right Fade */}
+                <View style={[styles.edgeFade, { right: 0, width: 8, opacity: 1, backgroundColor: colors.background }]} pointerEvents="none" />
+                <View style={[styles.edgeFade, { right: 8, width: 8, opacity: 0.7, backgroundColor: colors.background }]} pointerEvents="none" />
+                <View style={[styles.edgeFade, { right: 16, width: 8, opacity: 0.4, backgroundColor: colors.background }]} pointerEvents="none" />
+                <View style={[styles.edgeFade, { right: 24, width: 8, opacity: 0.1, backgroundColor: colors.background }]} pointerEvents="none" />
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
 
-      {/* Sticky bottom CTA */}
-      <View style={[styles.cta, { paddingBottom: insets.bottom + theme.spacing.md }]}>
-        <View style={styles.ctaInner}>
-          <Button
-            label="Contact agent"
-            trailing={<MessageSquareMore size={16} color={colors.textPrimary} />}
-            onPress={async () => {
-              if (!isAuthenticated) {
-                Alert.alert("Sign in required", "Sign in to contact the listing team and keep your request history.");
-                router.push("/(auth)");
-                track("contact_agent", { propertyId: property.id, authRequired: true });
-                return;
-              }
-              await createBuyerIntent({
-                listingId: property.id,
-                intentType: "contact",
-                source: "property_detail",
-              });
-              track("contact_agent", { propertyId: property.id, source: "property_detail" });
-              Alert.alert("Request saved", "The listing team can follow up from your request.");
-            }}
-            style={styles.ctaPrimary}
-          />
-          <Button
-            label="Schedule"
-            variant="secondary"
-            trailing={<CalendarDays size={16} color={colors.textPrimary} />}
-            onPress={async () => {
-              if (!isAuthenticated) {
-                Alert.alert("Sign in required", "Sign in to request a visit and keep your schedule history.");
-                router.push("/(auth)");
-                track("schedule_visit", { propertyId: property.id, authRequired: true });
-                return;
-              }
-              await createBuyerIntent({
-                listingId: property.id,
-                intentType: "schedule_visit",
-                source: "property_detail",
-              });
-              track("schedule_visit", { propertyId: property.id, source: "property_detail" });
-              Alert.alert("Visit requested", "Your visit request has been saved.");
-            }}
-          />
+      {/* Floating Action Bar */}
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <View style={styles.bottomPriceInfo}>
+          <Text style={styles.bottomPriceLabel}>TOTAL INVESTMENT</Text>
+          <Text style={styles.bottomPriceValue}>{property.priceLabel}</Text>
         </View>
+        <Pressable 
+          style={styles.primaryCta}
+          onPress={() => setIsContactSheetVisible(true)}
+        >
+          <Text style={styles.primaryCtaText}>GET IN TOUCH</Text>
+        </Pressable>
       </View>
-    </Screen>
+
+      {/* Contact Sheet */}
+      <Modal
+        visible={isContactSheetVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsContactSheetVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setIsContactSheetVisible(false)}
+        >
+          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>CONTACT EXPERT</Text>
+              <Pressable onPress={() => setIsContactSheetVisible(false)}>
+                <Text style={styles.modalCloseText}>CLOSE</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.contactOptions}>
+              <Pressable 
+                style={[styles.contactOption, { backgroundColor: "#25D366" + "15" }]}
+                onPress={() => Alert.alert("WhatsApp", "Opening secure chat...")}
+              >
+                <View style={[styles.contactIconContainer, { backgroundColor: "#25D366" }]}>
+                  <Info size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.contactInfo}>
+                  <Text style={[styles.contactLabel, { color: "#25D366" }]}>WHATSAPP CHAT</Text>
+                  <Text style={styles.contactSubLabel}>INSTANT ENGAGEMENT</Text>
+                </View>
+                <ChevronRight size={18} color="#25D366" />
+              </Pressable>
+
+              <Pressable 
+                style={[styles.contactOption, { backgroundColor: colors.accent + "15" }]}
+                onPress={() => Alert.alert("Call", "Initiating direct line...")}
+              >
+                <View style={[styles.contactIconContainer, { backgroundColor: colors.accent }]}>
+                  <Phone size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.contactInfo}>
+                  <Text style={[styles.contactLabel, { color: colors.accent }]}>DIRECT CALL</Text>
+                  <Text style={styles.contactSubLabel}>TECHNICAL ADVICE</Text>
+                </View>
+                <ChevronRight size={18} color={colors.accent} />
+              </Pressable>
+
+              <Pressable 
+                style={[styles.contactOption, { backgroundColor: colors.textPrimary + "10" }]}
+                onPress={() => Alert.alert("Email", "Opening secure mail...")}
+              >
+                <View style={[styles.contactIconContainer, { backgroundColor: colors.textPrimary }]}>
+                  <Sparkles size={20} color={colors.background} />
+                </View>
+                <View style={styles.contactInfo}>
+                  <Text style={styles.contactLabel}>EMAIL INQUIRY</Text>
+                  <Text style={styles.contactSubLabel}>OFFICIAL DOCUMENTATION</Text>
+                </View>
+                <ChevronRight size={18} color={colors.textPrimary} />
+              </Pressable>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Amenities Modal (Sheet) */}
+      <Modal
+        visible={isAmenitiesModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsAmenitiesModalVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setIsAmenitiesModalVisible(false)}
+        >
+          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>ALL AMENITIES</Text>
+              <Pressable onPress={() => setIsAmenitiesModalVisible(false)}>
+                <Text style={styles.modalCloseText}>CLOSE</Text>
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.amenitiesGrid}>
+                {property.amenities.map((amenity) => (
+                  <View key={amenity.id} style={[styles.amenityItem, { width: "100%", marginBottom: 8 }]}>
+                    <View style={styles.amenityIconContainer}>
+                      {getAmenityIcon(amenity.label)}
+                    </View>
+                    <Text style={styles.amenityText}>{amenity.label.toUpperCase()}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Description Modal (Sheet) */}
+      <Modal
+        visible={isDescriptionModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsDescriptionModalVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setIsDescriptionModalVisible(false)}
+        >
+          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>DESCRIPTION</Text>
+              <Pressable onPress={() => setIsDescriptionModalVisible(false)}>
+                <Text style={styles.modalCloseText}>CLOSE</Text>
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.fullDescriptionText}>{property.description}</Text>
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
+    </View>
   );
 }
 
 const createStyles = (colors: any) => StyleSheet.create({
   screen: {
     flex: 1,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    backgroundColor: colors.backgroundSoft,
+    backgroundColor: colors.background,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
   },
   scroll: {
     flex: 1,
   },
-  content: {
-    gap: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  centered: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing.lg,
-    backgroundColor: colors.background,
-  },
-  backFallback: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.sm,
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    borderRadius: theme.radii.pill,
-    backgroundColor: colors.surface,
-  },
-
-  // Hero
-  heroWrap: {
-    marginHorizontal: -theme.spacing.lg, // bleed edge-to-edge
-  },
-  hero: {
-    width: "100%",
-    height: 380,
-  },
-  heroControls: {
+  floatingHeader: {
     position: "absolute",
-    left: theme.spacing.lg,
-    right: theme.spacing.lg,
+    left: 20,
+    right: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    zIndex: 10,
   },
-  heroActions: {
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-  },
-  heroBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  headerButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.divider,
     justifyContent: "center",
     alignItems: "center",
-  },
-  heroBtnActive: {
-    backgroundColor: `${colors.accent}44`,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.border,
+    ...theme.shadows.calm,
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  heroContainer: {
+    width: SCREEN_WIDTH,
+    height: 400,
+    backgroundColor: colors.surfaceRaised,
+  },
+  heroImage: {
+    width: SCREEN_WIDTH,
+    height: 400,
+  },
+  pagination: {
+    position: "absolute",
+    bottom: 20,
+    alignSelf: "center",
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  paginationDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(255,255,255,0.4)",
+  },
+  paginationDotActive: {
+    width: 20,
+    backgroundColor: "#FFFFFF",
+  },
+  mainContent: {
+    paddingHorizontal: 8,
+    paddingTop: 32,
+    gap: 32,
+  },
+  pricingSection: {
+    gap: 16,
+  },
+  priceHeader: {
+    gap: 4,
+  },
+  priceLabel: {
+    fontSize: 10,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+  },
+  priceText: {
+    fontSize: 38,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: -1.5,
+  },
+  badgeRow: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
   },
   matchBadge: {
-    position: "absolute",
-    bottom: theme.spacing.lg,
-    right: theme.spacing.lg,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.accent,
-    justifyContent: "center",
+    flexDirection: "row",
     alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: colors.success + "15",
+    borderWidth: 1,
+    borderColor: colors.success + "30",
   },
-  matchText: {
-    color: colors.background,
-    fontSize: 18,
-    fontFamily: "Manrope_700Bold",
-  },
-  matchLabel: {
-    color: `${colors.background}CC`,
+  matchBadgeText: {
     fontSize: 10,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.success,
   },
-
-  // Info Block (Unified Card wrapping top stats)
-  cardGroup: {
-    backgroundColor: colors.surface,
-    borderRadius: theme.radii.lg,
-    paddingVertical: theme.spacing.md,
+  tagBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: colors.accent + "15",
+    borderWidth: 1,
+    borderColor: colors.accent + "30",
   },
-
-  // Header
-  header: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-    gap: theme.spacing.sm,
+  tagBadgeText: {
+    fontSize: 10,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.accent,
   },
-  price: {
+  contextSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 8,
+  },
+  compoundBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  compoundText: {
+    fontSize: 13,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.accent,
+    letterSpacing: 0.5,
+  },
+  developerBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.surfaceRaised,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  developerLabel: {
+    fontSize: 9,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textMuted,
+    letterSpacing: 1,
+  },
+  titleSection: {
+    gap: 6,
+  },
+  titleText: {
+    fontSize: 24,
+    fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
-  },
-  title: {
-    color: colors.textSecondary,
+    lineHeight: 32,
+    letterSpacing: -0.5,
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.xs,
+    gap: 6,
+    marginTop: 4,
   },
-
-  // Stats strip
-  statsRow: {
+  locationText: {
+    fontSize: 12,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
+  },
+  referenceRow: {
     flexDirection: "row",
-    paddingHorizontal: theme.spacing.lg,
-    gap: theme.spacing.md,
-    paddingBottom: theme.spacing.lg,
-  },
-  statCard: {
-    flex: 1,
-    gap: theme.spacing.xs,
     alignItems: "center",
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radii.md,
-    backgroundColor: colors.surfaceRaised,
+    gap: 6,
+    marginTop: 12,
   },
-
-  // Tags
-  tagsWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.sm,
-  },
-  tag: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radii.pill,
-    backgroundColor: `${colors.accent}11`,
-  },
-  tagText: {
-    color: colors.accent,
-  },
-
-  // Sections Breakout
-  sectionHeader: {
-    marginBottom: -theme.spacing.sm,
-    paddingHorizontal: theme.spacing.sm,
-  },
-  sectionTitle: {
+  referenceLabel: {
+    fontSize: 9,
+    fontFamily: "Manrope_700Bold",
     color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
+  },
+  referenceValue: {
+    fontSize: 10,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  specsGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  specItem: {
+    alignItems: "center",
+    gap: 4,
+    flex: 1,
+  },
+  specValue: {
+    fontSize: 16,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    marginTop: 4,
+  },
+  specLabel: {
+    fontSize: 9,
+    fontFamily: "Manrope_700Bold",
+    color: colors.textMuted,
+    letterSpacing: 1,
   },
   section: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.lg,
-    gap: theme.spacing.md,
+    gap: 16,
   },
-  sectionEyebrow: {
-    letterSpacing: 1.4,
-    color: colors.accent,
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  aiSummary: {
-    ...theme.typography.body,
+  sectionTitle: {
+    fontSize: 12,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+  },
+  descriptionText: {
+    fontSize: 15,
+    fontFamily: "Manrope_500Medium",
     color: colors.textSecondary,
     lineHeight: 24,
   },
-  reasonList: {
-    gap: theme.spacing.md,
-  },
-  reasonRow: {
+  readMoreButton: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: theme.spacing.md,
+    alignItems: "center",
+    gap: 6,
   },
-  reasonDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accent,
-    marginTop: 7,
-    flexShrink: 0,
+  readMoreText: {
+    fontSize: 12,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.accent,
   },
-
-  // Score track
-  scoreTrackBackground: {
-    height: 6,
-    borderRadius: 3,
+  aiCard: {
+    padding: 24,
+    borderRadius: 24,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.accent + "33",
+    gap: 16,
+    ...theme.shadows.calm,
+  },
+  aiHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  aiTitle: {
+    fontSize: 12,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.accent,
+    letterSpacing: 1.5,
+  },
+  aiBody: {
+    fontSize: 15,
+    fontFamily: "Manrope_600SemiBold",
+    color: colors.textPrimary,
+    lineHeight: 22,
+  },
+  techGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+  },
+  techItem: {
+    width: (SCREEN_WIDTH - 64) / 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
     backgroundColor: colors.surfaceRaised,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  techLabel: {
+    fontSize: 9,
+    fontFamily: "Manrope_700Bold",
+    color: colors.textMuted,
+    letterSpacing: 1,
+  },
+  techValue: {
+    fontSize: 13,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+  },
+  amenitiesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  amenityItem: {
+    width: (SCREEN_WIDTH - 60) / 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: colors.surfaceRaised,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  amenityIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.accent + "10",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  amenityText: {
+    fontSize: 13,
+    fontFamily: "Manrope_600SemiBold",
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  agencyBrokerCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
     overflow: "hidden",
+    ...theme.shadows.calm,
   },
-  scoreTrackFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accent,
+  agencyHeader: {
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    backgroundColor: colors.surfaceRaised,
   },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
-    marginHorizontal: theme.spacing.lg,
+  agencyLogoContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-
-  // CTA
-  cta: {
+  agencyInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  agencyNameLarge: {
+    fontSize: 16,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: 0.5,
+  },
+  legalLabel: {
+    fontSize: 9,
+    fontFamily: "Manrope_700Bold",
+    color: colors.textMuted,
+    letterSpacing: 1,
+  },
+  agencyDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: 20,
+  },
+  brokerSubCard: {
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  brokerAvatarSmall: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surfaceRaised,
+  },
+  brokerInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  brokerNameSmall: {
+    fontSize: 14,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+  },
+  brokerRole: {
+    fontSize: 10,
+    fontFamily: "Manrope_700Bold",
+    color: colors.accent,
+    letterSpacing: 0.5,
+  },
+  recSection: {
+    paddingVertical: 16,
+  },
+  recSectionTitle: {
+    fontSize: 12,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  },
+  recListWrapper: {
+    position: "relative",
+  },
+  recCard: {
+    width: 180,
+    marginRight: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...theme.shadows.calm,
+  },
+  recImageContainer: {
+    width: "100%",
+    height: 140,
+  },
+  recImage: {
+    width: "100%",
+    height: "100%",
+  },
+  recHeart: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  recContent: {
+    padding: 12,
+    gap: 6,
+  },
+  recPrice: {
+    fontSize: 16,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+  },
+  recMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  recMetaText: {
+    fontSize: 11,
+    fontFamily: "Manrope_700Bold",
+    color: colors.textSecondary,
+  },
+  recMetaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: colors.textMuted,
+  },
+  recLocation: {
+    fontSize: 10,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  edgeFade: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 32,
+    zIndex: 2,
+  },
+  edgeFadeLeft: {
+    left: 0,
+  },
+  edgeFadeRight: {
+    right: 0,
+  },
+  bottomBar: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    paddingTop: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  ctaInner: {
-    flexDirection: "row",
-    gap: theme.spacing.md,
-  },
-  ctaPrimary: {
-    flex: 1,
-  },
-
-  // Amenities Grid
-  amenitiesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-  },
-  amenityItem: {
-    width: "47%",
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.sm,
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    ...theme.shadows.calm,
   },
-  amenityIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: `${colors.accent}15`,
+  bottomPriceInfo: {
+    gap: 2,
+  },
+  bottomPriceLabel: {
+    fontSize: 10,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+  },
+  bottomPriceValue: {
+    fontSize: 20,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+  },
+  primaryCta: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  primaryCtaText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: "Manrope_800ExtraBold",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    maxHeight: "80%",
+    padding: 24,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 14,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+  },
+  modalCloseText: {
+    fontSize: 12,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.accent,
+  },
+  fullDescriptionText: {
+    fontSize: 16,
+    fontFamily: "Manrope_500Medium",
+    color: colors.textSecondary,
+    lineHeight: 28,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  contactOptions: {
+    gap: 12,
+  },
+  contactOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 20,
+    gap: 16,
+  },
+  contactIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
   },
-  viewAllRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: theme.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-
-  // Chart Details
-  priceInsightBox: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.lg,
-  },
-  priceInsightHeader: {
-    gap: 4,
-  },
-  chartArea: {
-    height: 120,
-    marginBottom: theme.spacing.md,
-    justifyContent: "flex-end",
-  },
-  chartLine: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: colors.divider,
-  },
-  chartBars: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    height: 100,
-  },
-  chartPillarWrap: {
-    alignItems: "center",
-    width: 30,
-  },
-  chartBar: {
-    width: 14,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  chartCallout: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: `${colors.accent}15`,
-    padding: theme.spacing.sm,
-    borderRadius: theme.radii.md,
-  },
-
-  // Broker
-  brokerCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.lg,
-    gap: theme.spacing.md,
-  },
-  brokerAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-  },
-  brokerInfo: {
+  contactInfo: {
     flex: 1,
     gap: 2,
   },
-  brokerMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
+  contactLabel: {
+    fontSize: 14,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+  },
+  contactSubLabel: {
+    fontSize: 10,
+    fontFamily: "Manrope_700Bold",
+    color: colors.textMuted,
+    letterSpacing: 0.5,
   },
 });
