@@ -3,6 +3,7 @@ import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 
 import type { AssistantAction } from "@/conversation/assistantProtocol";
+import { getLocalizedRuntimeMessage, resolveThreadPresentationState } from "@/conversation/lib/assistantPresentation";
 import {
   shouldResolveCompletedRunWithoutAssistant,
 } from "@/conversation/lib/pendingRun";
@@ -23,6 +24,7 @@ import {
   useAgentRuntimeHealth,
   useRunStageFeed,
   useRunStatus,
+  useThreadPresentation,
   useThreadMessages,
   useThreadsState,
 } from "@/persistence/convex/useConversationData";
@@ -65,6 +67,7 @@ export function useConversationController() {
   const currentRoute = useAppStore((state) => state.currentRoute);
   const activeThreadId = useAppStore((state) => state.activeThreadId);
   const activeRunId = useAppStore((state) => state.activeRunId);
+  const editingMessage = useAppStore((state) => state.editingMessage);
   const isCreatingThread = useAppStore((state) => state.isCreatingThread);
   const pendingPrompt = useAppStore((state) => state.pendingPrompt);
   const pendingStartedAt = useAppStore((state) => state.pendingStartedAt);
@@ -72,6 +75,8 @@ export function useConversationController() {
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const setActiveThreadId = useAppStore((state) => state.setActiveThreadId);
   const setActiveRunId = useAppStore((state) => state.setActiveRunId);
+  const beginEditingMessage = useAppStore((state) => state.beginEditingMessage);
+  const cancelEditingMessage = useAppStore((state) => state.cancelEditingMessage);
   const setPendingPrompt = useAppStore((state) => state.setPendingPrompt);
   const setRunFailureMessage = useAppStore((state) => state.setRunFailureMessage);
   const clearDraft = useAppStore((state) => state.clearDraft);
@@ -89,6 +94,7 @@ export function useConversationController() {
   } = useThreadsState();
   const startThreadMutation = useMutation(api.agent.public.startThread.startThread);
   const sendUserMessageMutation = useMutation(api.agent.public.sendUserMessage.sendUserMessage);
+  const editUserMessageMutation = useMutation(api.agent.public.editUserMessage.editUserMessage);
   const stopRunMutation = useMutation(api.agent.public.stopRun.stopRun);
   const toggleSavedListingMutation = useMutation(api.listings.toggleSavedListing);
   const createBuyerIntentMutation = useMutation(api.buyer.createBuyerIntent);
@@ -106,6 +112,9 @@ export function useConversationController() {
     threadsLoaded: serverLoaded,
   });
   const messages = useThreadMessages(activeThreadId, pendingPrompt, canQueryActiveThread);
+  const threadPresentation = useThreadPresentation(activeThreadId);
+  const resolvedPresentation = resolveThreadPresentationState(threadPresentation);
+  const surfaceCopy = resolvedPresentation.surfaceCopy;
   const runThreadId = canQueryActiveThread ? activeThreadId : null;
   const runStageFeed = useRunStageFeed(
     runThreadId,
@@ -219,7 +228,7 @@ export function useConversationController() {
       setActiveRunId(null);
       setRunFailureMessage(
         runStatus.diagnostics[0]
-          ?? (runStatus.status === "cancelled" ? "Run stopped." : "Assistant run failed."),
+          ?? (runStatus.status === "cancelled" ? surfaceCopy.runFailedTitle : surfaceCopy.runFailedTitle),
       );
       return;
     }
@@ -240,7 +249,7 @@ export function useConversationController() {
       });
       setPendingPrompt(null);
       setActiveRunId(null);
-      setRunFailureMessage("Assistant completed without a response. Please try again.");
+      setRunFailureMessage(surfaceCopy.runtimeCompletedWithoutResponse);
       return;
     }
 
@@ -272,8 +281,8 @@ export function useConversationController() {
       }
 
       const timeoutMessage = runtimeHealth.worker?.available === false
-        ? runtimeHealth.message ?? "AI worker offline. Start `npm run convex` so runs can complete."
-        : "Assistant is taking too long. Please try again.";
+        ? getLocalizedRuntimeMessage(runtimeHealth, surfaceCopy)
+        : surfaceCopy.runtimeAssistantTimeout;
       logMobileControllerEvent("run_timeout_decision", {
         threadId: activeThreadId ?? null,
         runId: activeRunId ?? null,
@@ -300,7 +309,7 @@ export function useConversationController() {
       });
       setPendingPrompt(null);
       setActiveRunId(null);
-      setRunFailureMessage(timeoutMessage);
+      setRunFailureMessage(timeoutMessage ?? surfaceCopy.runtimeAssistantTimeout);
     };
 
     if (pendingTimeout.hasTimedOut) {
@@ -390,8 +399,8 @@ export function useConversationController() {
       }, "warn");
       setRunFailureMessage(
         isGuest
-          ? "Restoring your guest session. Try again in a moment."
-          : "Sign in required before sending a prompt.",
+          ? surfaceCopy.runtimeRestoringGuest
+          : surfaceCopy.runtimeSignInRequired,
       );
       return;
     }
@@ -402,16 +411,17 @@ export function useConversationController() {
         runtimeStatus: runtimeHealth.status,
         featureVersion: runtimeHealth.featureVersion ?? null,
       }, "warn");
-      setRunFailureMessage(runtimeHealth.message ?? "Checking AI runtime. Try again in a moment.");
+      setRunFailureMessage(getLocalizedRuntimeMessage(runtimeHealth, surfaceCopy) ?? surfaceCopy.runtimeChecking);
       return;
     }
 
-    const threadId = await ensureActiveThread();
+    const isEditing = Boolean(editingMessage);
+    const threadId = isEditing ? editingMessage?.threadId ?? null : await ensureActiveThread();
     if (!threadId) {
       logMobileControllerEvent("send_blocked", {
         reasonCode: "thread_unavailable",
       }, "warn");
-      setRunFailureMessage("Syncing your conversation threads. Try again in a moment.");
+      setRunFailureMessage(surfaceCopy.runtimeThreadSync);
       return;
     }
 
@@ -419,7 +429,11 @@ export function useConversationController() {
     startTransition(() => {
       setRunFailureMessage(null);
       clearDraft();
+      if (isEditing) {
+        cancelEditingMessage();
+      }
       setPendingPrompt(prompt, startedAt);
+      setActiveRunId(null);
     });
 
     track("ai_prompt_sent", { sessionId, threadId, route: currentRoute, prompt, source: "assistant" });
@@ -438,7 +452,13 @@ export function useConversationController() {
     }
 
     try {
-      const result = await sendUserMessageMutation({ threadId, prompt });
+      const result = isEditing && editingMessage
+        ? await editUserMessageMutation({
+          threadId,
+          messageId: editingMessage.messageId,
+          prompt,
+        })
+        : await sendUserMessageMutation({ threadId, prompt });
       logMobileControllerEvent("send_mutation_success", {
         threadId,
         runId: String(result.runId),
@@ -450,13 +470,17 @@ export function useConversationController() {
       }
       setActiveRunId(String(result.runId));
     } catch (error) {
+      if (isEditing && editingMessage) {
+        beginEditingMessage(editingMessage);
+        setDraftText(prompt);
+      }
       logMobileControllerEvent("send_mutation_failed", {
         threadId,
         runId: activeRunId ?? null,
         reasonCode: isThreadNotFoundError(error) ? "thread_not_found" : "send_failed",
         error: error instanceof Error ? error.message : String(error),
       }, "error");
-      if (isThreadNotFoundError(error)) {
+      if (!isEditing && isThreadNotFoundError(error)) {
         try {
           const replacementThreadId = await startThreadMutation({});
           logMobileControllerEvent("thread_recovered", {
@@ -497,14 +521,33 @@ export function useConversationController() {
             error: retryError instanceof Error ? retryError.message : String(retryError),
           }, "error");
           setPendingPrompt(null);
-          setRunFailureMessage(retryError instanceof Error ? retryError.message : "Unable to send prompt.");
+          setRunFailureMessage(retryError instanceof Error ? retryError.message : surfaceCopy.runFailedTitle);
           return;
         }
       }
 
       setPendingPrompt(null);
-      setRunFailureMessage(error instanceof Error ? error.message : "Unable to send prompt.");
+      setRunFailureMessage(error instanceof Error ? error.message : surfaceCopy.runFailedTitle);
     }
+  };
+
+  const startEditingMessage = (message: ConversationMessage) => {
+    if (message.role !== "user" || message.id === "pending-assistant" || !activeThreadId || pendingPrompt) {
+      return;
+    }
+    beginEditingMessage({
+      threadId: activeThreadId,
+      messageId: message.id,
+      text: message.text,
+    });
+    setDraftText(message.text);
+    setRunFailureMessage(null);
+  };
+
+  const cancelComposerEdit = () => {
+    const originalText = editingMessage?.text ?? "";
+    cancelEditingMessage();
+    setDraftText(originalText);
   };
 
   const stop = async () => {
@@ -672,6 +715,9 @@ export function useConversationController() {
     isStreaming,
     runFailureMessage,
     sendPrompt,
+    startEditingMessage,
+    cancelComposerEdit,
+    editingMessage,
     stop,
     threads,
     runStageFeed,

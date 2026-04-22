@@ -210,6 +210,24 @@ export const linkAnonymousAccount = internalMutation({
       await ctx.db.patch(turn._id, { authUserId: args.newAuthUserId, updatedAt: Date.now() });
     }
 
+    for await (const session of ctx.db
+      .query("propertySearchSessions")
+      .withIndex("by_authUserId_and_updatedAt", (q) => q.eq("authUserId", args.anonymousAuthUserId))) {
+      await ctx.db.patch(session._id, { authUserId: args.newAuthUserId, updatedAt: Date.now() });
+    }
+
+    for (const thread of anonymousThreads) {
+      for await (const toolCall of ctx.db
+        .query("agentToolCalls")
+        .withIndex("by_threadId", (q) => q.eq("threadId", thread._id))) {
+        if (toolCall.authUserId !== args.anonymousAuthUserId) {
+          continue;
+        }
+
+        await ctx.db.patch(toolCall._id, { authUserId: args.newAuthUserId });
+      }
+    }
+
     for await (const usageRow of ctx.db
       .query("usageLedger")
       .withIndex("by_authUserId_and_quotaKey", (q) => q.eq("authUserId", args.anonymousAuthUserId))) {

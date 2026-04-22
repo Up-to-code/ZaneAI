@@ -4,6 +4,7 @@ export const ASSISTANT_ROUTES = [
   "advisor",
   "property",
   "funding",
+  "legal",
   "mixed",
 ] as const;
 
@@ -53,6 +54,22 @@ export const ASSISTANT_STAGE_STATUSES = [
   "cancelled",
 ] as const;
 
+export const ASSISTANT_DIRECTIONS = [
+  "rtl",
+  "ltr",
+] as const;
+
+export const ASSISTANT_UI_LOCALES = [
+  "ar",
+  "en",
+  "fr",
+] as const;
+
+export const THREAD_PRESENTATION_SOURCES = [
+  "detected",
+  "explicit",
+] as const;
+
 export const ASSISTANT_MOTION_PRESETS = [
   "assistant",
   "advisor",
@@ -67,6 +84,9 @@ export type AssistantActionName = typeof ASSISTANT_ACTION_NAMES[number];
 export type AssistantStagePhase = typeof ASSISTANT_STAGE_PHASES[number];
 export type AssistantStageStatus = typeof ASSISTANT_STAGE_STATUSES[number];
 export type AssistantMotionPreset = typeof ASSISTANT_MOTION_PRESETS[number];
+export type AssistantDirection = typeof ASSISTANT_DIRECTIONS[number];
+export type AssistantUiLocale = typeof ASSISTANT_UI_LOCALES[number];
+export type ThreadPresentationSource = typeof THREAD_PRESENTATION_SOURCES[number];
 
 export type AssistantSource = {
   title: string;
@@ -98,6 +118,80 @@ export type AssistantMotion = {
   preset: AssistantMotionPreset;
   emphasis?: "low" | "medium" | "high";
   phaseHints?: string[];
+};
+
+export type AssistantSurfaceCopy = {
+  brandTagline: string;
+  greeting: string;
+  composerPlaceholder: string;
+  composerDisabledPlaceholder: string;
+  upgradeAction: string;
+  aiUnavailableTitle: string;
+  aiUnavailableBody: string;
+  runFailedTitle: string;
+  runtimeChecking: string;
+  runtimeWorkerOffline: string;
+  runtimeMissingLlm: string;
+  runtimeThreadSync: string;
+  runtimeRestoringGuest: string;
+  runtimeSignInRequired: string;
+  runtimeAssistantTimeout: string;
+  runtimeCompletedWithoutResponse: string;
+  routeAdvisor: string;
+  routeProperty: string;
+  routeFunding: string;
+  routeLegal: string;
+  routeMixed: string;
+  stageClassifyStarted: string;
+  stageClassifyDone: string;
+  stageSpecialistStarted: string;
+  stageSpecialistDone: string;
+  stageSummaryStarted: string;
+  stageSummaryDone: string;
+  stagePersistStarted: string;
+  stagePersistDone: string;
+  bestPropertyMatches: string;
+  propertiesThatFitBrief: string;
+  noStrongPropertyMatchYet: string;
+  needOneMoreSearchSignal: string;
+  whatSeparatesTopOptions: string;
+  whatStandsOut: string;
+  fundingAngle: string;
+  liveMarketSources: string;
+  nextUsefulStep: string;
+  actions: string;
+  previousSearchUnavailableAssistant: string;
+  previousSearchUnavailableHighlight: string;
+  previousSearchUnavailableFollowup: string;
+  noStrongMatchAssistant: string;
+  noStrongMatchHighlight: string;
+  noStrongMatchFollowup: string;
+  propertyReviewedFallback: string;
+  advisorFallbackBody: string;
+  openProperty: string;
+  saveTopMatch: string;
+  compareTopPicks: string;
+  refineThisSearch: string;
+  openSearch: string;
+  continueFundingPlanning: string;
+  fundingPlan: string;
+  fundingContinuePrompt: string;
+  continueLegalReview: string;
+  legalReview: string;
+  legalContinuePrompt: string;
+  refineSearchPrompt: string;
+};
+
+export type AssistantPresentation = {
+  languageTag: string;
+  direction: AssistantDirection;
+  uiLocale?: AssistantUiLocale | null;
+};
+
+export type ThreadPresentation = AssistantPresentation & {
+  source: ThreadPresentationSource;
+  confidence: number;
+  surfaceCopy?: AssistantSurfaceCopy | null;
 };
 
 export type AssistantAction =
@@ -237,6 +331,7 @@ export type AssistantTurn = {
   actions: AssistantAction[];
   agent: AssistantAgentContext;
   motion: AssistantMotion;
+  presentation?: AssistantPresentation;
   analytics?: AssistantAnalytics;
 };
 

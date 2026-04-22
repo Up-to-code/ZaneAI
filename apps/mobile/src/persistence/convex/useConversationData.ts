@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "convex/react";
 
-import { assistantTurnSchema, extractTurnSources } from "@/conversation/assistantProtocol";
+import { assistantTurnSchema, extractTurnSources, type ThreadPresentation } from "@/conversation/assistantProtocol";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { api } from "@/persistence/convex/api";
 import { deriveAgentRuntimeHealth } from "@/persistence/convex/runtimeHealth";
@@ -246,6 +246,23 @@ export function useThreadsState() {
 
 export function useThreads(): any[] {
   return useThreadsState().threads;
+}
+
+export function useThreadPresentation(threadId: string | null) {
+  const { isAuthenticated } = useAuthSession();
+  const e2eQaMode = useAppStore((state) => state.e2eQaMode);
+  const result = useQuery(
+    api.agent.public.getThreadPresentation.getThreadPresentation,
+    isAuthenticated && !e2eQaMode && threadId
+      ? { threadId }
+      : "skip",
+  );
+
+  if (e2eQaMode || result == null) {
+    return null;
+  }
+
+  return result as ThreadPresentation;
 }
 
 export function useThreadMessages(

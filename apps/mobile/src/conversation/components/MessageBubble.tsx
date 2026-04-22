@@ -1,34 +1,102 @@
-import { StyleSheet, View, Text as RNText } from "react-native";
-import React, { useEffect, useMemo, useRef, useCallback } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+import React, { useEffect, useMemo, useRef } from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  withRepeat,
-  withSequence,
   withDelay,
   FadeIn,
+  FadeInDown,
   Easing,
 } from "react-native-reanimated";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
+import { Copy, Pencil } from "lucide-react-native";
 
 import { Text } from "@/foundation/primitives/Text";
-import { BreathingText } from "@/foundation/animations/BreathingText";
 import { MarkdownText } from "@/foundation/primitives/MarkdownText";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { isArabic } from "@/foundation/utils/rtl";
+import { AssistantBrandMark } from "@/conversation/components/AssistantBrandMark";
+import {
+  getLocalizedStageMessage,
+  isRtlDirection,
+  resolveAssistantBrandActivity,
+  resolveAssistantDirection,
+  resolveThreadPresentationState,
+} from "@/conversation/lib/assistantPresentation";
+import type { ThreadPresentation } from "@/conversation/assistantProtocol";
 import type { ConversationMessage, ConversationRunStage } from "@/types/domain";
 
 type MessageBubbleProps = {
   message: ConversationMessage;
   latestStageEvent?: ConversationRunStage;
-  isFirstAssistant?: boolean;
+  onEditMessage?: (message: ConversationMessage) => void;
+  actionsVisible?: boolean;
+  onShowActions?: (messageId: string) => void;
+  onDismissActions?: () => void;
+  threadPresentation?: ThreadPresentation | null;
 };
 
-/**
- * A single animated word group that fades + slides in.
- * Once animation completes, it becomes static text.
- */
+const ACTION_COPY = {
+  ar: { copy: "نسخ", edit: "تعديل" },
+  en: { copy: "Copy", edit: "Edit" },
+  fr: { copy: "Copier", edit: "Modifier" },
+};
+
+function InlineMessageActions({
+  align,
+  canEdit,
+  direction,
+  uiLocale,
+  onCopy,
+  onEdit,
+}: {
+  align: "start" | "end";
+  canEdit: boolean;
+  direction: "rtl" | "ltr";
+  uiLocale?: "ar" | "en" | "fr" | null;
+  onCopy: () => void;
+  onEdit?: () => void;
+}) {
+  const { colors, resolvedColorScheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors, resolvedColorScheme), [colors, resolvedColorScheme]);
+  const isRtl = direction === "rtl";
+  const copy = ACTION_COPY[uiLocale ?? (isRtl ? "ar" : "en")];
+  const iconColor = colors.textPrimary;
+
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(140).springify().damping(18).stiffness(180)}
+      style={[
+        styles.actionsBar,
+        align === "end" ? styles.actionsBarEnd : null,
+        isRtl ? styles.actionsBarRtl : null,
+      ]}
+    >
+      <Pressable
+        hitSlop={8}
+        onPress={onCopy}
+        style={({ pressed }) => [styles.actionPill, pressed ? styles.actionPillPressed : null]}
+      >
+        <Copy size={17} color={iconColor} strokeWidth={2.2} />
+        <Text style={styles.actionLabel}>{copy.copy}</Text>
+      </Pressable>
+      {canEdit ? (
+        <Pressable
+          hitSlop={8}
+          onPress={onEdit}
+          style={({ pressed }) => [styles.actionPill, pressed ? styles.actionPillPressed : null]}
+        >
+          <Pencil size={17} color={iconColor} strokeWidth={2.2} />
+          <Text style={styles.actionLabel}>{copy.edit}</Text>
+        </Pressable>
+      ) : null}
+    </Animated.View>
+  );
+}
+
 function FadeWord({ word, delay }: { word: string; delay: number }) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(8);
@@ -63,40 +131,6 @@ function FadeWord({ word, delay }: { word: string; delay: number }) {
 }
 
 const PENDING_PLACEHOLDER = "Thinking through your request\u2026";
-
-/**
- * Animated three-dot indicator shown while the assistant is thinking.
- */
-function ThinkingDots() {
-  const { colors } = useTheme();
-  const dot1 = useSharedValue(0.3);
-  const dot2 = useSharedValue(0.3);
-  const dot3 = useSharedValue(0.3);
-
-  useEffect(() => {
-    const cfg = { duration: 400, easing: Easing.inOut(Easing.quad) };
-    dot1.value = withRepeat(withSequence(withTiming(1, cfg), withTiming(0.3, cfg)), -1);
-    dot2.value = withDelay(150, withRepeat(withSequence(withTiming(1, cfg), withTiming(0.3, cfg)), -1));
-    dot3.value = withDelay(300, withRepeat(withSequence(withTiming(1, cfg), withTiming(0.3, cfg)), -1));
-  }, [dot1, dot2, dot3]);
-
-  const s1 = useAnimatedStyle(() => ({ opacity: dot1.value }));
-  const s2 = useAnimatedStyle(() => ({ opacity: dot2.value }));
-  const s3 = useAnimatedStyle(() => ({ opacity: dot3.value }));
-
-  const dotStyle = {
-    width: 7, height: 7, borderRadius: 3.5,
-    backgroundColor: colors.textMuted, marginHorizontal: 2,
-  };
-
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 6 }}>
-      <Animated.View style={[dotStyle, s1]} />
-      <Animated.View style={[dotStyle, s2]} />
-      <Animated.View style={[dotStyle, s3]} />
-    </View>
-  );
-}
 
 /**
  * Gemini-style streaming text: new words materialize smoothly
@@ -229,100 +263,188 @@ function parseInlineMarkdown(text: string) {
   });
 }
 
-export function MessageBubble({ message, latestStageEvent, isFirstAssistant }: MessageBubbleProps) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+export function MessageBubble({
+  message,
+  latestStageEvent,
+  onEditMessage,
+  actionsVisible = false,
+  onShowActions,
+  onDismissActions,
+  threadPresentation,
+}: MessageBubbleProps) {
+  const { colors, resolvedColorScheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors, resolvedColorScheme), [colors, resolvedColorScheme]);
   const isUser = message.role === "user";
   const isStreaming = message.streamState === "streaming";
   const isPending =
     isStreaming && (message.id === "pending-assistant" || message.text === PENDING_PLACEHOLDER);
+  const resolvedThreadPresentation = resolveThreadPresentationState(threadPresentation);
+  const assistantDirection = resolveAssistantDirection({
+    turnPresentation: message.uiTurn?.presentation,
+    threadPresentation: resolvedThreadPresentation,
+    fallbackText: message.text,
+  });
+  const isAssistantRtl = isRtlDirection(assistantDirection);
+  const localizedStageText = latestStageEvent
+    ? getLocalizedStageMessage(latestStageEvent, resolvedThreadPresentation.surfaceCopy)
+    : null;
+  const brandActivity = resolveAssistantBrandActivity({
+    threadPresentation: resolvedThreadPresentation,
+    route: latestStageEvent?.route,
+    stageSpecialist: latestStageEvent?.specialist,
+    phase: latestStageEvent?.phase,
+    stageStatus: latestStageEvent?.status,
+    turn: message.uiTurn ?? null,
+    streamState: message.streamState,
+  });
+  const copyMessage = () => {
+    onDismissActions?.();
+    void Clipboard.setStringAsync(message.text);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+  const editMessage = () => {
+    onDismissActions?.();
+    onEditMessage?.(message);
+  };
+  const showActions = () => {
+    if (message.id === "pending-assistant" || isStreaming) {
+      return;
+    }
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onShowActions?.(message.id);
+  };
 
   if (isUser) {
     const isAr = isArabic(message.text);
+    const userDirection = isAr ? "rtl" : "ltr";
     return (
       <Animated.View
         entering={FadeIn.duration(200)}
         style={[styles.row, styles.userRow, { marginTop: 32 }]}
       >
-        <View style={styles.userBubble}>
-          <Text 
-            tone="primary" 
-            selectable={true} 
-            style={[
-              styles.userText, 
-              isAr && { textAlign: "right", writingDirection: "rtl" }
-            ]}
+        <View style={[styles.messageStack, styles.userStack]}>
+          <Pressable
+            onLongPress={showActions}
+            delayLongPress={360}
+            onPress={() => actionsVisible ? onDismissActions?.() : undefined}
           >
-            {message.text}
-          </Text>
+            <View style={styles.userBubble}>
+              <Text
+                tone="primary"
+                selectable={true}
+                style={[
+                  styles.userText,
+                  isAr && { textAlign: "right", writingDirection: "rtl" },
+                ]}
+              >
+                {message.text}
+              </Text>
+            </View>
+          </Pressable>
+          {actionsVisible ? (
+            <InlineMessageActions
+              align="end"
+              canEdit={Boolean(onEditMessage)}
+              direction={userDirection}
+              uiLocale={isAr ? "ar" : resolvedThreadPresentation.uiLocale}
+              onCopy={copyMessage}
+              onEdit={editMessage}
+            />
+          ) : null}
         </View>
       </Animated.View>
     );
   }
 
-  const isAr = !isUser && !isPending && isArabic(message.text);
-
   return (
-    <Animated.View entering={FadeIn.duration(250)} style={[styles.row, styles.assistantRow, isAr && { alignItems: "flex-end" }]}>
-      {isFirstAssistant && (
-        <View style={[styles.brandingWrap, isAr && { alignItems: "flex-end" }]}>
-          <Text variant="label" style={styles.assistantLabel}>
-            ZANE AI
-          </Text>
-          <BreathingText
-            text="INTELLIGENT INFRASTRUCTURE"
-            style={[styles.tagline, isAr && { textAlign: "right" }]}
-            minOpacity={isStreaming ? 0.3 : 0.6}
-            maxOpacity={isStreaming ? 0.8 : 0.6}
-          />
-        </View>
-      )}
+    <Animated.View entering={FadeIn.duration(250)} style={[styles.row, styles.assistantRow, isAssistantRtl && { alignItems: "flex-end" }]}>
+      <View style={[styles.brandingWrap, isAssistantRtl && { alignItems: "flex-end" }]}>
+        <AssistantBrandMark
+          direction={assistantDirection}
+          label={brandActivity.label}
+          animate={brandActivity.logoMotion}
+          textMotion={brandActivity.textMotion}
+          emphasis={brandActivity.emphasis}
+          size={14}
+        />
+      </View>
 
-      {latestStageEvent && isPending && (
-        <View style={styles.statusLine}>
+      {localizedStageText && isPending && (
+        <View style={[styles.statusLine, isAssistantRtl && { flexDirection: "row-reverse" }]}>
           <View style={styles.statusDot} />
           <Text style={styles.statusText}>
-            {latestStageEvent.route
-              ? `${latestStageEvent.route.toUpperCase()} MODE • `
-              : ""}
-            {latestStageEvent.message.toLowerCase()}
+            {localizedStageText}
           </Text>
         </View>
       )}
 
-      {isPending ? (
-        <ThinkingDots />
-      ) : (
-        <>
-          <StreamingText
-            text={message.text}
-            isStreaming={isStreaming}
-            style={[
-              styles.assistantText,
-              isAr && { textAlign: "right", writingDirection: "rtl" }
-            ]}
-          />
-        </>
-      )}
+      {!isPending ? (
+        <View style={[styles.messageStack, styles.assistantStack, isAssistantRtl && styles.assistantStackRtl]}>
+          <Pressable
+            onLongPress={showActions}
+            delayLongPress={360}
+            onPress={() => actionsVisible ? onDismissActions?.() : undefined}
+          >
+            <StreamingText
+              text={message.text}
+              isStreaming={isStreaming}
+              style={[
+                styles.assistantText,
+                isAssistantRtl && { textAlign: "right", writingDirection: "rtl" },
+              ]}
+            />
+          </Pressable>
+          {actionsVisible ? (
+            <InlineMessageActions
+              align={isAssistantRtl ? "end" : "start"}
+              canEdit={false}
+              direction={assistantDirection}
+              uiLocale={message.uiTurn?.presentation?.uiLocale ?? resolvedThreadPresentation.uiLocale}
+              onCopy={copyMessage}
+            />
+          ) : null}
+        </View>
+      ) : null}
     </Animated.View>
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, colorScheme: "light" | "dark") => {
+  const isDark = colorScheme === "dark";
+  const actionSurface = isDark ? "rgba(28, 28, 30, 0.96)" : "rgba(255, 255, 255, 0.96)";
+  const actionPressedSurface = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)";
+  const actionShadowOpacity = isDark ? 0.22 : 0.12;
+
+  return StyleSheet.create({
   row: {
     paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.sm, // Reduced from lg to sm
+    marginBottom: theme.spacing.lg, 
   },
   userRow: {
+    alignItems: "flex-end",
+  },
+  messageStack: {
+    gap: 7,
+  },
+  userStack: {
+    width: "85%",
+    alignItems: "flex-end",
+  },
+  assistantStack: {
+    width: "92%",
+    alignItems: "flex-start",
+  },
+  assistantStackRtl: {
     alignItems: "flex-end",
   },
   assistantRow: {
     alignItems: "flex-start",
     paddingRight: theme.spacing.xl,
+    marginTop: 24,
     marginBottom: 0,
   },
   userBubble: {
-    maxWidth: "85%",
+    alignSelf: "flex-end",
     paddingHorizontal: 20,
     paddingVertical: 14,
     backgroundColor: colors.surfaceRaised,
@@ -334,21 +456,8 @@ const createStyles = (colors: any) => StyleSheet.create({
     lineHeight: 24,
     fontFamily: "Manrope_500Medium",
   },
-  assistantLabel: {
-    color: colors.accent,
-    letterSpacing: 1.5,
-    fontSize: 10,
-    fontFamily: "Manrope_800ExtraBold",
-  },
   brandingWrap: {
-    marginBottom: 2, // Reduced from 4
-  },
-  tagline: {
-    fontSize: 8,
-    fontFamily: "Manrope_700Bold",
-    color: colors.textSecondary,
-    letterSpacing: 0.5,
-    marginTop: -2,
+    marginBottom: 6,
   },
   statusLine: {
     flexDirection: "row",
@@ -370,4 +479,47 @@ const createStyles = (colors: any) => StyleSheet.create({
   assistantText: {
     lineHeight: 24,
   },
-});
+  actionsBar: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+    padding: 5,
+    borderRadius: 18,
+    backgroundColor: actionSurface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: "#000",
+    shadowOpacity: actionShadowOpacity,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+  actionsBarEnd: {
+    alignSelf: "flex-end",
+  },
+  actionsBarRtl: {
+    flexDirection: "row-reverse",
+  },
+  actionPill: {
+    minWidth: 42,
+    minHeight: 36,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 14,
+  },
+  actionPillPressed: {
+    backgroundColor: actionPressedSurface,
+  },
+  actionLabel: {
+    fontFamily: "Manrope_700Bold",
+    fontSize: 12,
+    color: colors.textPrimary,
+  },
+  });
+};

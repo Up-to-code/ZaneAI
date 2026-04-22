@@ -1,6 +1,6 @@
 import type { Id } from "../../_generated/dataModel";
 
-type AssistantTurnRoute = "advisor" | "property" | "funding" | "mixed";
+type AssistantTurnRoute = "advisor" | "property" | "funding" | "legal" | "mixed";
 
 export type AssistantTurnReplacement = {
   authUserId: string;
@@ -47,7 +47,11 @@ function parseMetaJson(metaJson: string | undefined): Record<string, unknown> {
 }
 
 function isAssistantTurnRoute(value: string | undefined): value is AssistantTurnRoute {
-  return value === "advisor" || value === "property" || value === "funding" || value === "mixed";
+  return value === "advisor"
+    || value === "property"
+    || value === "funding"
+    || value === "legal"
+    || value === "mixed";
 }
 
 export function hasLegacyAssistantTurnFields(record: Record<string, unknown>) {

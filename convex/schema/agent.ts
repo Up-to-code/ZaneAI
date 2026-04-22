@@ -22,6 +22,7 @@ const assistantRoute = v.union(
   v.literal("advisor"),
   v.literal("property"),
   v.literal("funding"),
+  v.literal("legal"),
   v.literal("mixed"),
 );
 const motionPreset = v.union(
@@ -29,6 +30,19 @@ const motionPreset = v.union(
   v.literal("advisor"),
   v.literal("property"),
   v.literal("funding"),
+);
+const assistantDirection = v.union(
+  v.literal("rtl"),
+  v.literal("ltr"),
+);
+const assistantUiLocale = v.union(
+  v.literal("ar"),
+  v.literal("en"),
+  v.literal("fr"),
+);
+const threadPresentationSource = v.union(
+  v.literal("detected"),
+  v.literal("explicit"),
 );
 
 export const agentTables = {
@@ -101,6 +115,17 @@ export const agentTables = {
     .index("by_authUserId", ["authUserId"])
     .index("by_messageId", ["messageId"])
     .index("by_runId", ["runId"]),
+  threadPresentations: defineTable({
+    threadId: v.string(),
+    languageTag: v.string(),
+    direction: assistantDirection,
+    uiLocale: v.optional(v.union(assistantUiLocale, v.null())),
+    source: threadPresentationSource,
+    confidence: v.number(),
+    surfaceCopyJson: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_threadId", ["threadId"]),
   agentToolCalls: defineTable({
     authUserId: v.string(),
     threadId: v.string(),

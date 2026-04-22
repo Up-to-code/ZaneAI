@@ -4,6 +4,7 @@ import { View } from "react-native";
 import type { AssistantAction } from "@/conversation/assistantProtocol";
 import { assistantTurnSchema, extractTurnPropertyIds } from "@/conversation/assistantProtocol";
 import { AssistantTurnRenderer } from "@/conversation/components/AssistantTurnRenderer";
+import { shouldRenderAssistantTurnUi } from "@/conversation/lib/assistantTurnUiPolicy";
 import { PropertyCard } from "@/decision/components/PropertyCard";
 import { usePropertiesByIds } from "@/persistence/convex/usePropertyData";
 import type { ConversationMessage, PropertyCardVM } from "@/types/domain";
@@ -31,6 +32,10 @@ export function AssistantTurnAdapter({ message, onAction, onSuggestionPress }: A
         issues: parsedTurn.success ? [] : parsedTurn.error.issues,
       });
     }
+    return null;
+  }
+
+  if (!shouldRenderAssistantTurnUi(turn)) {
     return null;
   }
 

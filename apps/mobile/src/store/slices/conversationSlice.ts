@@ -4,6 +4,11 @@ export type ConversationSlice = {
   activeThreadId: string | null;
   activeRunId: string | null;
   isCreatingThread: boolean;
+  editingMessage: {
+    threadId: string;
+    messageId: string;
+    text: string;
+  } | null;
   pendingPrompt: string | null;
   pendingStartedAt: number | null;
   runFailureMessage: string | null;
@@ -11,6 +16,8 @@ export type ConversationSlice = {
   cancelThreadCreation: () => void;
   setActiveThreadId: (threadId: string | null) => void;
   setActiveRunId: (runId: string | null) => void;
+  beginEditingMessage: (message: { threadId: string; messageId: string; text: string }) => void;
+  cancelEditingMessage: () => void;
   setPendingPrompt: (prompt: string | null, startedAt?: number | null) => void;
   setRunFailureMessage: (message: string | null) => void;
   resetConversationState: () => void;
@@ -25,6 +32,7 @@ export const createConversationSlice: StateCreator<
   activeThreadId: null,
   activeRunId: null,
   isCreatingThread: false,
+  editingMessage: null,
   pendingPrompt: null,
   pendingStartedAt: null,
   runFailureMessage: null,
@@ -33,6 +41,7 @@ export const createConversationSlice: StateCreator<
       activeThreadId: null,
       activeRunId: null,
       isCreatingThread: true,
+      editingMessage: null,
       pendingPrompt: null,
       pendingStartedAt: null,
       runFailureMessage: null,
@@ -44,6 +53,12 @@ export const createConversationSlice: StateCreator<
       isCreatingThread: threadId ? false : state.isCreatingThread,
     })),
   setActiveRunId: (runId) => set({ activeRunId: runId }),
+  beginEditingMessage: (message) =>
+    set({
+      editingMessage: message,
+      runFailureMessage: null,
+    }),
+  cancelEditingMessage: () => set({ editingMessage: null }),
   setPendingPrompt: (prompt, startedAt = prompt ? Date.now() : null) =>
     set({ pendingPrompt: prompt, pendingStartedAt: startedAt }),
   setRunFailureMessage: (message) => set({ runFailureMessage: message }),
@@ -52,6 +67,7 @@ export const createConversationSlice: StateCreator<
       activeThreadId: null,
       activeRunId: null,
       isCreatingThread: false,
+      editingMessage: null,
       pendingPrompt: null,
       pendingStartedAt: null,
       runFailureMessage: null,

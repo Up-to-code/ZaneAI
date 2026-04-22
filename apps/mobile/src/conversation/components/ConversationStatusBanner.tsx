@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useMemo } from "react";
 import { AlertCircle, AlertTriangle, Info, X } from "lucide-react-native";
 
+import type { AssistantDirection } from "@/conversation/assistantProtocol";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
@@ -13,6 +14,7 @@ type ConversationStatusBannerProps = {
   actionLabel?: string;
   onAction?: () => void;
   onDismiss?: () => void;
+  direction?: AssistantDirection;
 };
 
 export function ConversationStatusBanner({
@@ -22,6 +24,7 @@ export function ConversationStatusBanner({
   actionLabel,
   onAction,
   onDismiss,
+  direction = "ltr",
 }: ConversationStatusBannerProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -50,10 +53,10 @@ export function ConversationStatusBanner({
         tone === "error" ? styles.error : null,
       ]}
     >
-      <View style={styles.headerRow}>
-        <View style={styles.titleWrap}>
+      <View style={[styles.headerRow, direction === "rtl" && { flexDirection: "row-reverse" }]}>
+        <View style={[styles.titleWrap, direction === "rtl" && { flexDirection: "row-reverse" }]}>
           <Icon size={14} color={iconColor} strokeWidth={2.5} />
-          <Text variant="label" style={styles.title}>{title}</Text>
+          <Text variant="label" style={[styles.title, direction === "rtl" && { textAlign: "right", writingDirection: "rtl" }]}>{title}</Text>
         </View>
         {onDismiss ? (
           <Pressable style={styles.dismissBtn} onPress={onDismiss}>
@@ -62,18 +65,18 @@ export function ConversationStatusBanner({
         ) : null}
       </View>
 
-      <Text tone="secondary" style={styles.body}>{body}</Text>
+      <Text tone="secondary" style={[styles.body, direction === "rtl" && { textAlign: "right", writingDirection: "rtl" }]}>{body}</Text>
 
       {actionLabel && onAction ? (
         <View style={styles.actionRow}>
-          <Pressable 
+          <Pressable
             style={({ pressed }) => [
               styles.action,
               pressed ? styles.actionPressed : null
             ]} 
             onPress={onAction}
           >
-            <Text variant="caption" style={styles.actionText}>{actionLabel}</Text>
+            <Text variant="caption" style={[styles.actionText, direction === "rtl" && { textAlign: "right", writingDirection: "rtl" }]}>{actionLabel}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -156,4 +159,3 @@ const createStyles = (colors: any) => StyleSheet.create({
     padding: 4,
   },
 });
-

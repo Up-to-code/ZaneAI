@@ -145,7 +145,7 @@ async function ensureSessionToken(siteUrl: string, email: string, password: stri
       password,
       name,
     }, siteUrl);
-    return signedUp.token;
+    return { sessionToken: signedUp.token, userId: signedUp.user.id };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (!message.toLowerCase().includes("already") && !message.toLowerCase().includes("exists")) {
@@ -157,7 +157,7 @@ async function ensureSessionToken(siteUrl: string, email: string, password: stri
     email,
     password,
   }, siteUrl);
-  return signedIn.token;
+  return { sessionToken: signedIn.token, userId: signedIn.user.id };
 }
 
 async function exchangeForConvexJwt(siteUrl: string, sessionToken: string) {
@@ -196,6 +196,111 @@ async function waitForAssistantReply(client: ConvexHttpClient, threadId: string)
   throw new Error(`Timed out waiting for assistant reply. Last assistant text: ${lastAssistantText || "none"}`);
 }
 
+async function waitForAssistantReplyAfter(client: ConvexHttpClient, threadId: string, previousAssistantCount: number) {
+  const deadline = Date.now() + TIMEOUT_MS;
+  let lastAssistantText = "";
+
+  while (Date.now() < deadline) {
+    const messages = await client.query(api.agent.public.getThreadMessages.getThreadMessages, {
+      threadId,
+      paginationOpts: {
+        numItems: 50,
+        cursor: null,
+      },
+    }) as MessagePage;
+
+    const ordered = [...messages.page].sort((left, right) => left._creationTime - right._creationTime);
+    const assistantMessages = ordered.filter((message) => message.message.role === "assistant");
+    const assistantMessage = assistantMessages[assistantMessages.length - 1];
+    if (assistantMessage) {
+      lastAssistantText = getMessageText(assistantMessage.message.content);
+      if (assistantMessages.length > previousAssistantCount && lastAssistantText) {
+        return { assistantText: lastAssistantText, message: assistantMessage, messages: ordered };
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+
+  throw new Error(`Timed out waiting for next assistant reply. Last assistant text: ${lastAssistantText || "none"}`);
+}
+
+async function runMemorySmoke(client: ConvexHttpClient, threadId: string, authUserId: string, assistantCount: number) {
+  const searchMemory = await client.query(api.agent.orchestrator.runtime.getRecentMemoryBundleForWorker, {
+    authUserId,
+    threadId,
+    sources: ["property_searches"],
+    contextBudget: {
+      assistantTurns: 0,
+      threadMessages: 0,
+      cortexMemories: 0,
+      propertySearchSessions: 3,
+      resultIds: 12,
+      toolCalls: 0,
+    },
+  });
+
+  if (!searchMemory.propertySearches.length) {
+    throw new Error("Memory smoke expected at least one property search session after the first prompt.");
+  }
+  console.log(`[memory] property_searches=${searchMemory.propertySearches.length}`);
+
+  await client.mutation(api.agent.public.sendUserMessage.sendUserMessage, {
+    threadId,
+    prompt: "Show me more like the second one.",
+  });
+  const followup = await waitForAssistantReplyAfter(client, threadId, assistantCount);
+  console.log(`[memory] follow-up reply received chars=${followup.assistantText.length}`);
+
+  await client.mutation(api.agent.public.sendUserMessage.sendUserMessage, {
+    threadId,
+    prompt: "Find apartments in Sheikh Zayed under 6000 EGP; I usually prefer that kind of search.",
+  });
+  const preferenceReply = await waitForAssistantReplyAfter(client, threadId, assistantCount + 1);
+  console.log(`[memory] preference reply received chars=${preferenceReply.assistantText.length}`);
+
+  const preferenceMemory = await client.query(api.agent.orchestrator.runtime.getRecentMemoryBundleForWorker, {
+    authUserId,
+    threadId,
+    sources: ["buyer_preferences"],
+    contextBudget: {
+      assistantTurns: 0,
+      threadMessages: 0,
+      cortexMemories: 0,
+      propertySearchSessions: 0,
+      resultIds: 0,
+      toolCalls: 0,
+    },
+  });
+
+  if (!preferenceMemory.buyerPreferences) {
+    throw new Error("Memory smoke expected buyerPreferences after explicit high-confidence preference prompt.");
+  }
+  console.log(`[memory] buyer_preferences=${JSON.stringify(preferenceMemory.buyerPreferences)}`);
+
+  const currentAssistantCount = preferenceReply.messages.filter((message) => message.message.role === "assistant").length;
+  await client.mutation(api.agent.public.sendUserMessage.sendUserMessage, {
+    threadId,
+    prompt: "أقصد مؤشرات السعر",
+  });
+  const priceTopicReply = await waitForAssistantReplyAfter(client, threadId, currentAssistantCount);
+  console.log(`[memory] price-topic reply received chars=${priceTopicReply.assistantText.length}`);
+
+  await client.mutation(api.agent.public.sendUserMessage.sendUserMessage, {
+    threadId,
+    prompt: "بين التجمع الخامس والسادس",
+  });
+  const comparisonReply = await waitForAssistantReplyAfter(client, threadId, currentAssistantCount + 1);
+  const normalized = comparisonReply.assistantText;
+  if (!/التجمع|أكتوبر|اكتوبر|السادس/.test(normalized) || !/مؤشرات|سعر|الأسعار|اسعار/.test(normalized)) {
+    throw new Error(`Memory smoke expected contextual price-indicator comparison, got: ${comparisonReply.assistantText}`);
+  }
+  if (/محتاج تفاصيل|هات تفاصيل|ممكن توضح|تقصد ايه|تقصد إيه/.test(normalized)) {
+    throw new Error(`Memory smoke expected no repeated clarification request, got: ${comparisonReply.assistantText}`);
+  }
+  console.log("[memory] context follow-up passed");
+}
+
 async function main() {
   loadLocalEnv();
 
@@ -210,7 +315,7 @@ async function main() {
   console.log(`[setup] deployment=${deploymentSlug}`);
   console.log(`[setup] test-user=${maskEmail(email)}`);
 
-  const sessionToken = await ensureSessionToken(convexSiteUrl, email, password, name);
+  const { sessionToken, userId } = await ensureSessionToken(convexSiteUrl, email, password, name);
   console.log("[auth] session token acquired");
   const convexJwt = await exchangeForConvexJwt(convexSiteUrl, sessionToken);
   console.log("[auth] convex jwt acquired");
@@ -243,6 +348,11 @@ async function main() {
   console.log("[result] smoke test passed");
   console.log(`[result] route=${uiTurn.route ?? "unknown"} blocks=${uiTurn.blocks?.length ?? 0}`);
   console.log(`[result] assistant=${assistantText}`);
+
+  if (process.env.AGENT_SMOKE_MEMORY === "1") {
+    await runMemorySmoke(client, threadId, userId, 1);
+    console.log("[result] memory smoke passed");
+  }
 }
 
 main().catch((error) => {

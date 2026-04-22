@@ -1,58 +1,58 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
 
-import type { AssistantStageEvent } from "@/conversation/assistantProtocol";
+import type { AssistantStageEvent, ThreadPresentation } from "@/conversation/assistantProtocol";
+import { AssistantBrandMark } from "@/conversation/components/AssistantBrandMark";
+import {
+  resolveAssistantBrandActivity,
+  resolveAssistantDirection,
+  resolveThreadPresentationState,
+} from "@/conversation/lib/assistantPresentation";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 
 type AssistantStageProgressProps = {
   events: AssistantStageEvent[];
+  threadPresentation?: ThreadPresentation | null;
 };
 
-export function AssistantStageProgress({ events }: AssistantStageProgressProps) {
+export function AssistantStageProgress({ events, threadPresentation }: AssistantStageProgressProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const latest = [...events]
     .reverse()
     .find((event) => Boolean(event.route || event.specialist));
-  const pulse = useSharedValue(0.4);
-
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 700 }),
-        withTiming(0.4, { duration: 700 }),
-      ),
-      -1,
-      true,
-    );
-  }, [pulse]);
-
-  const pulseStyle = useAnimatedStyle(() => ({
-    opacity: pulse.value,
-  }));
 
   if (!latest) {
     return null;
   }
 
   const tone = latest.motionPreset ?? "assistant";
+  const resolvedThreadPresentation = resolveThreadPresentationState(threadPresentation);
+  const direction = resolveAssistantDirection({
+    threadPresentation: resolvedThreadPresentation,
+    fallbackText: latest.message,
+  });
+  const brandActivity = resolveAssistantBrandActivity({
+    threadPresentation: resolvedThreadPresentation,
+    route: latest.route,
+    stageSpecialist: latest.specialist,
+    phase: latest.phase,
+    stageStatus: latest.status,
+  });
 
   return (
     <View style={[styles.container, styles[`container_${tone}`]]}>
       <View style={styles.headerRow}>
-        <Text style={styles.eyebrow}>
-          {latest.route ? `${latest.route.toUpperCase()} MODE` : "ASSISTANT"}
-        </Text>
-        <Animated.View style={[styles.dot, styles[`dot_${tone}`], pulseStyle]} />
+        <AssistantBrandMark
+          direction={direction}
+          label={brandActivity.label}
+          animate={brandActivity.logoMotion}
+          textMotion={brandActivity.textMotion}
+          emphasis={brandActivity.emphasis}
+          size={14}
+        />
       </View>
       <Text style={styles.message}>{latest.message}</Text>
       <Text style={styles.meta}>
@@ -92,15 +92,7 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.backgroundSoft,
     },
     headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    eyebrow: {
-      fontSize: 11,
-      fontFamily: "Manrope_700Bold",
-      color: colors.textSecondary,
-      letterSpacing: 0.8,
+      alignItems: "flex-start",
     },
     message: {
       fontSize: 14,
@@ -112,22 +104,5 @@ const createStyles = (colors: any) =>
       fontSize: 12,
       color: colors.textSecondary,
       fontFamily: "Manrope_500Medium",
-    },
-    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 99,
-    },
-    dot_assistant: {
-      backgroundColor: colors.textSecondary,
-    },
-    dot_advisor: {
-      backgroundColor: colors.textSecondary,
-    },
-    dot_property: {
-      backgroundColor: colors.accent,
-    },
-    dot_funding: {
-      backgroundColor: colors.textPrimary,
     },
   });

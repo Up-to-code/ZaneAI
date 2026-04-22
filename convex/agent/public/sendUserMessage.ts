@@ -1,4 +1,4 @@
-import { createThread, saveMessage } from "@convex-dev/agent";
+import { createThread, listMessages, saveMessage, updateThreadMetadata } from "@convex-dev/agent";
 import { v } from "convex/values";
 
 import { api, internal } from "../../_generated/api";
@@ -12,6 +12,7 @@ import { agentComponent } from "../lib/component";
 import { logAgentEvent } from "../lib/debugLog";
 import { getLatestWorkerHeartbeat, isWorkerAvailable } from "../lib/workerHealth";
 import { findThreadAccess } from "../lib/threadAccess";
+import { buildThreadTitleFromPrompt, isPlaceholderThreadTitle } from "../lib/threadTitle";
 
 function getIngressReasonCode(error: unknown) {
   if (!(error instanceof Error)) {
@@ -86,11 +87,28 @@ export const sendUserMessage = mutation({
       await rateLimiter.limit(ctx, "sendMessage", { key: authUser._id, throws: true });
       await rateLimiter.limit(ctx, "messageTokens", { key: authUser._id, count: args.prompt.length, throws: true });
       await rateLimiter.limit(ctx, "globalTokens", { count: args.prompt.length, throws: true });
+      const existingMessages = await listMessages(ctx, agentComponent, {
+        threadId,
+        excludeToolMessages: true,
+        statuses: ["success"],
+        paginationOpts: { numItems: 1, cursor: null },
+      });
+      const shouldNameThread = existingMessages.page.length === 0
+        && isPlaceholderThreadTitle(thread?.title ?? null);
       const saved = await saveMessage(ctx, agentComponent, {
         threadId,
         userId: authUser._id,
         message: { role: "user", content: args.prompt },
       });
+      if (shouldNameThread) {
+        await updateThreadMetadata(ctx, agentComponent, {
+          threadId,
+          patch: {
+            title: buildThreadTitleFromPrompt(args.prompt),
+            summary: args.prompt.replace(/\s+/g, " ").trim().slice(0, 160),
+          },
+        });
+      }
       const runId: Id<"agentRuns"> = await ctx.runMutation(internal.agent.internal.runs.createRun, {
         authUserId: authUser._id,
         threadId,

@@ -2,7 +2,7 @@ import type { Doc, Id } from "../../_generated/dataModel";
 
 type AgentEventStatus = "running" | "completed" | "failed" | "cancelled";
 type AgentEventType = "stage" | "tool" | "lifecycle";
-type AgentEventRoute = "advisor" | "property" | "funding" | "mixed";
+type AgentEventRoute = "advisor" | "property" | "funding" | "legal" | "mixed";
 type AgentMotionPreset = "assistant" | "advisor" | "property" | "funding";
 
 export type AgentEventReplacement = {

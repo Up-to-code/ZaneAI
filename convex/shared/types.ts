@@ -4,6 +4,9 @@ export const AGENT_ROLES = [
   "orchestrator",
   "property",
   "funding",
+  "legal",
+  "finance_editor",
+  "legal_editor",
   "advisor",
   "summary",
 ] as const;

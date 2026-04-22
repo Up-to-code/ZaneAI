@@ -8,13 +8,19 @@ export const usageTables = {
     runId: v.optional(v.id("agentRuns")),
     quotaKey: v.string(),
     model: v.optional(v.string()),
+    stepModel: v.optional(v.string()),
     agentName: v.optional(v.string()),
     provider: v.optional(v.string()),
     cacheStatus: v.optional(v.string()),
+    stepEstimatedCostUsd: v.optional(v.number()),
+    domain: v.optional(v.string()),
+    editorUsed: v.optional(v.boolean()),
     metadataJson: v.optional(v.string()),
     units: v.number(),
     createdAt: v.number(),
-  }).index("by_authUserId_and_quotaKey", ["authUserId", "quotaKey"]),
+  })
+    .index("by_authUserId_and_quotaKey", ["authUserId", "quotaKey"])
+    .index("by_runId", ["runId"]),
   llmCacheEntries: defineTable({
     scopeKey: v.string(),
     kind: v.string(),

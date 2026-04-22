@@ -1,14 +1,17 @@
-import { saveMessage } from "@convex-dev/agent";
+import { listMessages, saveMessage } from "@convex-dev/agent";
 import { v } from "convex/values";
+import { assistantSurfaceCopySchema } from "@zayon/assistant-protocol";
 
 import { mutation, query } from "../../_generated/server";
 import { agentComponent } from "../lib/component";
 import { logAgentEvent } from "../lib/debugLog";
+import { parseSurfaceCopyJson } from "./presentation";
 
 const routeValidator = v.union(
   v.literal("advisor"),
   v.literal("property"),
   v.literal("funding"),
+  v.literal("legal"),
   v.literal("mixed"),
 );
 
@@ -17,6 +20,18 @@ const motionPresetValidator = v.union(
   v.literal("advisor"),
   v.literal("property"),
   v.literal("funding"),
+);
+const directionValidator = v.union(v.literal("rtl"), v.literal("ltr"));
+const uiLocaleValidator = v.union(v.literal("ar"), v.literal("en"), v.literal("fr"));
+const threadPresentationSourceValidator = v.union(v.literal("detected"), v.literal("explicit"));
+
+const memorySourceValidator = v.union(
+  v.literal("assistant_turns"),
+  v.literal("thread_messages"),
+  v.literal("cortex_memory"),
+  v.literal("property_searches"),
+  v.literal("buyer_preferences"),
+  v.literal("tool_calls"),
 );
 
 const stagePhaseValidator = v.union(
@@ -50,6 +65,50 @@ function parseJsonRecord(value: string | undefined) {
   }
 }
 
+function extractAgentMessageText(content: unknown): string {
+  if (typeof content === "string") {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object" && "text" in part && typeof (part as { text?: unknown }).text === "string") {
+          return String((part as { text: string }).text);
+        }
+        return "";
+      })
+      .join("")
+      .trim();
+  }
+  return "";
+}
+
+function parseThreadPresentationRow(row: null | {
+  threadId: string;
+  languageTag: string;
+  direction: "rtl" | "ltr";
+  uiLocale?: "ar" | "en" | "fr" | null;
+  source: "detected" | "explicit";
+  confidence: number;
+  surfaceCopyJson?: string;
+}) {
+  if (!row) {
+    return null;
+  }
+
+  const surfaceCopy = parseSurfaceCopyJson(row.surfaceCopyJson);
+  return {
+    threadId: row.threadId,
+    languageTag: row.languageTag,
+    direction: row.direction,
+    uiLocale: row.uiLocale ?? null,
+    source: row.source,
+    confidence: row.confidence,
+    ...(surfaceCopy ? { surfaceCopy } : {}),
+  };
+}
+
 export const getRunForWorker = query({
   args: { runId: v.id("agentRuns") },
   handler: async (ctx, args) => {
@@ -71,6 +130,73 @@ export const getRunForWorker = query({
       specialist: run.specialist,
       motionPreset: run.motionPreset,
     };
+  },
+});
+
+export const getThreadPresentationForWorker = query({
+  args: {
+    threadId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const row = await ctx.db
+      .query("threadPresentations")
+      .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
+      .unique();
+
+    return parseThreadPresentationRow(row);
+  },
+});
+
+export const upsertThreadPresentationForWorker = mutation({
+  args: {
+    threadId: v.string(),
+    languageTag: v.string(),
+    direction: directionValidator,
+    uiLocale: v.optional(v.union(uiLocaleValidator, v.null())),
+    source: threadPresentationSourceValidator,
+    confidence: v.number(),
+    surfaceCopyJson: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.surfaceCopyJson) {
+      try {
+        const parsed = JSON.parse(args.surfaceCopyJson);
+        assistantSurfaceCopySchema.parse(parsed);
+      } catch (error) {
+        logAgentEvent("warn", {
+          scope: "orchestrator_runtime",
+          event: "thread_presentation_surface_copy_invalid",
+          threadId: args.threadId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    const existing = await ctx.db
+      .query("threadPresentations")
+      .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
+      .unique();
+    const now = Date.now();
+    const patch = {
+      threadId: args.threadId,
+      languageTag: args.languageTag,
+      direction: args.direction,
+      uiLocale: args.uiLocale ?? null,
+      source: args.source,
+      confidence: args.confidence,
+      ...(args.surfaceCopyJson ? { surfaceCopyJson: args.surfaceCopyJson } : {}),
+      updatedAt: now,
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+      return existing._id;
+    }
+
+    return await ctx.db.insert("threadPresentations", {
+      ...patch,
+      createdAt: now,
+    });
   },
 });
 
@@ -235,13 +361,67 @@ export const trackWorkerUsage = mutation({
     runId: v.optional(v.id("agentRuns")),
     quotaKey: v.string(),
     model: v.optional(v.string()),
+    stepModel: v.optional(v.string()),
     agentName: v.optional(v.string()),
     provider: v.optional(v.string()),
     cacheStatus: v.optional(v.string()),
+    stepEstimatedCostUsd: v.optional(v.number()),
+    domain: v.optional(v.string()),
+    editorUsed: v.optional(v.boolean()),
     metadataJson: v.optional(v.string()),
     units: v.number(),
   },
   handler: async (ctx, args) => await ctx.db.insert("usageLedger", { ...args, createdAt: Date.now() }),
+});
+
+export const getRunCostSummary = query({
+  args: {
+    runId: v.id("agentRuns"),
+  },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("usageLedger")
+      .withIndex("by_runId", (q) => q.eq("runId", args.runId))
+      .collect();
+
+    let totalTokens = 0;
+    let totalCostUsd = 0;
+    const byAgent: Record<string, { tokens: number; costUsd: number }> = {};
+    const byDomain: Record<string, { tokens: number; costUsd: number }> = {};
+
+    for (const row of rows) {
+      if (row.quotaKey !== "message_tokens") {
+        continue;
+      }
+
+      const tokens = row.units ?? 0;
+      const costUsd = row.stepEstimatedCostUsd ?? 0;
+      totalTokens += tokens;
+      totalCostUsd += costUsd;
+
+      const agentKey = row.agentName ?? "unknown";
+      const domainKey = row.domain ?? "unknown";
+      byAgent[agentKey] ??= { tokens: 0, costUsd: 0 };
+      byDomain[domainKey] ??= { tokens: 0, costUsd: 0 };
+      byAgent[agentKey].tokens += tokens;
+      byAgent[agentKey].costUsd += costUsd;
+      byDomain[domainKey].tokens += tokens;
+      byDomain[domainKey].costUsd += costUsd;
+    }
+
+    const blendedUsdPerMillionTokens = totalTokens > 0
+      ? Number(((totalCostUsd / totalTokens) * 1_000_000).toFixed(4))
+      : 0;
+
+    return {
+      totalTokens,
+      totalCostUsd: Number(totalCostUsd.toFixed(6)),
+      blendedUsdPerMillionTokens,
+      rollingAverageUsdPerMillionTokens: blendedUsdPerMillionTokens,
+      byAgent,
+      byDomain,
+    };
+  },
 });
 
 export const recordWorkerToolCall = mutation({
@@ -276,6 +456,226 @@ export const getRecentPropertySearchesForWorker = query({
       .take(Math.min(args.limit ?? 3, 8));
 
     return rows.filter((row) => row.authUserId === args.authUserId);
+  },
+});
+
+export const getRecentAssistantTurnsForWorker = query({
+  args: {
+    authUserId: v.string(),
+    threadId: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("assistantTurns")
+      .withIndex("by_threadId_and_createdAt", (q) => q.eq("threadId", args.threadId))
+      .order("desc")
+      .take(Math.min(args.limit ?? 4, 8));
+
+    return rows
+      .filter((row) => row.authUserId === args.authUserId)
+      .map((row) => ({
+        assistantText: row.assistantText,
+        route: row.route,
+        status: row.status,
+        propertyIds: row.propertyIds,
+        createdAt: row.createdAt,
+      }));
+  },
+});
+
+export const getRecentMemoryBundleForWorker = query({
+  args: {
+    authUserId: v.string(),
+    threadId: v.string(),
+    sources: v.array(memorySourceValidator),
+    contextBudget: v.object({
+      assistantTurns: v.number(),
+      threadMessages: v.number(),
+      cortexMemories: v.number(),
+      propertySearchSessions: v.number(),
+      resultIds: v.number(),
+      toolCalls: v.number(),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const sources = new Set(args.sources);
+    const threadMessages = sources.has("thread_messages")
+      ? (await listMessages(ctx, agentComponent, {
+        threadId: args.threadId,
+        excludeToolMessages: true,
+        paginationOpts: {
+          numItems: Math.min(args.contextBudget.threadMessages || 8, 12),
+          cursor: null,
+        },
+      })).page
+        .sort((left, right) => left._creationTime - right._creationTime)
+        .map((message) => ({
+          messageId: String(message._id),
+          role: message.message?.role ?? "unknown",
+          text: extractAgentMessageText(message.message?.content).slice(0, 900),
+          createdAt: message._creationTime,
+          source: "recent",
+        }))
+        .filter((message) => message.text.length > 0)
+      : [];
+
+    const assistantTurns = sources.has("assistant_turns")
+      ? (await ctx.db
+        .query("assistantTurns")
+        .withIndex("by_threadId_and_createdAt", (q) => q.eq("threadId", args.threadId))
+        .order("desc")
+        .take(Math.min(args.contextBudget.assistantTurns || 4, 8)))
+        .filter((row) => row.authUserId === args.authUserId)
+        .map((row) => ({
+          assistantText: row.assistantText,
+          route: row.route,
+          status: row.status,
+          propertyIds: row.propertyIds.slice(0, args.contextBudget.resultIds || 4),
+          createdAt: row.createdAt,
+        }))
+      : [];
+
+    const propertySearches = sources.has("property_searches")
+      ? (await ctx.db
+        .query("propertySearchSessions")
+        .withIndex("by_threadId_and_updatedAt", (q) => q.eq("threadId", args.threadId))
+        .order("desc")
+        .take(Math.min(args.contextBudget.propertySearchSessions || 3, 8)))
+        .filter((row) => row.authUserId === args.authUserId)
+        .map((row) => ({
+          _id: row._id,
+          generatedQuery: row.generatedQuery,
+          normalizedQuery: row.normalizedQuery,
+          filtersJson: row.filtersJson,
+          relaxedConstraintsJson: row.relaxedConstraintsJson,
+          resultIds: row.resultIds.slice(0, args.contextBudget.resultIds || 12),
+          ...(row.selectedResultId ? { selectedResultId: row.selectedResultId } : {}),
+          updatedAt: row.updatedAt,
+        }))
+      : [];
+
+    const toolCalls = sources.has("tool_calls")
+      ? (await ctx.db
+        .query("agentToolCalls")
+        .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
+        .order("desc")
+        .take(Math.min(args.contextBudget.toolCalls || 4, 8)))
+        .filter((row) => row.authUserId === args.authUserId)
+        .map((row) => ({
+          toolName: row.toolName,
+          ...(row.outputSummary ? { outputSummary: row.outputSummary } : {}),
+          ...(row.cacheStatus ? { cacheStatus: row.cacheStatus } : {}),
+          createdAt: row.createdAt,
+        }))
+      : [];
+
+    let buyerPreferences = null as null | {
+      minBudget?: number;
+      maxBudget?: number;
+      locations: string[];
+      propertyTypes: string[];
+      financingPreferences: string[];
+      confidence: number;
+      updatedFrom: string;
+      updatedAt: number;
+    };
+    if (sources.has("buyer_preferences")) {
+      const profile = await ctx.db
+        .query("profiles")
+        .withIndex("by_authUserId", (q) => q.eq("authUserId", args.authUserId))
+        .unique();
+      const preferences = profile
+        ? await ctx.db
+          .query("buyerPreferences")
+          .withIndex("by_profileId", (q) => q.eq("profileId", profile._id))
+          .unique()
+        : null;
+      buyerPreferences = preferences
+        ? {
+          ...(preferences.minBudget !== undefined ? { minBudget: preferences.minBudget } : {}),
+          ...(preferences.maxBudget !== undefined ? { maxBudget: preferences.maxBudget } : {}),
+          locations: preferences.locations,
+          propertyTypes: preferences.propertyTypes,
+          financingPreferences: preferences.financingPreferences,
+          confidence: preferences.confidence,
+          updatedFrom: preferences.updatedFrom,
+          updatedAt: preferences.updatedAt,
+        }
+        : null;
+    }
+
+    return {
+      threadMessages,
+      assistantTurns,
+      propertySearches,
+      toolCalls,
+      buyerPreferences,
+    };
+  },
+});
+
+function normalizeStringList(values: string[] | undefined) {
+  return values
+    ?.map((value) => value.trim())
+    .filter((value, index, list) => value.length > 0 && list.indexOf(value) === index);
+}
+
+function clampConfidence(value: number) {
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0.55));
+}
+
+export const recordPreferencePromotionForWorker = mutation({
+  args: {
+    authUserId: v.string(),
+    threadId: v.string(),
+    minBudget: v.optional(v.number()),
+    maxBudget: v.optional(v.number()),
+    locations: v.optional(v.array(v.string())),
+    propertyTypes: v.optional(v.array(v.string())),
+    financingPreferences: v.optional(v.array(v.string())),
+    confidence: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (args.confidence < 0.8) {
+      return { updated: false, reason: "confidence_below_threshold" };
+    }
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_authUserId", (q) => q.eq("authUserId", args.authUserId))
+      .unique();
+    if (!profile) {
+      return { updated: false, reason: "profile_not_found" };
+    }
+
+    const existing = await ctx.db
+      .query("buyerPreferences")
+      .withIndex("by_profileId", (q) => q.eq("profileId", profile._id))
+      .unique();
+    const now = Date.now();
+    const next = {
+      profileId: profile._id,
+      ...((args.minBudget ?? existing?.minBudget) !== undefined ? { minBudget: args.minBudget ?? existing?.minBudget } : {}),
+      ...((args.maxBudget ?? existing?.maxBudget) !== undefined ? { maxBudget: args.maxBudget ?? existing?.maxBudget } : {}),
+      locations: normalizeStringList(args.locations) ?? existing?.locations ?? [],
+      propertyTypes: normalizeStringList(args.propertyTypes) ?? existing?.propertyTypes ?? [],
+      financingPreferences: normalizeStringList(args.financingPreferences) ?? existing?.financingPreferences ?? [],
+      confidence: Math.max(clampConfidence(args.confidence), existing?.confidence ?? 0),
+      updatedFrom: `agent:${args.threadId}`,
+      updatedAt: now,
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, next);
+      return { updated: true, preferenceId: existing._id, reason: "updated" };
+    }
+
+    const preferenceId = await ctx.db.insert("buyerPreferences", {
+      ...next,
+      createdAt: now,
+    });
+    return { updated: true, preferenceId, reason: "created" };
   },
 });
 

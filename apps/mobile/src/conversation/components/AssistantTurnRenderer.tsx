@@ -8,6 +8,7 @@ import { MarkdownText } from "@/foundation/primitives/MarkdownText";
 import { isArabic } from "@/foundation/utils/rtl";
 import { theme, radii } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { isRtlDirection, resolveAssistantDirection } from "@/conversation/lib/assistantPresentation";
 import { MessageActions } from "./MessageActions";
 
 import { PromptChips, type PromptChipData } from "./PromptChips";
@@ -39,7 +40,7 @@ function Section({
     <View style={[!cardless ? styles.card : styles.cardless, !cardless && styles[`card_${tone}`]]}>
       <View style={styles.content}>
         {title ? (
-          <Text variant="title" style={styles.cardTitle}>
+          <Text variant="title" style={[styles.cardTitle, isAr && { textAlign: "right", writingDirection: "rtl" }]}>
             {title}
           </Text>
         ) : null}
@@ -280,7 +281,11 @@ export function AssistantTurnRenderer({
       .join("\n\n") + " " + (turn.assistantText || "");
   }, [turn.blocks, turn.assistantText]);
 
-  const isAr = isArabic(fullText);
+  const direction = resolveAssistantDirection({
+    turnPresentation: turn.presentation,
+    fallbackText: fullText,
+  });
+  const isAr = isRtlDirection(direction);
 
   return (
     <View style={styles.container}>

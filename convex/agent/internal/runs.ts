@@ -30,6 +30,7 @@ export const patchRun = internalMutation({
       v.literal("advisor"),
       v.literal("property"),
       v.literal("funding"),
+      v.literal("legal"),
       v.literal("mixed"),
     )),
     specialist: v.optional(v.string()),

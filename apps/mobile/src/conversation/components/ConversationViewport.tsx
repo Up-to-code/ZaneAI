@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { ConversationFeed } from "@/conversation/components/ConversationFeed";
 import { ConversationStatusBanner } from "@/conversation/components/ConversationStatusBanner";
+import { EdgeFade } from "@/conversation/components/EdgeFade";
 import { ZaneAiComposerDock } from "@/conversation/components/ZaneAiComposerDock";
 import { useConversationController } from "@/conversation/hooks/useConversationController";
+import { getLocalizedRuntimeMessage, resolveThreadPresentationState } from "@/conversation/lib/assistantPresentation";
 import { useKeyboardDock } from "@/conversation/hooks/useKeyboardDock";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { getRuntimeDisabledReason } from "@/persistence/convex/runtimeHealth";
+import { useThreadPresentation } from "@/persistence/convex/useConversationData";
 import { useAppStore } from "@/store";
 import { NormalModeView } from "@/shell/components/NormalModeView";
 
@@ -30,10 +32,12 @@ export function ConversationViewport() {
   const operativeMode = useAppStore((state) => state.operativeMode);
 
   const {
+    activeThreadId,
     canUpgrade,
+    cancelComposerEdit,
     clearRunFailureMessage,
+    editingMessage,
     handleTurnAction,
-    isAnonymous,
     isStreaming,
     messages,
     openUpgrade,
@@ -41,8 +45,11 @@ export function ConversationViewport() {
     runStageFeed,
     runtimeHealth,
     sendPrompt,
+    startEditingMessage,
     stop,
   } = useConversationController();
+  const threadPresentation = useThreadPresentation(activeThreadId ?? null);
+  const resolvedPresentation = resolveThreadPresentationState(threadPresentation);
   const insets = useSafeAreaInsets();
   const { dockBottomOffset, listBottomPadding, keyboardVisible } = useKeyboardDock({
     bottomInset: insets.bottom,
@@ -50,7 +57,9 @@ export function ConversationViewport() {
     keyboardHeight,
   });
   const runtimeUnavailable = runtimeHealth.status === "unavailable";
-  const composerDisabledReason = getRuntimeDisabledReason(runtimeHealth);
+  const composerDisabledReason = runtimeUnavailable
+    ? getLocalizedRuntimeMessage(runtimeHealth, resolvedPresentation.surfaceCopy)
+    : undefined;
 
   useEffect(() => {
     const payload = {
@@ -79,18 +88,20 @@ export function ConversationViewport() {
               <View style={[styles.bannerStack, { paddingTop: insets.top + 64 }]}>
                 {runtimeUnavailable ? (
                   <ConversationStatusBanner
-                    title="AI unavailable"
-                    body={runtimeHealth.message ?? "Convex runtime missing deploy or model config."}
+                    title={resolvedPresentation.surfaceCopy.aiUnavailableTitle}
+                    body={composerDisabledReason ?? resolvedPresentation.surfaceCopy.aiUnavailableBody}
                     tone="error"
+                    direction={resolvedPresentation.direction}
                   />
                 ) : null}
 
                 {runFailureMessage ? (
                   <ConversationStatusBanner
-                    title="Run failed"
+                    title={resolvedPresentation.surfaceCopy.runFailedTitle}
                     body={runFailureMessage}
                     tone="warning"
                     onDismiss={clearRunFailureMessage}
+                    direction={resolvedPresentation.direction}
                   />
                 ) : null}
               </View>
@@ -100,12 +111,26 @@ export function ConversationViewport() {
               runStageFeed={runStageFeed}
               onTurnAction={handleTurnAction}
               onSuggestionPress={sendPrompt}
+              onEditMessage={startEditingMessage}
+              threadPresentation={threadPresentation}
             />
           </>
         ) : (
           <NormalModeView />
         )}
       </View>
+
+      {isAiMode ? (
+        <View pointerEvents="none" style={[styles.headerFade, { height: insets.top + 92 }]}>
+          <EdgeFade color={colors.background} placement="top" startOpacity={0.98} midOpacity={0.52} />
+        </View>
+      ) : null}
+
+      {isAiMode ? (
+        <View pointerEvents="none" style={[styles.composerFade, { bottom: dockBottomOffset }]}>
+          <EdgeFade color={colors.background} placement="bottom" startOpacity={0.96} midOpacity={0.48} />
+        </View>
+      ) : null}
       
       {isAiMode && (
         <View pointerEvents="box-none" style={[styles.dockWrap, { bottom: dockBottomOffset }]}>
@@ -119,6 +144,11 @@ export function ConversationViewport() {
             onUpgrade={openUpgrade}
             keyboardVisible={keyboardVisible}
             messageCount={messages.length}
+            surfaceCopy={resolvedPresentation.surfaceCopy}
+            direction={resolvedPresentation.direction}
+            uiLocale={resolvedPresentation.uiLocale}
+            isEditing={Boolean(editingMessage)}
+            onCancelEdit={cancelComposerEdit}
           />
         </View>
       )}
@@ -138,9 +168,24 @@ const createStyles = (colors: any) => StyleSheet.create({
   bannerStack: {
     zIndex: 2,
   },
+  headerFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    zIndex: 3,
+  },
+  composerFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 96,
+    zIndex: 3,
+  },
   dockWrap: {
     position: "absolute",
     left: 0,
     right: 0,
+    zIndex: 4,
   },
 });

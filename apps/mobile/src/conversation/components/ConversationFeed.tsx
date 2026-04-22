@@ -5,6 +5,7 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { ArrowDown } from "lucide-react-native";
 
 import { AssistantTurnAdapter } from "@/conversation/adapters/AssistantTurnAdapter";
+import type { ThreadPresentation } from "@/conversation/assistantProtocol";
 import { MessageBubble } from "@/conversation/components/MessageBubble";
 import { EmptyThreadWelcome } from "@/conversation/components/EmptyThreadWelcome";
 import { IconButton } from "@/foundation/primitives/IconButton";
@@ -19,6 +20,8 @@ type ConversationFeedProps = {
   runStageFeed: ConversationRunStage[];
   onTurnAction: (action: ConversationTurnAction, message: ConversationMessage) => void | Promise<void>;
   onSuggestionPress?: (suggestion: string) => void;
+  onEditMessage?: (message: ConversationMessage) => void;
+  threadPresentation?: ThreadPresentation | null;
 };
 
 const AUTO_SCROLL_THRESHOLD = 120;
@@ -54,6 +57,8 @@ export function ConversationFeed({
   runStageFeed,
   onTurnAction,
   onSuggestionPress,
+  onEditMessage,
+  threadPresentation,
 }: ConversationFeedProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -67,16 +72,13 @@ export function ConversationFeed({
   const scrollOffsetRef = useRef(0);
   const [isAtEnd, setIsAtEnd] = useState(true);
   const [contentFillsViewport, setContentFillsViewport] = useState(false);
+  const [activeActionMessageId, setActiveActionMessageId] = useState<string | null>(null);
   const lastAssistantIndex = useMemo(
     () => findLastIndex(messages, (message) => message.role === "assistant"),
     [messages],
   );
   const latestAssistantMessage = lastAssistantIndex >= 0 ? messages[lastAssistantIndex] : null;
 
-  const firstAssistantIndex = useMemo(
-    () => messages.findIndex((message) => message.role === "assistant"),
-    [messages],
-  );
   const shouldShowStageProgress = useMemo(
     () => runStageFeed.some((event) => Boolean(event.route || event.specialist)),
     [runStageFeed],
@@ -169,6 +171,7 @@ export function ConversationFeed({
           syncScrollState(scrollOffsetRef.current, height, contentHeightRef.current);
         }}
         onScroll={updateAutoScrollPreference}
+        onScrollBeginDrag={() => setActiveActionMessageId(null)}
         onContentSizeChange={(_width, height) => {
           contentHeightRef.current = height;
           syncScrollState(scrollOffsetRef.current, viewportHeightRef.current, height);
@@ -197,7 +200,11 @@ export function ConversationFeed({
               <MessageBubble 
                 message={item} 
                 latestStageEvent={latestStageEvent} 
-                isFirstAssistant={messages.indexOf(item) === firstAssistantIndex}
+                onEditMessage={onEditMessage}
+                actionsVisible={activeActionMessageId === item.id}
+                onShowActions={(messageId) => setActiveActionMessageId(messageId)}
+                onDismissActions={() => setActiveActionMessageId(null)}
+                threadPresentation={threadPresentation}
               />
 
               {item.uiTurn ? (
@@ -234,7 +241,7 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingTop: theme.spacing.lg,
-    paddingBottom: 0,
+    paddingBottom: 40,
   },
   scrollButtonWrap: {
     position: "absolute",
