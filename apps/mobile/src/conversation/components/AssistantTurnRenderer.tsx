@@ -583,7 +583,7 @@ const createStyles = (colors: any) => {
     },
     compactPropertyList: {
       gap: 0,
-      marginHorizontal: 8,
+      marginHorizontal: 0,
     },
     seeAllBtn: {
       marginTop: theme.spacing.md,

@@ -22,6 +22,14 @@ const LOCATIONS = [
   "Shorouk",
 ];
 
+const ONBOARDING_MOTION = {
+  introDelayMs: 80,
+  contentDelayMs: 140,
+  actionsDelayMs: 220,
+  damping: 20,
+  stiffness: 240,
+};
+
 export default function OnboardingLocationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -138,14 +146,26 @@ export default function OnboardingLocationsScreen() {
 
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
+          <Animated.View
+            entering={FadeInUp.delay(ONBOARDING_MOTION.introDelayMs)
+              .springify()
+              .damping(ONBOARDING_MOTION.damping)
+              .stiffness(ONBOARDING_MOTION.stiffness)}
+            style={styles.intro}
+          >
             <Text variant="display" style={styles.display}>{t.onboarding.locationsTitle}</Text>
             <Text style={styles.subtitle}>
               {t.onboarding.locationsBody}
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.chipGrid}>
+          <Animated.View
+            entering={FadeInUp.delay(ONBOARDING_MOTION.contentDelayMs)
+              .springify()
+              .damping(ONBOARDING_MOTION.damping)
+              .stiffness(ONBOARDING_MOTION.stiffness)}
+            style={styles.chipGrid}
+          >
             {LOCATIONS.map((loc) => {
               const isSelected = selectedLocations.includes(loc);
               return (
@@ -177,7 +197,10 @@ export default function OnboardingLocationsScreen() {
       </View>
 
       <Animated.View
-        entering={FadeInDown.delay(500).springify()}
+        entering={FadeInDown.delay(ONBOARDING_MOTION.actionsDelayMs)
+          .springify()
+          .damping(ONBOARDING_MOTION.damping)
+          .stiffness(ONBOARDING_MOTION.stiffness)}
         style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 32) }]}
       >
         <Button

@@ -32,6 +32,7 @@ export default function AppLayout() {
           backgroundColor: colors.background,
         },
         animation: "fade",
+        animationDuration: 120,
       }}
     >
       <Stack.Screen name="index" />

@@ -238,18 +238,17 @@ export default function ListingMapScreen() {
                         selected && styles.markerCardSelected,
                       ]}
                     >
-                      <Image source={{ uri: point.property.heroUrl }} style={styles.markerMiniImage} contentFit="cover" />
-                      <View style={styles.markerTextContainer}>
-                        <Text
-                          variant="caption"
-                          style={[
-                            styles.markerText,
-                            selected && styles.markerTextSelected,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {getMarkerLabel(point.property.priceLabel)}
-                        </Text>
+                      <View style={styles.markerImageFrame}>
+                        <Image source={{ uri: point.property.heroUrl }} style={styles.markerMiniImage} contentFit="cover" />
+                        <View style={[styles.markerPriceTag, selected && styles.markerPriceTagSelected]}>
+                          <Text
+                            variant="caption"
+                            style={[styles.markerText, selected && styles.markerTextSelected]}
+                            numberOfLines={1}
+                          >
+                            {getMarkerLabel(point.property.priceLabel)}
+                          </Text>
+                        </View>
                       </View>
                     </Pressable>
                 </MarkerViewComponent>
@@ -350,14 +349,18 @@ export default function ListingMapScreen() {
                   onPress={() => router.push(`/(app)/property/${item.property.id}` as never)}
                   style={styles.selectedCard}
                 >
-                  <Image source={{ uri: item.property.heroUrl }} style={styles.selectedImage} contentFit="cover" />
-                  <View style={styles.selectedBody}>
-                    <Text variant="title" numberOfLines={1}>{item.property.priceLabel}</Text>
-                    <Text variant="body" numberOfLines={1}>{item.property.title}</Text>
-                    <Text variant="caption" tone="muted" numberOfLines={1}>
+                  <View style={styles.selectedContent}>
+                    <Text style={styles.selectedPrice} numberOfLines={1}>
+                      {item.property.priceLabel}
+                    </Text>
+                    <Text style={styles.selectedTitle} numberOfLines={1}>
+                      {item.property.title}
+                    </Text>
+                    <Text style={styles.selectedLocation} numberOfLines={1}>
                       {item.property.locationLabel}
                     </Text>
                   </View>
+                  <Image source={{ uri: item.property.heroUrl }} style={styles.selectedImage} contentFit="cover" />
                 </Pressable>
               )}
             />
@@ -556,57 +559,97 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     bottom: 0,
   },
   selectedCard: {
-    flexDirection: isRTL ? "row-reverse" : "row",
+    flexDirection: isRTL ? "row" : "row-reverse",
     alignItems: "center",
-    gap: theme.spacing.md,
-    backgroundColor: colors.background,
-    borderRadius: 16,
-    padding: theme.spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    padding: 12,
     borderWidth: 1,
     borderColor: colors.divider,
-    width: Dimensions.get("window").width - 60,
+    width: Dimensions.get("window").width - 48,
+    gap: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
   },
   selectedImage: {
-    width: 82,
-    height: 82,
-    borderRadius: theme.radii.md,
-    backgroundColor: colors.divider,
+    width: 90,
+    height: 90,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceRaised,
   },
-  selectedBody: {
+  selectedContent: {
     flex: 1,
-    gap: 2,
+    gap: 4,
+  },
+  selectedPrice: {
+    fontSize: 18,
+    fontFamily: "Manrope_800ExtraBold",
+    color: "#DA3F45",
+    textAlign: isRTL ? "right" : "left",
+  },
+  selectedTitle: {
+    fontSize: 14,
+    fontFamily: "Manrope_700Bold",
+    color: colors.textPrimary,
+    textAlign: isRTL ? "right" : "left",
+  },
+  selectedLocation: {
+    fontSize: 12,
+    fontFamily: "Manrope_500Medium",
+    color: colors.textSecondary,
+    textAlign: isRTL ? "right" : "left",
   },
 
   markerCard: {
-    width: 90,
+    width: 64,
+    height: 64,
     backgroundColor: colors.background,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.divider,
-    overflow: "hidden",
+    padding: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   markerCardSelected: {
-    borderColor: colors.textPrimary,
-    borderWidth: 2,
-    transform: [{ scale: 1.05 }],
+    borderColor: "#DA3F45",
+    transform: [{ scale: 1.12 }],
+    zIndex: 10,
+  },
+  markerImageFrame: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: "hidden",
+    position: "relative",
   },
   markerMiniImage: {
     width: "100%",
-    height: 60,
-    backgroundColor: colors.divider,
+    height: "100%",
+    backgroundColor: colors.surfaceRaised,
   },
-  markerTextContainer: {
-    padding: 6,
+  markerPriceTag: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    paddingVertical: 2,
     alignItems: "center",
-    justifyContent: "center",
+  },
+  markerPriceTagSelected: {
+    backgroundColor: "#DA3F45",
   },
   markerText: {
-    color: colors.textPrimary,
-    fontSize: 11,
+    color: "#FFFFFF",
+    fontSize: 9,
     fontFamily: "Manrope_800ExtraBold",
   },
   markerTextSelected: {
-    color: colors.textPrimary,
+    color: "#FFFFFF",
   },
   modalOverlay: {
     flex: 1,

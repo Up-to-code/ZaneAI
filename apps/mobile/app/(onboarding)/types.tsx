@@ -17,6 +17,14 @@ import { useAppLocalization } from "@/foundation/localization";
 
 const TYPES = ["Apartment", "Villa", "Townhouse", "Duplex", "Twinhouse"];
 
+const ONBOARDING_MOTION = {
+  introDelayMs: 80,
+  contentDelayMs: 140,
+  actionsDelayMs: 220,
+  damping: 20,
+  stiffness: 240,
+};
+
 export default function OnboardingTypesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -140,14 +148,26 @@ export default function OnboardingTypesScreen() {
 
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
+          <Animated.View
+            entering={FadeInUp.delay(ONBOARDING_MOTION.introDelayMs)
+              .springify()
+              .damping(ONBOARDING_MOTION.damping)
+              .stiffness(ONBOARDING_MOTION.stiffness)}
+            style={styles.intro}
+          >
             <Text variant="display" style={styles.display}>{t.onboarding.typesTitle}</Text>
             <Text style={styles.subtitle}>
               {t.onboarding.typesBody}
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.chipGrid}>
+          <Animated.View
+            entering={FadeInUp.delay(ONBOARDING_MOTION.contentDelayMs)
+              .springify()
+              .damping(ONBOARDING_MOTION.damping)
+              .stiffness(ONBOARDING_MOTION.stiffness)}
+            style={styles.chipGrid}
+          >
             {TYPES.map((type) => {
               const isSelected = selectedTypes.includes(type);
               const isVillaLike = type === "Villa" || type === "Townhouse" || type === "Twinhouse";
@@ -185,7 +205,10 @@ export default function OnboardingTypesScreen() {
       </View>
 
       <Animated.View
-        entering={FadeInDown.delay(500).springify()}
+        entering={FadeInDown.delay(ONBOARDING_MOTION.actionsDelayMs)
+          .springify()
+          .damping(ONBOARDING_MOTION.damping)
+          .stiffness(ONBOARDING_MOTION.stiffness)}
         style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 32) }]}
       >
         <Button

@@ -78,7 +78,8 @@ export function ZaneAiComposerDock({
   const insets = useSafeAreaInsets();
   const screen = useDetectionHeightAndWidthOfTheScreen();
   const sheetMotion = useComposerSheetMotion(screen.screenClass === "compact");
-  const styles = useMemo(() => createStyles(colors, insets), [colors, insets]);
+  const isRtl = isRtlDirection(direction);
+  const styles = useMemo(() => createStyles(colors, insets, isRtl), [colors, insets, isRtl]);
   const [expandedComposerOpen, setExpandedComposerOpen] = useState(false);
   const dockInputRef = useRef<TextInput | null>(null);
   const sheetInputRef = useRef<TextInput | null>(null);
@@ -108,7 +109,6 @@ export function ZaneAiComposerDock({
     voiceState === "transcribing";
   const isVoicePending = voiceState === "requesting_permission";
   const hasText = draftText.trim().length > 0;
-  const isRtl = isRtlDirection(direction);
   const sheetKeyboardOffset = Platform.OS === "ios" && keyboardHeight > 0
     ? Math.max(keyboardHeight - insets.bottom, 0) + screen.composerSheet.keyboardGap
     : 0;
@@ -594,7 +594,7 @@ export function ZaneAiComposerDock({
   );
 }
 
-const createStyles = (colors: AppColors, insets: EdgeInsets) => StyleSheet.create({
+const createStyles = (colors: AppColors, insets: EdgeInsets, isRtl: boolean) => StyleSheet.create({
   container: {
     zIndex: 2000,
     position: "relative",
@@ -664,7 +664,7 @@ const createStyles = (colors: AppColors, insets: EdgeInsets) => StyleSheet.creat
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: colors.divider,
-    flexDirection: "row",
+    flexDirection: isRtl ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
@@ -690,7 +690,7 @@ const createStyles = (colors: AppColors, insets: EdgeInsets) => StyleSheet.creat
     gap: 8,
   },
   unifiedBar: {
-    flexDirection: "row",
+    flexDirection: isRtl ? "row-reverse" : "row",
     minHeight: 56,
     borderRadius: 28,
     backgroundColor: "transparent",
@@ -712,7 +712,8 @@ const createStyles = (colors: AppColors, insets: EdgeInsets) => StyleSheet.creat
     position: "relative",
     justifyContent: "center",
     minHeight: 44,
-    paddingRight: 8,
+    paddingRight: isRtl ? 0 : 8,
+    paddingLeft: isRtl ? 8 : 0,
   },
   inputFieldExpanded: {
     justifyContent: "flex-start",

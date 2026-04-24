@@ -50,7 +50,7 @@ export function AssistantTurnAdapter({ message, onAction, onSuggestionPress }: A
           return <View />;
         }
 
-        return <PropertyCard property={property} variant="compact-list" />;
+        return <PropertyCard property={property} variant="chat" />;
       }}
     />
   );

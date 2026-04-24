@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -53,6 +53,14 @@ import { Text } from "@/foundation/primitives/Text";
 import { useTranslation, formatWebCopy } from "@/foundation/localization";
 import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 import { uppercaseLatin } from "@/foundation/utils/textDisplay";
+import {
+  MapboxCamera,
+  MapboxMapView,
+  MapboxMarkerView,
+  getMapboxStyleURL,
+  initializeMapboxAccessToken,
+} from "@/decision/mapboxRuntime";
+import { toMapboxPosition } from "@/decision/listingMap";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -61,7 +69,7 @@ export default function PropertyDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { t, isRTL } = useTranslation();
+  const { t, isRTL: systemIsRTL, locale } = useTranslation();
   
   const { item: property, isLoading, isMissing } = usePropertyByIdState(id);
   const { items: candidateProperties, isLoading: isRecommendationsLoading } = useCandidatePropertiesState();
@@ -71,7 +79,17 @@ export default function PropertyDetailScreen() {
   const [isAmenitiesModalVisible, setIsAmenitiesModalVisible] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  const isArabicContent = /[\u0600-\u06FF]/.test(property?.title || "");
+  const isRTL = systemIsRTL || locale === "ar" || isArabicContent;
+
   const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
+
+  useEffect(() => {
+    initializeMapboxAccessToken();
+  }, []);
+
+  const mapStyleURL = getMapboxStyleURL(colors.background === "#000000" ? "dark" : "light", "standard");
+  const propertyCoordinates = property?.coordinates ? toMapboxPosition(property.coordinates) : null;
 
   if (isLoading) {
     return (
@@ -148,27 +166,17 @@ export default function PropertyDetailScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* Static Header */}
-      <View style={[styles.staticHeader, { paddingTop: insets.top + 10 }]}>
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.headerButton}
-        >
-          <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
+      {/* Overlay Header */}
+      <View style={[styles.overlayHeader, { paddingTop: insets.top + 8 }]}>
+        <Pressable onPress={() => router.back()} style={styles.headerButton}>
+          <ArrowLeft size={20} color="#FFFFFF" style={mirrorIcon(isRTL)} />
         </Pressable>
         <View style={styles.headerActions}>
-          <Pressable
-            style={styles.headerButton}
-            onPress={() => setIsSaved(!isSaved)}
-          >
-            <Heart 
-              size={20} 
-              color={isSaved ? colors.accent : colors.textPrimary} 
-              fill={isSaved ? colors.accent : "transparent"} 
-            />
+          <Pressable style={styles.headerButton} onPress={() => setIsSaved(!isSaved)}>
+            <Heart size={20} color={isSaved ? colors.accent : "#FFFFFF"} fill={isSaved ? colors.accent : "transparent"} />
           </Pressable>
           <Pressable style={styles.headerButton}>
-            <Share2 size={20} color={colors.textPrimary} />
+            <Share2 size={20} color="#FFFFFF" />
           </Pressable>
         </View>
       </View>
@@ -206,24 +214,51 @@ export default function PropertyDetailScreen() {
         </View>
 
         <View style={styles.mainContent}>
-          {/* Pricing & High-Level Identity */}
-          <View style={styles.pricingSection}>
-            <View style={styles.priceHeader}>
-              <Text style={styles.priceLabel}>{t.property.totalInvestment}</Text>
-              <Text style={styles.priceText}>{property.priceLabel}</Text>
+          {/* Title & Location */}
+          <View style={styles.titleSection}>
+            <Text style={styles.titleText}>{uppercaseLatin(property.title)}</Text>
+            <View style={styles.locationRow}>
+              <MapPin size={14} color={colors.textMuted} />
+              <Text style={styles.locationText}>{uppercaseLatin(property.locationLabel)}</Text>
             </View>
-            <View style={styles.badgeRow}>
-              <View style={styles.matchBadge}>
-                <CheckCircle2 size={12} color={colors.success} />
-                <Text style={styles.matchBadgeText}>{property.matchScore}% {t.propertyCard.topMatch}</Text>
+          </View>
+
+          {/* Quick Specs Row */}
+          <View style={styles.specsGrid}>
+            <View style={styles.specItem}>
+              <BedDouble size={18} color={colors.textPrimary} />
+              <View style={styles.specContent}>
+                <Text style={styles.specValue}>{property.beds}</Text>
+                <Text style={styles.specLabel}>{t.projects.rooms}</Text>
               </View>
-              <View style={styles.tagBadge}>
-                <Text style={styles.tagBadgeText}>{t.propertyCard.verified}</Text>
+            </View>
+            <View style={styles.specDivider} />
+            <View style={styles.specItem}>
+              <Bath size={18} color={colors.textPrimary} />
+              <View style={styles.specContent}>
+                <Text style={styles.specValue}>{property.baths}</Text>
+                <Text style={styles.specLabel}>{t.projects.baths}</Text>
+              </View>
+            </View>
+            <View style={styles.specDivider} />
+            <View style={styles.specItem}>
+              <Ruler size={18} color={colors.textPrimary} />
+              <View style={styles.specContent}>
+                <Text style={styles.specValue}>{property.area}</Text>
+                <Text style={styles.specLabel}>{t.projects.area}</Text>
               </View>
             </View>
           </View>
 
-          {/* Compound & Developer Context */}
+          {/* Price */}
+          <View style={styles.priceRow}>
+            <Wallet size={18} color={colors.accent} />
+            <Text style={styles.priceText} numberOfLines={1} adjustsFontSizeToFit>{property.priceLabel}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Compound & Developer */}
           {(property.compoundName || property.developerName) && (
             <View style={styles.contextSection}>
               {property.compoundName && (
@@ -245,76 +280,7 @@ export default function PropertyDetailScreen() {
             </View>
           )}
 
-          <View style={styles.titleSection}>
-            <Text style={styles.titleText}>{uppercaseLatin(property.title)}</Text>
-            <View style={styles.locationRow}>
-              <MapPin size={14} color={colors.textMuted} />
-              <Text style={styles.locationText}>{uppercaseLatin(property.locationLabel)}</Text>
-            </View>
-            <View style={styles.referenceRow}>
-              <Text style={styles.referenceLabel}>{t.property.reference}</Text>
-              <Text style={styles.referenceValue}># {property.id.substring(0, 8).toUpperCase()}</Text>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t.property.locationMap}</Text>
-              <Pressable
-                onPress={() => router.push(`/(app)/property/${property.id}/map`)}
-                style={styles.readMoreButton}
-              >
-                <Text style={styles.readMoreText}>{t.property.openMapView}</Text>
-                <ArrowRight size={14} color={colors.accent} />
-              </Pressable>
-            </View>
-
-            <Pressable
-              style={styles.mapPreviewCard}
-              onPress={() => router.push(`/(app)/property/${property.id}/map`)}
-            >
-              <View style={styles.mapPreviewRow}>
-                <View style={styles.mapPreviewBadge}>
-                  <Map size={18} color={colors.accent} />
-                </View>
-                <View style={styles.mapPreviewContent}>
-                  <Text style={styles.mapPreviewEyebrow}>{t.property.mapScreenTitle}</Text>
-                  <Text style={styles.mapPreviewTitle} numberOfLines={1}>
-                    {uppercaseLatin(property.locationLabel)}
-                  </Text>
-                  <Text style={styles.mapPreviewBody}>
-                    {t.property.mapScreenBody}
-                  </Text>
-                </View>
-                <ArrowRight size={18} color={colors.accent} />
-              </View>
-            </Pressable>
-          </View>
-
           <View style={styles.divider} />
-
-          {/* Quick Specs Grid */}
-          <View style={styles.specsGrid}>
-            <View style={styles.specItem}>
-              <BedDouble size={24} color={colors.textPrimary} />
-              <Text style={styles.specValue}>{property.beds}</Text>
-              <Text style={styles.specLabel}>{t.projects.rooms}</Text>
-            </View>
-            <View style={styles.specItem}>
-              <Bath size={24} color={colors.textPrimary} />
-              <Text style={styles.specValue}>{property.baths}</Text>
-              <Text style={styles.specLabel}>{t.projects.baths}</Text>
-            </View>
-            <View style={styles.specItem}>
-              <Ruler size={24} color={colors.textPrimary} />
-              <Text style={styles.specValue}>{property.area}</Text>
-              <Text style={styles.specLabel}>{t.projects.area}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Description Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t.property.description}</Text>
             <Text style={styles.descriptionText} numberOfLines={4}>
@@ -329,41 +295,95 @@ export default function PropertyDetailScreen() {
             </Pressable>
           </View>
 
-          {/* AI Signal Card */}
+          {/* AI Market Insight */}
           <View style={styles.aiCard}>
             <View style={styles.aiHeader}>
-              <Sparkles size={18} color={colors.accent} />
+              <Zap size={18} color={colors.accent} />
               <Text style={styles.aiTitle}>{t.property.marketInsight}</Text>
             </View>
             <Text style={styles.aiBody}>{property.aiSummary}</Text>
           </View>
 
           {/* Amenities Section */}
-          {property.amenities.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{t.property.amenities}</Text>
-                {property.amenities.length > 8 && (
-                  <Pressable 
-                    onPress={() => setIsAmenitiesModalVisible(true)}
-                    style={styles.readMoreButton}
-                  >
-                    <Text style={styles.readMoreText}>{t.property.viewAll} ({property.amenities.length})</Text>
-                  </Pressable>
-                )}
-              </View>
-              <View style={styles.amenitiesGrid}>
-                {property.amenities.slice(0, 8).map((amenity) => (
-                  <View key={amenity.id} style={styles.amenityItem}>
-                    <View style={styles.amenityIconContainer}>
-                      {getAmenityIcon(amenity.label)}
-                    </View>
-                    <Text style={styles.amenityText} numberOfLines={1}>{uppercaseLatin(amenity.label)}</Text>
-                  </View>
-                ))}
-              </View>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t.property.amenities}</Text>
+              {property.amenities.length > 8 && (
+                <Pressable 
+                  onPress={() => setIsAmenitiesModalVisible(true)}
+                  style={styles.readMoreButton}
+                >
+                  <Text style={styles.readMoreText}>{t.property.viewAll} ({property.amenities.length})</Text>
+                </Pressable>
+              )}
             </View>
-          )}
+            <View style={styles.amenitiesGrid}>
+              {property.amenities.slice(0, 8).map((amenity) => (
+                <View key={amenity.id} style={styles.amenityItem}>
+                  <View style={styles.amenityIconContainer}>
+                    {getAmenityIcon(amenity.label)}
+                  </View>
+                  <Text style={styles.amenityText} numberOfLines={1}>{uppercaseLatin(amenity.label)}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Location / Map Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t.property.locationMap}</Text>
+            {propertyCoordinates && MapboxMapView && MapboxCamera && MapboxMarkerView ? (
+              <View style={styles.mapWrapper}>
+                <MapboxMapView
+                  style={styles.mapPreview}
+                  styleURL={mapStyleURL}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  pitchEnabled={false}
+                  rotateEnabled={false}
+                >
+                  <MapboxCamera
+                    centerCoordinate={propertyCoordinates}
+                    zoomLevel={14}
+                  />
+                  <MapboxMarkerView coordinate={propertyCoordinates}>
+                    <View style={styles.mapMarker}>
+                      <View style={styles.mapMarkerDot} />
+                    </View>
+                  </MapboxMarkerView>
+                </MapboxMapView>
+                
+                {/* Premium Map Actions */}
+                <View style={styles.mapActionOverlay}>
+                  <Pressable 
+                    style={styles.mapPill}
+                    onPress={() => router.push({
+                      pathname: "/(app)/listing-map",
+                      params: { 
+                        centerLat: propertyCoordinates[1],
+                        centerLng: propertyCoordinates[0],
+                        selectedId: id
+                      }
+                    })}
+                  >
+                    <Map size={16} color={colors.textPrimary} />
+                    <Text style={styles.mapPillText}>{t.property.openMapView}</Text>
+                  </Pressable>
+                </View>
+
+                <View style={styles.mapLocationOverlay}>
+                  <Text style={styles.mapLocationText}>{uppercaseLatin(property.locationLabel)}</Text>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.mapPlaceholder}>
+                <MapPin size={24} color={colors.textMuted} />
+                <Text style={styles.mapPlaceholderText}>{t.property.locationUnavailable}</Text>
+              </View>
+            )}
+          </View>
 
           <View style={styles.divider} />
 
@@ -442,18 +462,18 @@ export default function PropertyDetailScreen() {
       <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <View style={styles.ctaRow}>
           <Pressable 
-            style={[styles.ctaButton, styles.whatsappPill]}
-            onPress={() => Alert.alert(t.property.whatsapp, t.property.contactExpert)}
-          >
-            <MessageCircle size={20} color={colors.textPrimary} />
-            <Text style={styles.whatsappPillText}>{t.property.whatsapp}</Text>
-          </Pressable>
-          <Pressable 
             style={[styles.ctaButton, styles.callPill]}
             onPress={() => Alert.alert(t.property.call, t.property.contactExpert)}
           >
             <Phone size={20} color={colors.background} />
             <Text style={styles.callPillText}>{t.property.call}</Text>
+          </Pressable>
+          <Pressable 
+            style={[styles.ctaButton, styles.whatsappPill]}
+            onPress={() => Alert.alert(t.property.whatsapp, t.property.contactExpert)}
+          >
+            <MessageCircle size={20} color={colors.textPrimary} />
+            <Text style={styles.whatsappPillText}>{t.property.whatsapp}</Text>
           </Pressable>
         </View>
       </View>
@@ -542,38 +562,37 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   scroll: {
     flex: 1,
   },
-  staticHeader: {
+  overlayHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
     zIndex: 10,
   },
   headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.background,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.35)",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.divider,
   },
   headerActions: {
-    flexDirection: isRTL ? "row-reverse" : "row",
+    flexDirection: "row",
     gap: 10,
   },
   heroContainer: {
     width: SCREEN_WIDTH,
-    height: 400,
+    height: 300,
     backgroundColor: colors.surfaceRaised,
   },
   heroImage: {
     width: SCREEN_WIDTH,
-    height: 400,
+    height: 300,
   },
   pagination: {
     position: "absolute",
@@ -598,8 +617,9 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   },
   mainContent: {
     paddingHorizontal: 16,
-    paddingTop: 32,
-    gap: 40,
+    paddingTop: 24,
+    gap: 20,
+    alignItems: isRTL ? "flex-end" : "flex-start",
   },
   pricingSection: {
     gap: 16,
@@ -612,17 +632,30 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textMuted,
     letterSpacing: 1.5,
+    textAlign: isRTL ? "right" : "left",
+  },
+  priceRow: {
+    flexDirection: isRTL ? "row-reverse" : "row",
+    alignItems: "center",
+    gap: 12,
+    alignSelf: "stretch",
+    minHeight: 44,
   },
   priceText: {
-    fontSize: 38,
+    fontSize: 26,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
-    letterSpacing: -1.5,
+    letterSpacing: -0.6,
+    flex: 1,
+    textAlign: isRTL ? "right" : "left",
+    lineHeight: 36,
+    paddingBottom: 6,
   },
   badgeRow: {
     flexDirection: isRTL ? "row-reverse" : "row",
     gap: 8,
     alignItems: "center",
+    alignSelf: "stretch",
   },
   matchBadge: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -660,6 +693,8 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingTop: 8,
+    alignSelf: "stretch",
+    paddingHorizontal: 4,
   },
   compoundBlock: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -676,28 +711,32 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: "transparent",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
+    alignSelf: isRTL ? "flex-end" : "flex-start",
   },
   developerLabel: {
     fontSize: 9,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textMuted,
     letterSpacing: 1,
+    textAlign: isRTL ? "right" : "left",
   },
   titleSection: {
     gap: 6,
+    alignSelf: "stretch",
   },
   titleText: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
-    lineHeight: 32,
-    letterSpacing: -0.5,
+    lineHeight: 30,
+    letterSpacing: -0.3,
+    textAlign: isRTL ? "right" : "left",
   },
   locationRow: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -710,6 +749,7 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textSecondary,
     letterSpacing: 0.5,
+    textAlign: isRTL ? "right" : "left",
   },
   referenceRow: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -721,12 +761,14 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontSize: 9,
     fontFamily: "Manrope_700Bold",
     color: colors.textMuted,
+    textAlign: isRTL ? "right" : "left",
   },
   referenceValue: {
     fontSize: 10,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
     letterSpacing: 1,
+    textAlign: isRTL ? "right" : "left",
   },
   mapPreviewCard: {
     borderRadius: theme.radii.lg,
@@ -737,7 +779,7 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   },
   mapPreviewRow: {
     minHeight: 100,
-    flexDirection: isRTL ? "row-reverse" : "row",
+    flexDirection: "row",
     alignItems: "center",
     gap: 14,
     paddingHorizontal: 18,
@@ -747,9 +789,9 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: theme.radii.md,
-    backgroundColor: `${colors.accent}10`,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: `${colors.accent}30`,
+    borderColor: colors.divider,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -781,45 +823,158 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     opacity: 0.5,
   },
   specsGrid: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     justifyContent: "space-between",
+    alignItems: "center",
+    alignSelf: "stretch",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   specItem: {
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
-    gap: 4,
+    gap: 12,
     flex: 1,
+    justifyContent: "center",
+  },
+  specContent: {
+    alignItems: isRTL ? "flex-end" : "flex-start",
+    gap: 0,
+  },
+  specDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: colors.divider,
   },
   specValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
-    marginTop: 4,
+    lineHeight: 22,
   },
   specLabel: {
-    fontSize: 9,
-    fontFamily: "Manrope_700Bold",
+    fontSize: 11,
+    fontFamily: "Manrope_600SemiBold",
     color: colors.textMuted,
-    letterSpacing: 1,
+    letterSpacing: 0.3,
+    marginTop: -4,
   },
   section: {
     gap: 16,
+    alignSelf: "stretch",
   },
   sectionHeader: {
     flexDirection: isRTL ? "row-reverse" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
+  mapWrapper: {
+    height: 180,
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.divider,
+    position: "relative",
+  },
+  mapPreview: {
+    flex: 1,
+  },
+  mapMarker: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "rgba(218,63,69,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(218,63,69,0.4)",
+  },
+  mapMarkerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#DA3F45",
+  },
+  mapPlaceholder: {
+    height: 180,
+    borderRadius: 24,
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  mapPlaceholderText: {
+    fontSize: 13,
+    fontFamily: "Manrope_600SemiBold",
+    color: colors.textSecondary,
+  },
+  mapActionOverlay: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 10,
+  },
+  mapPill: {
+    flexDirection: isRTL ? "row-reverse" : "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  mapPillText: {
+    fontSize: 11,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: 0.5,
+  },
+  mapLocationOverlay: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+  },
+  mapLocationText: {
+    fontSize: 12,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    textAlign: "center",
+  },
+
   sectionTitle: {
     fontSize: 12,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
     letterSpacing: 2,
+    textAlign: isRTL ? "right" : "left",
+    alignSelf: "stretch",
   },
   descriptionText: {
     fontSize: 16,
     fontFamily: "Manrope_500Medium",
     color: colors.textSecondary,
     lineHeight: 26,
+    textAlign: isRTL ? "right" : "left",
   },
   readMoreButton: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -832,10 +987,13 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     color: colors.accent,
   },
   aiCard: {
-    padding: 24,
+    padding: 20,
+    backgroundColor: "transparent",
     borderRadius: 20,
-    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.divider,
     gap: 12,
+    alignSelf: "stretch",
   },
   aiHeader: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -847,21 +1005,23 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontFamily: "Manrope_800ExtraBold",
     color: colors.accent,
     letterSpacing: 1.5,
+    textAlign: isRTL ? "right" : "left",
   },
   aiBody: {
     fontSize: 15,
     fontFamily: "Manrope_600SemiBold",
     color: colors.textPrimary,
     lineHeight: 22,
+    textAlign: isRTL ? "right" : "left",
   },
   techGrid: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     flexWrap: "wrap",
     gap: 16,
   },
   techItem: {
     width: (SCREEN_WIDTH - 64) / 2,
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 12,
     backgroundColor: colors.surfaceRaised,
@@ -875,14 +1035,16 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontFamily: "Manrope_700Bold",
     color: colors.textMuted,
     letterSpacing: 1,
+    textAlign: isRTL ? "right" : "left",
   },
   techValue: {
     fontSize: 13,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
+    textAlign: isRTL ? "right" : "left",
   },
   amenitiesGrid: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     flexWrap: "wrap",
     gap: 12,
   },
@@ -908,55 +1070,60 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontFamily: "Manrope_600SemiBold",
     color: colors.textPrimary,
     flex: 1,
+    textAlign: isRTL ? "right" : "left",
   },
   agencyBrokerCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
     overflow: "hidden",
+    alignSelf: "stretch",
   },
   agencyHeader: {
     padding: 20,
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 16,
     backgroundColor: colors.surfaceRaised,
   },
   agencyLogoContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
+    flexShrink: 0,
   },
   agencyInfo: {
     flex: 1,
     gap: 2,
   },
   agencyNameLarge: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
     letterSpacing: 0.5,
+    textAlign: isRTL ? "right" : "left",
   },
   legalLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: "Manrope_700Bold",
     color: colors.textMuted,
     letterSpacing: 1,
+    textAlign: isRTL ? "right" : "left",
   },
   agencyDivider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.divider,
     marginHorizontal: 20,
   },
   brokerSubCard: {
     padding: 20,
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 14,
   },
@@ -971,15 +1138,17 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     gap: 4,
   },
   brokerNameSmall: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
+    textAlign: isRTL ? "right" : "left",
   },
   brokerRole: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "Manrope_700Bold",
     color: colors.accent,
     letterSpacing: 0.5,
+    textAlign: isRTL ? "right" : "left",
   },
   recSection: {
     paddingVertical: 16,
@@ -991,6 +1160,7 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     letterSpacing: 2,
     paddingHorizontal: 8,
     marginBottom: 16,
+    textAlign: isRTL ? "right" : "left",
   },
   recListWrapper: {
     position: "relative",
@@ -1031,6 +1201,7 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontSize: 16,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
+    textAlign: isRTL ? "right" : "left",
   },
   recMetaRow: {
     flexDirection: isRTL ? "row-reverse" : "row",
@@ -1041,6 +1212,7 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontSize: 11,
     fontFamily: "Manrope_700Bold",
     color: colors.textSecondary,
+    textAlign: isRTL ? "right" : "left",
   },
   recMetaDot: {
     width: 3,
@@ -1053,6 +1225,7 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textMuted,
     marginTop: 2,
+    textAlign: isRTL ? "right" : "left",
   },
   edgeFade: {
     position: "absolute",
@@ -1073,7 +1246,7 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.surface,
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 24,
@@ -1089,11 +1262,13 @@ const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textMuted,
     letterSpacing: 0.5,
+    textAlign: isRTL ? "right" : "left",
   },
   bottomPriceValue: {
     fontSize: 20,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
+    textAlign: isRTL ? "right" : "left",
   },
   ctaRow: {
     flexDirection: isRTL ? "row-reverse" : "row",

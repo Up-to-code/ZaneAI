@@ -164,60 +164,104 @@ export const PropertyCard = memo(function PropertyCard({
   };
 
   if (variant === "chat") {
-    const chatChips = [
-      property.beds > 0 ? formatPropertySpecLabel(locale, t, "beds", property.beds) : null,
-      property.baths > 0 ? formatPropertySpecLabel(locale, t, "baths", property.baths) : null,
-      property.tags[0]
-        ? localizePropertyTag(t, property.tags[0])
-        : property.area > 0
-          ? formatPropertySpecLabel(locale, t, "area", property.area)
-          : null,
-    ].filter((chip): chip is string => Boolean(chip));
-
+    const isTopMatch = property.tags.includes("top_match") || property.tags.includes("verified");
+    
     return (
       <Pressable
-        testID={`property.card.${property.id}`}
+        testID={`property.card.chat.${property.id}`}
         onPress={openProperty}
         style={[styles.chatCard, style]}
       >
-        <View style={styles.chatMediaFrame}>
-          <Image source={property.heroUrl} style={styles.image} contentFit="cover" />
-          <View style={styles.chatBadge}>
-            <CheckCircle2 size={12} color={palette.signal} fill={palette.signal} />
-            <Text style={styles.chatBadgeText}>{listingBadge}</Text>
+        <View style={styles.chatTopRow}>
+          <View style={styles.chatContent}>
+
+
+            <View style={styles.chatInfo}>
+              <Text style={styles.chatPrice} numberOfLines={1}>
+                {property.priceLabel}
+              </Text>
+
+              <View style={styles.chatSpecsRow}>
+                {property.beds > 0 && (
+                  <View style={styles.chatSpecItem}>
+                    <Text style={styles.chatSpecValue}>
+                      {property.beds} {t.propertyCard.bed}
+                    </Text>
+                    <BedDouble size={14} color={colors.textSecondary} />
+                  </View>
+                )}
+                {property.beds > 0 && property.baths > 0 && <View style={styles.chatSpecDivider} />}
+                {property.baths > 0 && (
+                  <View style={styles.chatSpecItem}>
+                    <Text style={styles.chatSpecValue}>
+                      {property.baths} {t.propertyCard.bath}
+                    </Text>
+                    <Bath size={14} color={colors.textSecondary} />
+                  </View>
+                )}
+                {(property.beds > 0 || property.baths > 0) && property.area > 0 && <View style={styles.chatSpecDivider} />}
+                {property.area > 0 && (
+                  <View style={styles.chatSpecItem}>
+                    <Text style={styles.chatSpecValue}>
+                      {Math.round(property.area)} {t.propertyCard.sqft}
+                    </Text>
+                    <Ruler size={14} color={colors.textSecondary} />
+                  </View>
+                )}
+              </View>
+
+              <Text style={styles.chatTitle} numberOfLines={1}>
+                {property.title}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.chatMediaFrame}>
+            <Image source={property.heroUrl} style={styles.chatImage} contentFit="cover" />
+            <Pressable
+              hitSlop={8}
+              onPress={(e) => {
+                e.stopPropagation();
+                toggleSave();
+              }}
+              style={styles.chatImageHeartBtn}
+            >
+              <Heart
+                size={16}
+                color={isSaved ? "#DA3F45" : "#FFFFFF"}
+                fill={isSaved ? "#DA3F45" : "transparent"}
+              />
+            </Pressable>
+            {isTopMatch && (
+              <View style={styles.chatImageBadge}>
+                <View style={styles.chatBadgeDot} />
+                <Text style={styles.chatBadgePillText}>{t.propertyCard.topMatch}</Text>
+              </View>
+            )}
           </View>
         </View>
 
-        <View style={styles.chatContent}>
-          <View style={styles.chatTitleRow}>
-            <Text style={styles.chatTitle} numberOfLines={2}>
-              {property.title}
-            </Text>
-            <Text style={styles.chatPrice} numberOfLines={1}>
-              {property.priceLabel}
-            </Text>
-          </View>
-
-          <View style={styles.chatChipRow}>
-            {chatChips.slice(0, 3).map((chip) => (
-              <View key={chip} style={styles.chatChip}>
-                <Text style={styles.chatChipText} numberOfLines={1}>
-                  {chip}
-                </Text>
-              </View>
-            ))}
-          </View>
+        <View style={styles.chatActionsRow}>
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation();
+              contactBroker("phone");
+            }}
+            style={[styles.chatActionBtn, styles.chatActionCall]}
+          >
+            <Text style={[styles.chatActionText, styles.chatActionCallText]}>{t.propertyCard.call}</Text>
+            <Phone size={18} color="#DA3F45" />
+          </Pressable>
 
           <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t.propertyCard.viewDetails}
-            onPress={(event) => {
-              event.stopPropagation();
-              openProperty();
+            onPress={(e) => {
+              e.stopPropagation();
+              contactBroker("whatsapp");
             }}
-            style={styles.chatCta}
+            style={[styles.chatActionBtn, styles.chatActionWhatsapp]}
           >
-            <Text style={styles.chatCtaText}>{t.propertyCard.viewDetails}</Text>
+            <Text style={[styles.chatActionText, styles.chatActionWhatsappText]}>{t.propertyCard.whatsapp}</Text>
+            <MessageCircle size={18} color="#25D366" />
           </Pressable>
         </View>
       </Pressable>
@@ -248,8 +292,8 @@ export const PropertyCard = memo(function PropertyCard({
             >
               <Heart
                 size={16}
-                color={isSaved ? palette.signal : colors.textSecondary}
-                fill={isSaved ? palette.signal : "transparent"}
+                color={isSaved ? colors.accent : colors.textSecondary}
+                fill={isSaved ? colors.accent : "transparent"}
               />
             </Pressable>
           </View>
@@ -378,7 +422,7 @@ const createStyles = (
     primaryStrong: colors.textPrimary,
     primarySoft: isDark ? "rgba(255,255,255,0.1)" : "#F4F4F5",
     navy: isDark ? colors.textPrimary : "#0A1428",
-    signal: colors.textPrimary,
+    signal: colors.accent,
     signalSoft: "transparent",
     action: colors.textPrimary,
     actionSoft: "transparent",
@@ -398,23 +442,179 @@ const createStyles = (
       borderRadius: 18,
     },
     chatCard: {
-      backgroundColor: isDark ? colors.surfaceRaised : colors.background,
+      backgroundColor: "transparent",
       borderRadius: 16,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.divider,
       overflow: "hidden",
-      shadowColor: "#000000",
-      shadowOpacity: isDark ? 0.32 : 0.14,
-      shadowRadius: 16,
-      shadowOffset: {
-        width: 0,
-        height: 10,
-      },
-      elevation: 8,
+      marginBottom: 8,
+      marginHorizontal: 0,
+    },
+    chatTopRow: {
+      flexDirection: isRTL ? "row" : "row-reverse",
+      minHeight: 124,
+      alignItems: "center",
+      paddingHorizontal: 12,
+      gap: 12,
+    },
+    chatContent: {
+      flex: 1,
+      paddingVertical: 12,
+      justifyContent: "center",
+    },
+    chatHeaderRow: {
+      flexDirection: isRTL ? "row-reverse" : "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    chatBadgePill: {
+      flexDirection: isRTL ? "row-reverse" : "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    chatBadgePillText: {
+      fontSize: 10,
+      fontFamily: "Manrope_800ExtraBold",
+      color: "#DA3F45",
+    },
+    chatImageBadge: {
+      position: "absolute",
+      top: 8,
+      right: 8,
+      flexDirection: isRTL ? "row" : "row-reverse",
+      alignItems: "center",
+      gap: 4,
+      backgroundColor: "rgba(255,255,255,0.9)",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    chatBadgeDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: "#DA3F45",
+    },
+    chatImageHeartBtn: {
+      position: "absolute",
+      top: 8,
+      left: 8,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(0,0,0,0.25)",
+    },
+
+    chatInfo: {
+      flex: 1,
+      justifyContent: "center",
+      gap: 4,
+    },
+    chatPrice: {
+      fontSize: 20,
+      fontFamily: "Manrope_800ExtraBold",
+      color: colors.textPrimary,
+      textAlign: isRTL ? "right" : "left",
+    },
+    chatTitle: {
+      fontSize: 14,
+      fontFamily: "Manrope_700Bold",
+      color: colors.textPrimary,
+      textAlign: isRTL ? "right" : "left",
+    },
+    chatLocation: {
+      fontSize: 12,
+      fontFamily: "Manrope_500Medium",
+      color: colors.textSecondary,
+      textAlign: isRTL ? "right" : "left",
+    },
+    chatSpecsRow: {
+      flexDirection: isRTL ? "row-reverse" : "row",
+      alignItems: "center",
+      gap: 12,
+      marginTop: 8,
+      flexWrap: "wrap",
+    },
+    chatSpecItem: {
+      flexDirection: isRTL ? "row-reverse" : "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    chatSpecValue: {
+      fontSize: 12,
+      fontFamily: "Manrope_700Bold",
+      color: colors.textPrimary,
+    },
+    chatSpecDivider: {
+      width: 1,
+      height: 12,
+      backgroundColor: colors.divider,
     },
     chatMediaFrame: {
-      height: 142,
-      backgroundColor: colors.surface,
+      width: 100,
+      height: 100,
+      borderRadius: 14,
+      overflow: "hidden",
+      backgroundColor: colors.surfaceRaised,
+    },
+    chatImage: {
+      width: "100%",
+      height: "100%",
+    },
+    chatPagination: {
+      position: "absolute",
+      bottom: 12,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 4,
+    },
+    chatDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: "rgba(255,255,255,0.4)",
+    },
+    chatDotActive: {
+      width: 12,
+      backgroundColor: "#FFFFFF",
+    },
+    chatActionsRow: {
+      flexDirection: isRTL ? "row-reverse" : "row",
+      borderTopWidth: 1,
+      borderTopColor: colors.divider,
+    },
+    chatActionBtn: {
+      flex: 1,
+      height: 48,
+      flexDirection: isRTL ? "row-reverse" : "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+    },
+    chatActionCall: {
+      borderRightWidth: isRTL ? 0 : 1,
+      borderLeftWidth: isRTL ? 1 : 0,
+      borderRightColor: colors.divider,
+      borderLeftColor: colors.divider,
+      backgroundColor: isDark ? "rgba(107, 70, 193, 0.05)" : "rgba(107, 70, 193, 0.02)",
+    },
+    chatActionWhatsapp: {
+      backgroundColor: isDark ? "rgba(37, 211, 102, 0.05)" : "rgba(37, 211, 102, 0.02)",
+    },
+    chatActionText: {
+      fontSize: 14,
+      fontFamily: "Manrope_800ExtraBold",
+    },
+    chatActionCallText: {
+      color: "#DA3F45",
+    },
+    chatActionWhatsappText: {
+      color: "#25D366",
     },
     mediaFrame: {
       width: "100%",
@@ -511,8 +711,8 @@ const createStyles = (
     },
     favoriteButton: {
       position: "absolute",
-      bottom: metrics.horizontalInset + 28,
-      ...(isRTL ? { right: metrics.horizontalInset } : { left: metrics.horizontalInset }),
+      top: metrics.horizontalInset,
+      ...(isRTL ? { left: metrics.horizontalInset } : { right: metrics.horizontalInset }),
       width: metrics.favoriteButtonSize,
       height: metrics.favoriteButtonSize,
       borderRadius: metrics.favoriteButtonSize / 2,
@@ -567,65 +767,7 @@ const createStyles = (
       paddingTop: 14,
       gap: 10,
     },
-    chatContent: {
-      padding: 14,
-      gap: 10,
-    },
-    chatTitleRow: {
-      minHeight: 44,
-      flexDirection: isRTL ? "row-reverse" : "row",
-      alignItems: "flex-start",
-      gap: 8,
-    },
-    chatTitle: {
-      flex: 1,
-      color: colors.textPrimary,
-      fontSize: 16,
-      lineHeight: 21,
-      fontWeight: "800",
-      letterSpacing: -0.2,
-    },
-    chatPrice: {
-      maxWidth: 120,
-      flexShrink: 0,
-      color: palette.signal,
-      fontSize: 13,
-      lineHeight: 18,
-      fontWeight: "900",
-      letterSpacing: -0.2,
-      textAlign: isRTL ? "left" : "right",
-    },
-    chatChipRow: {
-      flexDirection: isRTL ? "row-reverse" : "row",
-      alignItems: "center",
-      gap: 6,
-    },
-    chatChip: {
-      maxWidth: 96,
-      borderRadius: 999,
-      paddingHorizontal: 9,
-      paddingVertical: 4,
-      backgroundColor: isDark ? colors.surface : colors.surfaceRaised,
-    },
-    chatChipText: {
-      color: colors.textSecondary,
-      fontSize: 10,
-      lineHeight: 13,
-      fontWeight: "800",
-    },
-    chatCta: {
-      minHeight: 42,
-      borderRadius: 9,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: palette.signal,
-    },
-    chatCtaText: {
-      color: "#FFFFFF",
-      fontSize: 14,
-      fontWeight: "900",
-      letterSpacing: -0.1,
-    },
+
     listingHeaderRow: {
       flexDirection: "row",
       alignItems: "flex-start",
@@ -689,10 +831,6 @@ const createStyles = (
       letterSpacing: -0.18,
       textAlign: isRTL ? "right" : "left",
     },
-    compactTitle: {
-      fontSize: 16,
-      lineHeight: 22,
-    },
     locationText: {
       fontSize: metrics.metaFontSize,
       lineHeight: metrics.metaLineHeight + 1,
@@ -701,6 +839,11 @@ const createStyles = (
       letterSpacing: -0.1,
       textAlign: isRTL ? "right" : "left",
     },
+    compactTitle: {
+      fontSize: 16,
+      lineHeight: 22,
+    },
+
     actionRow: {
       flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
@@ -730,7 +873,7 @@ const createStyles = (
       fontSize: metrics.actionFontSize,
     },
     compactListCard: {
-      flexDirection: isRTL ? "row-reverse" : "row",
+      flexDirection: "row",
       alignItems: "center",
       gap: 14,
       padding: 12,
@@ -752,13 +895,13 @@ const createStyles = (
       justifyContent: "center",
     },
     compactListTopRow: {
-      flexDirection: isRTL ? "row-reverse" : "row",
+      flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       width: "100%",
     },
     compactListStatus: {
-      flexDirection: isRTL ? "row-reverse" : "row",
+      flexDirection: "row",
       alignItems: "center",
       gap: 6,
     },
@@ -766,11 +909,11 @@ const createStyles = (
       width: 6,
       height: 6,
       borderRadius: 3,
-      backgroundColor: palette.signal,
+      backgroundColor: colors.accent,
     },
     compactListStatusText: {
       fontSize: 12,
-      color: palette.signal,
+      color: colors.accent,
       fontFamily: "Manrope_700Bold",
     },
     compactListHeartBtn: {
@@ -792,13 +935,13 @@ const createStyles = (
       marginTop: 2,
     },
     compactListSpecsRow: {
-      flexDirection: isRTL ? "row-reverse" : "row",
+      flexDirection: "row",
       alignItems: "center",
       gap: 8,
       marginTop: 2,
     },
     compactListSpecItem: {
-      flexDirection: isRTL ? "row-reverse" : "row",
+      flexDirection: "row",
       alignItems: "center",
       gap: 4,
     },

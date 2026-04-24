@@ -35,6 +35,7 @@ type MediaGalleryPalette = {
 
 type MediaGalleryColors = {
   textPrimary: string;
+  textSecondary: string;
 };
 
 type PropertyCardMediaGalleryProps = {
@@ -136,7 +137,7 @@ export function PropertyCardMediaGallery({
       >
         <Heart
           size={20}
-          color={isSaved ? palette.signal : colors.textPrimary}
+          color={isSaved ? palette.signal : colors.textSecondary}
           fill={isSaved ? palette.signal : "transparent"}
           strokeWidth={2.4}
         />

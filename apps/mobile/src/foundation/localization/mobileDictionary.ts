@@ -250,6 +250,18 @@ export type MobileDictionary = {
     listTitle: string;
     listBody: string;
   };
+  property: {
+    locationMap: string;
+    locationUnavailable: string;
+    openMapView: string;
+    listingExpert: string;
+    legalAgency: string;
+    certifiedAdvisor: string;
+    totalInvestment: string;
+    description: string;
+    amenities: string;
+    marketInsight: string;
+  };
 };
 
 const dictionaries: Record<AppLocale, MobileDictionary> = {
@@ -503,6 +515,18 @@ const dictionaries: Record<AppLocale, MobileDictionary> = {
       listTitle: "Error screens",
       listBody: "Preview recovery states for broken drafts, crashes, missing routes, network loss, and service windows.",
     },
+    property: {
+      locationMap: "LOCATION",
+      locationUnavailable: "LOCATION UNAVAILABLE",
+      openMapView: "VIEW ON MAP",
+      listingExpert: "LISTING EXPERT",
+      legalAgency: "LEGAL AGENCY",
+      certifiedAdvisor: "CERTIFIED ADVISOR",
+      totalInvestment: "TOTAL INVESTMENT",
+      description: "DESCRIPTION",
+      amenities: "AMENITIES",
+      marketInsight: "MARKET INSIGHT",
+    },
   },
   ar: {
     common: {
@@ -754,6 +778,18 @@ const dictionaries: Record<AppLocale, MobileDictionary> = {
       listTitle: "شاشات الأخطاء",
       listBody: "استعرض حالات الاستعادة للمسودات المعطلة والانهيارات والروابط المفقودة وانقطاع الشبكة ونوافذ الخدمة.",
     },
+    property: {
+      locationMap: "الموقع",
+      locationUnavailable: "الموقع غير متاح",
+      openMapView: "عرض على الخريطة",
+      listingExpert: "خبير القوائم",
+      legalAgency: "الوكالة القانونية",
+      certifiedAdvisor: "مستشار معتمد",
+      totalInvestment: "إجمالي الاستثمار",
+      description: "الوصف",
+      amenities: "المرافق",
+      marketInsight: "رؤى السوق",
+    },
   },
   fr: {
     common: {
@@ -1001,9 +1037,21 @@ const dictionaries: Record<AppLocale, MobileDictionary> = {
       currency: "EGP",
     },
     errorList: {
-      listEyebrow: "ÉTATS SYSTÈME",
-      listTitle: "Écrans d’erreur",
-      listBody: "Prévisualisez les états de récupération pour brouillons cassés, crashs, routes manquantes, perte réseau et fenêtres de service.",
+      listEyebrow: "ÉTATS DU SYSTÈME",
+      listTitle: "Écrans d'erreur",
+      listBody: "Aperçu des états de récupération pour les brouillons cassés, les plantages, les routes manquantes, les pertes de réseau et les fenêtres de service.",
+    },
+    property: {
+      locationMap: "LOCALISATION",
+      locationUnavailable: "LOCALISATION INDISPONIBLE",
+      openMapView: "VOIR SUR LA CARTE",
+      listingExpert: "EXPERT EN LISTING",
+      legalAgency: "AGENCE LÉGALE",
+      certifiedAdvisor: "CONSEILLER CERTIFIÉ",
+      totalInvestment: "INVESTISSEMENT TOTAL",
+      description: "DESCRIPTION",
+      amenities: "ÉQUIPEMENTS",
+      marketInsight: "APERÇU DU MARCHÉ",
     },
   },
 };

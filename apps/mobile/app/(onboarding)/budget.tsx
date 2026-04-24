@@ -21,6 +21,14 @@ const BUDGET_OPTIONS = [
   { label: "20M+", value: [20000000, 50000000] },
 ];
 
+const ONBOARDING_MOTION = {
+  introDelayMs: 80,
+  contentDelayMs: 140,
+  actionsDelayMs: 220,
+  damping: 20,
+  stiffness: 240,
+};
+
 export default function OnboardingBudgetScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -129,14 +137,26 @@ export default function OnboardingBudgetScreen() {
 
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
+          <Animated.View
+            entering={FadeInUp.delay(ONBOARDING_MOTION.introDelayMs)
+              .springify()
+              .damping(ONBOARDING_MOTION.damping)
+              .stiffness(ONBOARDING_MOTION.stiffness)}
+            style={styles.intro}
+          >
             <Text variant="display" style={styles.display}>{t.onboarding.budgetTitle}</Text>
             <Text style={styles.subtitle}>
               {t.onboarding.budgetBody}
             </Text>
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.optionsStack}>
+          <Animated.View
+            entering={FadeInUp.delay(ONBOARDING_MOTION.contentDelayMs)
+              .springify()
+              .damping(ONBOARDING_MOTION.damping)
+              .stiffness(ONBOARDING_MOTION.stiffness)}
+            style={styles.optionsStack}
+          >
             {BUDGET_OPTIONS.map((opt) => {
               const isSelected = selectedBudget[0] === opt.value[0] && selectedBudget[1] === opt.value[1];
               return (
@@ -168,7 +188,10 @@ export default function OnboardingBudgetScreen() {
       </View>
 
       <Animated.View
-        entering={FadeInDown.delay(500).springify()}
+        entering={FadeInDown.delay(ONBOARDING_MOTION.actionsDelayMs)
+          .springify()
+          .damping(ONBOARDING_MOTION.damping)
+          .stiffness(ONBOARDING_MOTION.stiffness)}
         style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 32) }]}
       >
         <Button
