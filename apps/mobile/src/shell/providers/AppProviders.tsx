@@ -1,40 +1,27 @@
 import { PropsWithChildren, useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useFonts, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
-import { Cairo_400Regular, Cairo_600SemiBold, Cairo_700Bold } from "@expo-google-fonts/cairo";
+import { useFonts } from "@expo-google-fonts/manrope";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AuthProvider } from "@/auth/AuthProvider";
+import { LocalizationProvider } from "@/foundation/localization";
 import { ThemeProvider, useTheme } from "@/foundation/theme/ThemeProvider";
 import { SessionTracker } from "@/persistence/analytics/SessionTracker";
 import { useAppStore } from "@/store";
+import { appFonts } from "./appFonts";
+import { FontLoadScreen } from "./FontLoadScreen";
 
 export function AppProviders({ children }: PropsWithChildren) {
-  const [fontsLoaded] = useFonts({
-    Manrope_500Medium,
-    Manrope_600SemiBold,
-    Manrope_700Bold,
-    Manrope_800ExtraBold,
-    Cairo_400Regular,
-    Cairo_600SemiBold,
-    Cairo_700Bold,
-  });
-
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#f7f7f5" }}>
-        <ActivityIndicator size="small" color="#111111" />
-      </View>
-    );
-  }
-
+  const [fontsLoaded] = useFonts(appFonts);
+  if (!fontsLoaded) return <FontLoadScreen />;
   return (
-    <ThemeProvider>
-      <ThemedAppChrome>{children}</ThemedAppChrome>
-    </ThemeProvider>
+    <LocalizationProvider>
+      <ThemeProvider>
+        <ThemedAppChrome>{children}</ThemedAppChrome>
+      </ThemeProvider>
+    </LocalizationProvider>
   );
 }
 
@@ -43,11 +30,7 @@ function ThemedAppChrome({ children }: PropsWithChildren) {
   const hydrationComplete = useAppStore((state) => state.hydrationComplete);
   const setHydrationComplete = useAppStore((state) => state.setHydrationComplete);
 
-  useEffect(() => {
-    if (!hydrationComplete) {
-      setHydrationComplete(true);
-    }
-  }, [hydrationComplete, setHydrationComplete]);
+  useEffect(() => { if (!hydrationComplete) setHydrationComplete(true); }, [hydrationComplete, setHydrationComplete]);
 
   return (
     <SafeAreaProvider>

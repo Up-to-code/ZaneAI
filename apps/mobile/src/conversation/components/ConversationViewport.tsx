@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 import { ConversationFeed } from "@/conversation/components/ConversationFeed";
 import { ConversationStatusBanner } from "@/conversation/components/ConversationStatusBanner";
@@ -14,19 +14,9 @@ import { useThreadPresentation } from "@/persistence/convex/useConversationData"
 import { useAppStore } from "@/store";
 import { NormalModeView } from "@/shell/components/NormalModeView";
 
-function logViewportEvent(event: string, payload: Record<string, unknown>) {
-  console.info(JSON.stringify({
-    at: new Date().toISOString(),
-    scope: "mobile_viewport",
-    event,
-    ...payload,
-  }));
-}
-
 export function ConversationViewport() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const lastBannerSignatureRef = useRef<string | null>(null);
   const composerDockHeight = useAppStore((state) => state.composerDockHeight);
   const keyboardHeight = useAppStore((state) => state.keyboardHeight);
   const operativeMode = useAppStore((state) => state.operativeMode);
@@ -60,22 +50,6 @@ export function ConversationViewport() {
   const composerDisabledReason = runtimeUnavailable
     ? getLocalizedRuntimeMessage(runtimeHealth, resolvedPresentation.surfaceCopy)
     : undefined;
-
-  useEffect(() => {
-    const payload = {
-      runtimeUnavailable,
-      runtimeMessage: composerDisabledReason ?? null,
-      hasRunFailure: Boolean(runFailureMessage),
-      runFailureMessage: runFailureMessage ?? null,
-    };
-    const signature = JSON.stringify(payload);
-    if (lastBannerSignatureRef.current === signature) {
-      return;
-    }
-
-    lastBannerSignatureRef.current = signature;
-    logViewportEvent("banner_state_changed", payload);
-  }, [composerDisabledReason, runFailureMessage, runtimeUnavailable]);
 
   const isAiMode = operativeMode === "ai";
 

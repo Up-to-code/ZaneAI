@@ -1,6 +1,6 @@
 import type { AssistantTurn } from "@/conversation/assistantProtocol";
-import { mockProperties } from "@/persistence/mocks/mock-data";
 import type { ConversationMessage } from "@/types/domain";
+import { createPropertyCards } from "@/tests/factories/propertyFactory";
 
 export type E2ESource = NonNullable<ConversationMessage["sourceMetadata"]>[number];
 
@@ -25,7 +25,7 @@ export const E2E_QA_USER: E2EFixtureUser = {
 };
 export const E2E_QA_PASSWORD = "qa-password";
 
-const SEARCH_PROPERTIES = [mockProperties[0], mockProperties[1], mockProperties[2]];
+const SEARCH_PROPERTIES = createPropertyCards();
 const FUNDING_SOURCES: E2ESource[] = [
   {
     title: "Sample funding note",

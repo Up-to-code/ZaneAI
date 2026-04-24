@@ -51,6 +51,7 @@ export const usageTables = {
     .index("by_eventName", ["eventName"])
     .index("by_authUserId", ["authUserId"])
     .index("by_organizationId", ["organizationId"]) // Added index
+    .index("by_organizationId_and_createdAt", ["organizationId", "createdAt"])
     .index("by_sessionId", ["sessionId"])
     .index("by_threadId", ["threadId"]),
 };

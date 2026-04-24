@@ -10,11 +10,13 @@ import { Text } from "@/foundation/primitives/Text";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { AuthField } from "@/auth/components/AuthField";
 import { authClient } from "@/auth/authClient";
+import { useAppLocalization } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  
+  const { t, isRTL } = useAppLocalization();
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -30,7 +32,7 @@ export default function ForgotPasswordScreen() {
       flexGrow: 1,
     },
     header: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       paddingTop: 60,
       paddingHorizontal: 24,
@@ -61,6 +63,7 @@ export default function ForgotPasswordScreen() {
     },
     intro: {
       gap: 12,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     display: {
       fontSize: 32,
@@ -70,6 +73,7 @@ export default function ForgotPasswordScreen() {
     subtitle: {
       fontSize: 16,
       color: colors.textSecondary,
+      textAlign: isRTL ? "right" : "left",
     },
     form: {
       gap: 20,
@@ -91,7 +95,7 @@ export default function ForgotPasswordScreen() {
 
   const handleReset = async () => {
     if (!email.trim()) {
-      Alert.alert("Missing detail", "Enter your email to request a reset link.");
+      Alert.alert(t.auth.missingDetailTitle, t.auth.missingDetailBody);
       return;
     }
     setPending(true);
@@ -103,12 +107,12 @@ export default function ForgotPasswordScreen() {
         throw new Error(result.error.message ?? "Unable to request password reset.");
       }
       Alert.alert(
-        "Reset Link Sent", 
-        "Check your email and follow the instructions to reset your password.",
-        [{ text: "Back to login", onPress: () => router.replace("/(auth)/login") }]
+        t.auth.resetLinkSentTitle,
+        t.auth.resetLinkSentBody,
+        [{ text: t.auth.backToLogin, onPress: () => router.replace("/(auth)/login") }],
       );
     } catch (error) {
-      Alert.alert("Reset failed", error instanceof Error ? error.message : "Unable to request password reset.");
+      Alert.alert(t.auth.resetFailedTitle, error instanceof Error ? error.message : "Unable to request password reset.");
     } finally {
       setPending(false);
     }
@@ -122,28 +126,28 @@ export default function ForgotPasswordScreen() {
       >
         <View style={styles.header}>
           <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
+            <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
-          <Text variant="title" style={styles.headerTitle}>Recovery</Text>
+          <Text variant="title" style={styles.headerTitle}>{t.auth.forgotHeader}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.content}>
             <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
-              <Text variant="display" style={styles.display}>Restore Access</Text>
+              <Text variant="display" style={styles.display}>{t.auth.forgotTitle}</Text>
               <Text style={styles.subtitle}>
-                Enter your email to securely recover your identity.
+                {t.auth.forgotBody}
               </Text>
             </Animated.View>
 
             <View style={styles.form}>
               <AuthField
-                label="Email"
+                label={t.auth.email}
                 icon={Mail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="name@example.com"
+                placeholder={t.auth.emailPlaceholder}
                 value={email}
                 onChangeText={setEmail}
               />
@@ -151,7 +155,7 @@ export default function ForgotPasswordScreen() {
 
             <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.actions}>
               <Button
-                label={pending ? "Sending..." : "Request Reset Link"}
+                label={pending ? t.auth.sending : t.auth.requestResetLink}
                 variant="primary"
                 onPress={() => void handleReset()}
                 style={styles.mainBtn}

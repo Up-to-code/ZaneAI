@@ -1,0 +1,346 @@
+# Pure Canvas — Design System Specification
+
+> The institutional-grade visual language powering the ZaneAI mobile experience.
+
+---
+
+## 1. Philosophy
+
+Pure Canvas is a **reduction-first** design system. Every element earns its place by proving it communicates information—not decoration. The system eliminates visual noise (shadows, fills, gradients, heavy borders) and replaces it with **structured emptiness**, **monochrome hierarchy**, and **typographic weight** as the primary tools of visual communication.
+
+### Core Principles
+
+| Principle | Rule |
+|---|---|
+| **No shadows** | Zero `elevation`, zero `shadowOpacity`. Period. |
+| **Transparent containers** | Cards, groups, and option tiles use `backgroundColor: "transparent"` with a 1px `divider` border |
+| **Typography is the UI** | `Manrope_800ExtraBold` carries visual weight—not color fills or background tints |
+| **Monochrome selection** | Selected states use `textPrimary` (black/white), never the red accent, for borders and checkmarks |
+| **Accent is surgical** | `#EC2D35` appears only on brand-critical touchpoints: CTA buttons, the brand dot, icon accents that signal "AI" or "settings" |
+| **1px borders only** | All structural lines use `divider` color at 8% opacity. Selected states upgrade to 2px `textPrimary` |
+
+---
+
+## 2. Color System
+
+### 2.1 Light Mode
+
+```
+┌─────────────────────────────────────────────────┐
+│  background       #FFFFFF                       │
+│  backgroundSoft   #FAFAFA                       │
+│  surface          #F4F4F5                       │
+│  surfaceRaised    #F4F4F5                       │
+│  divider          rgba(0, 0, 0, 0.08)           │
+│  border           rgba(0, 0, 0, 0.05)           │
+│                                                 │
+│  textPrimary      #000000                       │
+│  textSecondary    #52525B                       │
+│  textMuted        #A1A1AA                       │
+│                                                 │
+│  accent           #EC2D35                       │
+│  success          #16A34A                       │
+└─────────────────────────────────────────────────┘
+```
+
+### 2.2 Dark Mode
+
+```
+┌─────────────────────────────────────────────────┐
+│  background       #000000                       │
+│  backgroundSoft   #0A0A0A                       │
+│  surface          #121212                       │
+│  surfaceRaised    #1A1A1A                       │
+│  divider          rgba(255, 255, 255, 0.08)     │
+│  border           rgba(255, 255, 255, 0.10)     │
+│                                                 │
+│  textPrimary      #FFFFFF                       │
+│  textSecondary    #A3A3A3                       │
+│  textMuted        #737373                       │
+│                                                 │
+│  accent           #EC2D35                       │
+│  success          #22C55E                       │
+└─────────────────────────────────────────────────┘
+```
+
+### 2.3 Color Roles
+
+| Token | Purpose | Usage |
+|---|---|---|
+| `background` | Page/screen base | `Screen`, `ScrollView` backgrounds |
+| `backgroundSoft` | Subtle depth layer | Reserved, rarely used in Pure Canvas |
+| `surface` | **Legacy** — avoid in new components | Was used for card fills; now replaced by `"transparent"` |
+| `surfaceRaised` | **Legacy** — avoid in new components | Was used for icon boxes; now replaced by transparent + border |
+| `divider` | Structural separator | 1px borders on cards, icon boxes, group wrappers |
+| `textPrimary` | Highest contrast text | Headlines, labels, selected-state borders and checkmarks |
+| `textSecondary` | Supporting text | Descriptions, metadata |
+| `textMuted` | Lowest priority text | Placeholders, captions, timestamps |
+| `accent` | Brand red `#EC2D35` | **Surgical use only** — CTA buttons, brand dot, AI-related icons |
+| `success` | Positive confirmation | Verification badges (used sparingly) |
+
+> [!IMPORTANT]
+> In the Pure Canvas system, `surface` and `surfaceRaised` are **not** used for new component backgrounds. All containers are `"transparent"` with `divider` borders. These tokens remain in the codebase for backward compatibility but should not appear in new UI.
+
+---
+
+## 3. Typography
+
+### 3.1 Font Families
+
+| Font | Weight | Token | Usage |
+|---|---|---|---|
+| **Manrope 500 Medium** | 500 | `Manrope_500Medium` | Body text, captions, base prose |
+| **Manrope 600 SemiBold** | 600 | `Manrope_600SemiBold` | Subtitles, input text, labels |
+| **Manrope 700 Bold** | 700 | `Manrope_700Bold` | Display headings (`variant="display"`) |
+| **Manrope 800 ExtraBold** | 800 | `Manrope_800ExtraBold` | **Primary UI weight** — section headers, item labels, tab names, group eyebrows, option titles |
+
+### 3.2 Arabic / RTL Typography
+
+| Font | Weight | Token | Mapping |
+|---|---|---|---|
+| **Cairo 400 Regular** | 400 | `Cairo_400Regular` | Maps to `body` and `caption` |
+| **Cairo 600 SemiBold** | 600 | `Cairo_600SemiBold` | Maps to `label` |
+| **Cairo 700 Bold** | 700 | `Cairo_700Bold` | Maps to `display` and `title` |
+
+The `<Text>` primitive auto-detects Arabic content using `isArabic()` and swaps the font family + sets `textAlign: "right"` and `writingDirection: "rtl"`.
+
+### 3.3 Type Scale
+
+| Variant | Size | Line Height | Default Font |
+|---|---|---|---|
+| `display` | 30px | 36px | Manrope 700 Bold |
+| `title` | 20px | 26px | Manrope 600 SemiBold |
+| `body` | 15px | 22px | Manrope 500 Medium |
+| `label` | 13px | 18px | Manrope 600 SemiBold |
+| `caption` | 12px | 16px | Manrope 500 Medium |
+
+### 3.4 Override Convention
+
+The type scale defines default weights. Pure Canvas **overrides** these inline with `Manrope_800ExtraBold` for interactive UI elements:
+
+```tsx
+// Section eyebrow
+{ fontSize: 10, fontFamily: "Manrope_800ExtraBold", letterSpacing: 2, textTransform: "uppercase" }
+
+// Menu item label
+{ fontFamily: "Manrope_800ExtraBold" }
+
+// Option card title
+{ fontWeight: "800", fontFamily: "Manrope_800ExtraBold" }
+```
+
+---
+
+## 4. Spacing
+
+| Token | Value | Usage |
+|---|---|---|
+| `xs` | 4px | Micro gaps, icon inner spacing |
+| `sm` | 8px | Tight element gaps, chip padding |
+| `md` | 12px | Standard inter-element gaps |
+| `lg` | 16px | Card padding, section margins |
+| `xl` | 20px | Content block spacing |
+| `xxl` | 24px | Page horizontal padding |
+| `xxxl` | 32px | Major section separation |
+
+---
+
+## 5. Border Radii
+
+| Token | Value | Usage |
+|---|---|---|
+| `sm` | 12px | Buttons, transaction toggles, check circles |
+| `md` | 18px | Icon boxes |
+| `lg` | 24px | Cards, group containers |
+| `pill` | 999px | Search bars, filter chips |
+
+---
+
+## 6. Component Patterns
+
+### 6.1 Settings Option Card (Language, Appearance)
+
+```
+┌───────────────────────────────────────────┐
+│  ┌──────┐                                 │
+│  │ icon │  Title (Manrope 800)      ○     │
+│  │ 48×48│  Description (caption)          │
+│  └──────┘                                 │
+└───────────────────────────────────────────┘
+
+Default:    border: 1px divider, bg: transparent
+Selected:   border: 2px textPrimary, bg: transparent
+Icon box:   border: 1px divider, bg: transparent
+Check:      border: 1px divider → fill: textPrimary when selected
+```
+
+### 6.2 Menu Group Card (Profile)
+
+```
+SECTION LABEL (10px, Manrope 800, uppercase, letter-spacing 2)
+
+┌───────────────────────────────────────────┐
+│  (○) icon   Label (Manrope 800)     ›     │
+│  ─────────────────────────────────────    │
+│  (○) icon   Label                    ›     │
+│             description (caption)         │
+└───────────────────────────────────────────┘
+
+Card:       border: 1px divider, bg: transparent, radius: 24
+Icon box:   36×36, border: 1px divider, bg: transparent, radius: 18
+Divider:    1px divider, marginHorizontal: 16
+```
+
+### 6.3 Profile Hero (Horizontal Layout)
+
+```
+┌──────┐
+│  AS  │  Display Name (Manrope 800, 20px)
+│64×64 │  Left-aligned (LTR) / Right-aligned (RTL)
+└──────┘
+
+Avatar:     64×64, radius: 32, border: 1px divider, bg: transparent
+Hero row:   flexDirection: isRTL ? "row-reverse" : "row"
+Name:       textAlign: isRTL ? "right" : "left"
+```
+
+### 6.4 Property Card
+
+```
+┌─────────────────────────────────────────┐
+│  [image carousel]                  ♡    │  ← Heart in top-right
+│                                         │
+│  Title (left-aligned)                   │
+│  Location (caption)                     │
+│                                         │
+│  Price (left-aligned)    3bed · 2bath   │
+└─────────────────────────────────────────┘
+
+Price + specs:  flexDirection row, justifyContent: flex-start
+Heart icon:     positioned absolute top-right
+No badges:      "Top Match" / status labels removed
+```
+
+### 6.5 Floating Header
+
+```
+┌──────────────────────────────────────────┐
+│  ← back   [ 🔍 search ... ]   🗺  ⚙    │
+│  [ All ] [ For sale ] [ Villas ] ...     │
+└──────────────────────────────────────────┘
+
+Background:  colors.background + E6 opacity (90%)
+Border:      1px bottom divider
+Buttons:     40×40, radius: 20, bg: surface, border: 1px divider
+Search:      flex: 1, radius: pill, bg: surface, border: 1px divider
+```
+
+---
+
+## 7. Dark Mode / Light Mode
+
+### 7.1 Resolution
+
+The appearance mode is stored in Zustand (`preferenceSlice`) as one of three values:
+
+| Mode | Behavior |
+|---|---|
+| `"system"` | Follows `useColorScheme()` from React Native |
+| `"light"` | Forces light palette |
+| `"dark"` | Forces dark palette |
+
+Resolution logic (in `appearance.ts`):
+```ts
+if (mode === "light" || mode === "dark") return mode;
+return systemColorScheme === "light" ? "light" : "dark";
+```
+
+### 7.2 How Colors Expand
+
+Both modes share **identical structure** — only values change:
+
+| Property | Light | Dark |
+|---|---|---|
+| Canvas ground | `#FFFFFF` | `#000000` |
+| Structural lines | `rgba(0,0,0,0.08)` | `rgba(255,255,255,0.08)` |
+| Primary text | `#000000` | `#FFFFFF` |
+| Secondary text | `#52525B` | `#A3A3A3` |
+| Muted text | `#A1A1AA` | `#737373` |
+| Accent | `#EC2D35` | `#EC2D35` (invariant) |
+
+The accent red **never changes** between modes. It is the only color constant.
+
+### 7.3 Dark Mode Rules
+
+1. **True black background** (`#000000`) — not dark gray. This maximizes contrast on OLED displays.
+2. **Surface layers** (`#121212`, `#1A1A1A`) exist in tokens but are **not used** for card backgrounds in Pure Canvas. They remain for legacy components only.
+3. **Dividers** use 8% white opacity — barely visible, providing structure without visual weight.
+4. **StatusBar** automatically switches: `style="light"` on dark, `style="dark"` on light.
+5. **System background color** is set via `expo-system-ui` to match `colors.background` for native splash/transition consistency.
+
+---
+
+## 8. Animation & Motion
+
+### 8.1 Entry Animations
+
+| Pattern | API | Parameters |
+|---|---|---|
+| List items | `FadeInDown` | `delay(index * 100).duration(400)` |
+| Hero sections | `FadeInUp.springify()` | Spring defaults |
+| Sections | `FadeIn.duration(300)` | Simple opacity |
+
+### 8.2 Scroll-Linked Motion
+
+The floating header uses `useScrollPositionMotion` with:
+- **Threshold**: 44px scroll before background appears
+- **Background**: `colors.background` at `E6` (90%) opacity
+- **Edge fade**: `EdgeFade` component with gradient opacity ramp
+
+---
+
+## 9. RTL / Internationalization Rules
+
+| Element | LTR | RTL |
+|---|---|---|
+| `flexDirection` | `"row"` | `"row-reverse"` |
+| `textAlign` | `"left"` | `"right"` |
+| `alignItems` | `"flex-start"` | `"flex-end"` |
+| Back arrow | Normal | `mirrorIcon(isRTL)` flips horizontally |
+| Chevron right | Normal | `mirrorIcon(isRTL)` flips horizontally |
+| Filter scroll | `flexDirection: "row"` | `flexDirection: "row-reverse"` |
+| Hero name | `textAlign: "left"` | `textAlign: "right"` |
+
+Every layout-directional style is computed inside `createStyles(colors, isRTL)` using the ternary pattern.
+
+---
+
+## 10. Anti-Patterns (What NOT to Do)
+
+> [!CAUTION]
+> These patterns are explicitly banned in Pure Canvas.
+
+| ❌ Don't | ✅ Do Instead |
+|---|---|
+| `backgroundColor: colors.surface` on cards | `backgroundColor: "transparent"` |
+| `backgroundColor: colors.surfaceRaised` on icon boxes | `backgroundColor: "transparent"` + `borderWidth: 1` |
+| `shadowColor`, `shadowOpacity`, `elevation` | Remove entirely |
+| `borderColor: colors.accent` for selection | `borderColor: colors.textPrimary` |
+| `backgroundColor: colors.accent` for checkmarks | `backgroundColor: colors.textPrimary` |
+| `backgroundColor: \`${colors.accent}14\`` tint fills | No fill — border only |
+| Centered profile hero (avatar + name stacked) | Horizontal row with RTL awareness |
+| `fontWeight: "700"` without fontFamily | `fontFamily: "Manrope_800ExtraBold"` |
+| Banner images / hero cards in settings | Remove — Pure Canvas uses text hierarchy |
+
+---
+
+## 11. File Map
+
+| File | Role |
+|---|---|
+| [tokens.ts](file:///Users/ahmedmansour/Zayon/apps/mobile/src/foundation/theme/tokens.ts) | Color palettes, spacing, radii, typography scale |
+| [ThemeProvider.tsx](file:///Users/ahmedmansour/Zayon/apps/mobile/src/foundation/theme/ThemeProvider.tsx) | React context for dynamic light/dark switching |
+| [appearance.ts](file:///Users/ahmedmansour/Zayon/apps/mobile/src/foundation/theme/appearance.ts) | Mode resolution logic |
+| [Text.tsx](file:///Users/ahmedmansour/Zayon/apps/mobile/src/foundation/primitives/Text.tsx) | `<Text>` primitive with variant, tone, RTL auto-detection |
+| [AppProviders.tsx](file:///Users/ahmedmansour/Zayon/apps/mobile/src/shell/providers/AppProviders.tsx) | Font loading (Manrope + Cairo) |
+| [preferenceSlice.ts](file:///Users/ahmedmansour/Zayon/apps/mobile/src/store/slices/preferenceSlice.ts) | Zustand slice for appearance mode persistence |

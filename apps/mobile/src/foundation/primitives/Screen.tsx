@@ -2,6 +2,7 @@ import { View, StyleSheet, type ViewProps } from "react-native";
 import { useMemo } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useAppLocalization } from "@/foundation/localization";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 
 export type ScreenProps = ViewProps & {
@@ -11,6 +12,7 @@ export type ScreenProps = ViewProps & {
 
 export function Screen({ style, children, safe = false, edges = ["bottom"], ...props }: ScreenProps) {
   const { colors } = useTheme();
+  const { direction } = useAppLocalization();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -23,7 +25,7 @@ export function Screen({ style, children, safe = false, edges = ["bottom"], ...p
 
   return (
     <View style={styles.content}>
-      <View style={[styles.inner, safeStyle, style]} {...props}>
+      <View style={[styles.inner, safeStyle, { direction }, style]} {...props}>
         {children}
       </View>
     </View>
@@ -40,4 +42,3 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 });
-

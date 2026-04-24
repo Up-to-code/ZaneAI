@@ -4,9 +4,11 @@ import { useRouter } from "expo-router";
 import { ArrowLeft, Check, Monitor, MoonStar, SunMedium } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { formatWebCopy, useAppLocalization } from "@/foundation/localization";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import type { AppearanceMode } from "@/store/slices/preferenceSlice";
 
@@ -25,17 +27,20 @@ export default function AppearanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, appearanceMode, resolvedColorScheme, setAppearanceMode } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t, isRTL } = useAppLocalization();
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
 
   return (
     <Screen style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Pressable accessibilityLabel="Go back" style={styles.headerBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors.textPrimary} />
+        <Pressable accessibilityLabel={t.common.back} style={styles.headerBtn} onPress={() => router.back()}>
+          <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
         </Pressable>
         <View style={styles.headerText}>
-          <Text variant="title" style={styles.headerTitle}>Appearance</Text>
-          <Text variant="caption" tone="muted">System is currently using {resolvedColorScheme} mode.</Text>
+          <Text variant="title" style={styles.headerTitle}>{t.appSettings.appearanceTitle}</Text>
+          <Text variant="caption" tone="muted">
+            {formatWebCopy(t.appSettings.appearanceSubtitle, { mode: resolvedColorScheme })}
+          </Text>
         </View>
       </View>
 
@@ -44,10 +49,8 @@ export default function AppearanceScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          <Text variant="display" style={styles.heroTitle}>Choose your viewing mode</Text>
-          <Text tone="secondary" style={styles.heroCopy}>
-            Apply changes instantly across the app. Select System to keep ZaneAI synced with your device setting.
-          </Text>
+          <Text variant="display" style={styles.heroTitle}>{t.appSettings.appearanceHeroTitle}</Text>
+          <Text tone="secondary" style={styles.heroCopy}>{t.appSettings.appearanceHeroBody}</Text>
         </View>
 
         <View style={styles.optionGroup}>
@@ -61,7 +64,7 @@ export default function AppearanceScreen() {
                 onPress={() => setAppearanceMode(option.value)}
               >
                 <View style={[styles.optionIcon, selected && styles.optionIconSelected]}>
-                  <OptionIcon mode={option.icon} color={selected ? colors.background : colors.textPrimary} />
+                  <OptionIcon mode={option.icon} color={colors.textPrimary} />
                 </View>
                 <View style={styles.optionText}>
                   <Text variant="body" style={styles.optionTitle}>{option.title}</Text>
@@ -94,14 +97,14 @@ function OptionIcon({ mode, color }: { mode: "system" | "light" | "dark"; color:
   return <MoonStar size={18} color={color} />;
 }
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, isRTL: boolean) =>
   StyleSheet.create({
     screen: {
       flex: 1,
       backgroundColor: colors.background,
     },
     header: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       gap: theme.spacing.md,
       paddingHorizontal: theme.spacing.lg,
@@ -123,9 +126,11 @@ const createStyles = (colors: any) =>
     headerText: {
       flex: 1,
       gap: 2,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     headerTitle: {
       fontSize: 18,
+      fontFamily: "Manrope_800ExtraBold",
     },
     content: {
       paddingHorizontal: theme.spacing.lg,
@@ -134,9 +139,11 @@ const createStyles = (colors: any) =>
     },
     hero: {
       gap: theme.spacing.sm,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     heroTitle: {
       fontSize: 30,
+      fontFamily: "Manrope_800ExtraBold",
     },
     heroCopy: {
       lineHeight: 22,
@@ -145,18 +152,19 @@ const createStyles = (colors: any) =>
       gap: theme.spacing.md,
     },
     optionCard: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       gap: theme.spacing.md,
-      backgroundColor: colors.surface,
+      backgroundColor: "transparent",
       borderRadius: theme.radii.lg,
       borderWidth: 1,
       borderColor: colors.divider,
       padding: theme.spacing.lg,
     },
     optionCardSelected: {
-      borderColor: colors.accent,
-      backgroundColor: `${colors.accent}14`,
+      borderColor: colors.textPrimary,
+      borderWidth: 2,
+      padding: theme.spacing.lg - 1,
     },
     optionIcon: {
       width: 48,
@@ -164,17 +172,21 @@ const createStyles = (colors: any) =>
       borderRadius: 16,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: colors.surfaceRaised,
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: colors.divider,
     },
     optionIconSelected: {
-      backgroundColor: colors.accent,
+      borderColor: colors.textPrimary,
     },
     optionText: {
       flex: 1,
       gap: 2,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     optionTitle: {
-      fontWeight: "700",
+      fontWeight: "800",
+      fontFamily: "Manrope_800ExtraBold",
     },
     checkWrap: {
       width: 24,
@@ -184,8 +196,8 @@ const createStyles = (colors: any) =>
       borderColor: colors.divider,
     },
     checkWrapSelected: {
-      backgroundColor: colors.accent,
-      borderColor: colors.accent,
+      backgroundColor: colors.textPrimary,
+      borderColor: colors.textPrimary,
       justifyContent: "center",
       alignItems: "center",
     },

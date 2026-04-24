@@ -1,11 +1,5 @@
 export type { SessionUser } from "@/server/contracts/session";
-
-/**
- * WHY:   Workspace and public layouts need one lightweight auth lookup for chrome-level decisions.
- * WHAT:  Returns the current token, projected user, and resolved role when a session exists.
- * HOW:   Reuses the optional session resolver and narrows the payload for UI callers.
- */
-import { cookies } from "next/headers";
+import { getOptionalSessionContext } from "@/server/auth/session";
 
 /**
  * WHY:   Workspace and public layouts need one lightweight auth lookup for chrome-level decisions.
@@ -13,10 +7,9 @@ import { cookies } from "next/headers";
  * HOW:   Reuses the optional session resolver and narrows the payload for UI callers.
  */
 export async function getAuthenticatedSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("better-auth.session_token")?.value;
+  const session = await getOptionalSessionContext();
 
-  if (!token) {
+  if (!session) {
     return {
       token: null,
       user: null,
@@ -24,12 +17,10 @@ export async function getAuthenticatedSession() {
     };
   }
 
-  // NOTE: For a full implementation, we would verify the token via better-auth server client or Convex.
-  // For immediate redirect logic in the sign-in loader, the presence of the token is a sufficient hint.
   return {
-    token,
-    user: { id: "authenticated" } as any,
-    role: "authenticated",
+    token: session.token,
+    user: { id: session.context.userId },
+    role: session.context.role ?? null,
   };
 }
 

@@ -57,7 +57,7 @@ export async function toPropertyCompatWithAssets(ctx: QueryCtx, listing: Listing
     .withIndex("by_listingId_and_visibility", (q) =>
       q.eq("listingId", listing._id).eq("visibility", "public"),
     )
-    .collect();
+    .take(100);
   const imageUrls = assets
     .filter((asset) => asset.kind === "image" && asset.url)
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))

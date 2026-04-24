@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -40,13 +39,20 @@ import {
   Tv,
   Wifi,
   Dumbbell,
+  MessageCircle,
 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { theme } from "@/foundation/theme/tokens";
-import { useCandidateProperties, usePropertyById } from "@/persistence/convex/usePropertyData";
+import { PropertySkeletonList } from "@/decision/components/PropertySkeleton";
+import { PropertyStateCard } from "@/decision/components/PropertyStateCard";
+import { useCandidatePropertiesState, usePropertyByIdState } from "@/persistence/convex/usePropertyData";
 import { PropertyCard } from "@/decision/components/PropertyCard";
+import { Text } from "@/foundation/primitives/Text";
+import { useTranslation, formatWebCopy } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
+import { uppercaseLatin } from "@/foundation/utils/textDisplay";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -55,24 +61,35 @@ export default function PropertyDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t, isRTL } = useTranslation();
   
-  const property = usePropertyById(id);
-  const recommendations = useCandidateProperties().filter(p => p.id !== id).slice(0, 5);
+  const { item: property, isLoading, isMissing } = usePropertyByIdState(id);
+  const { items: candidateProperties, isLoading: isRecommendationsLoading } = useCandidatePropertiesState();
+  const recommendations = candidateProperties.filter(p => p.id !== id).slice(0, 5);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
   const [isAmenitiesModalVisible, setIsAmenitiesModalVisible] = useState(false);
-  const [isContactSheetVisible, setIsContactSheetVisible] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
 
-  if (!property) {
+  if (isLoading) {
     return (
-      <View style={[styles.screen, styles.centered]}>
-        <Info size={40} color={colors.textMuted} />
-        <Text style={{ color: colors.textSecondary, fontFamily: "Manrope_600SemiBold" }}>
-          PROPERTY NOT FOUND
-        </Text>
+      <View style={[styles.screen, { backgroundColor: colors.background, paddingTop: insets.top + 24, paddingHorizontal: 16 }]}>
+        <PropertySkeletonList count={1} />
+      </View>
+    );
+  }
+
+  if (isMissing || !property) {
+    return (
+      <View style={[styles.screen, styles.centered, { paddingHorizontal: 20 }]}>
+        <PropertyStateCard
+          title={t.common.propertyUnavailableTitle}
+          body={t.common.propertyUnavailableBody}
+          actionLabel={t.common.back}
+          onPressAction={() => router.back()}
+        />
       </View>
     );
   }
@@ -120,10 +137,10 @@ export default function PropertyDetailScreen() {
         <View style={styles.recMetaRow}>
           <Text style={styles.recMetaText}>{property.area}m²</Text>
           <View style={styles.recMetaDot} />
-          <Text style={styles.recMetaText}>{property.beds} BED</Text>
+          <Text style={styles.recMetaText}>{property.beds} {t.propertyCard.bed}</Text>
         </View>
         <Text style={styles.recLocation} numberOfLines={1}>
-          {property.locationLabel.split(",")[0].toUpperCase()}
+          {uppercaseLatin(property.locationLabel.split(",")[0])}
         </Text>
       </View>
     </Pressable>
@@ -131,13 +148,13 @@ export default function PropertyDetailScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* Header Actions */}
-      <View style={[styles.floatingHeader, { top: insets.top + 10 }]}>
+      {/* Static Header */}
+      <View style={[styles.staticHeader, { paddingTop: insets.top + 10 }]}>
         <Pressable
           onPress={() => router.back()}
           style={styles.headerButton}
         >
-          <ArrowLeft size={20} color={colors.textPrimary} />
+          <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
         </Pressable>
         <View style={styles.headerActions}>
           <Pressable
@@ -192,16 +209,16 @@ export default function PropertyDetailScreen() {
           {/* Pricing & High-Level Identity */}
           <View style={styles.pricingSection}>
             <View style={styles.priceHeader}>
-              <Text style={styles.priceLabel}>TOTAL INVESTMENT</Text>
+              <Text style={styles.priceLabel}>{t.property.totalInvestment}</Text>
               <Text style={styles.priceText}>{property.priceLabel}</Text>
             </View>
             <View style={styles.badgeRow}>
               <View style={styles.matchBadge}>
                 <CheckCircle2 size={12} color={colors.success} />
-                <Text style={styles.matchBadgeText}>{property.matchScore}% MATCH</Text>
+                <Text style={styles.matchBadgeText}>{property.matchScore}% {t.propertyCard.topMatch}</Text>
               </View>
               <View style={styles.tagBadge}>
-                <Text style={styles.tagBadgeText}>PREMIUM LISTING</Text>
+                <Text style={styles.tagBadgeText}>{t.propertyCard.verified}</Text>
               </View>
             </View>
           </View>
@@ -211,29 +228,67 @@ export default function PropertyDetailScreen() {
             <View style={styles.contextSection}>
               {property.compoundName && (
                 <View style={styles.compoundBlock}>
-                  <Map size={16} color={colors.accent} />
-                  <Text style={styles.compoundText}>{property.compoundName.toUpperCase()}</Text>
+                  <MapPin size={14} color={colors.accent} />
+                  <Text style={styles.compoundText}>
+                    {formatWebCopy(t.property.inCompound, { compound: uppercaseLatin(property.compoundName) })}
+                  </Text>
                 </View>
               )}
               {property.developerName && (
                 <View style={styles.developerBadge}>
                   <Building2 size={12} color={colors.textMuted} />
-                  <Text style={styles.developerLabel}>BY {property.developerName.toUpperCase()}</Text>
+                  <Text style={styles.developerLabel}>
+                    {formatWebCopy(t.property.byDeveloper, { developer: uppercaseLatin(property.developerName) })}
+                  </Text>
                 </View>
               )}
             </View>
           )}
 
           <View style={styles.titleSection}>
-            <Text style={styles.titleText}>{property.title.toUpperCase()}</Text>
+            <Text style={styles.titleText}>{uppercaseLatin(property.title)}</Text>
             <View style={styles.locationRow}>
               <MapPin size={14} color={colors.textMuted} />
-              <Text style={styles.locationText}>{property.locationLabel.toUpperCase()}</Text>
+              <Text style={styles.locationText}>{uppercaseLatin(property.locationLabel)}</Text>
             </View>
             <View style={styles.referenceRow}>
-              <Text style={styles.referenceLabel}>REF ID:</Text>
-              <Text style={styles.referenceValue}>{property.id.toUpperCase()}</Text>
+              <Text style={styles.referenceLabel}>{t.property.reference}</Text>
+              <Text style={styles.referenceValue}># {property.id.substring(0, 8).toUpperCase()}</Text>
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t.property.locationMap}</Text>
+              <Pressable
+                onPress={() => router.push(`/(app)/property/${property.id}/map`)}
+                style={styles.readMoreButton}
+              >
+                <Text style={styles.readMoreText}>{t.property.openMapView}</Text>
+                <ArrowRight size={14} color={colors.accent} />
+              </Pressable>
+            </View>
+
+            <Pressable
+              style={styles.mapPreviewCard}
+              onPress={() => router.push(`/(app)/property/${property.id}/map`)}
+            >
+              <View style={styles.mapPreviewRow}>
+                <View style={styles.mapPreviewBadge}>
+                  <Map size={18} color={colors.accent} />
+                </View>
+                <View style={styles.mapPreviewContent}>
+                  <Text style={styles.mapPreviewEyebrow}>{t.property.mapScreenTitle}</Text>
+                  <Text style={styles.mapPreviewTitle} numberOfLines={1}>
+                    {uppercaseLatin(property.locationLabel)}
+                  </Text>
+                  <Text style={styles.mapPreviewBody}>
+                    {t.property.mapScreenBody}
+                  </Text>
+                </View>
+                <ArrowRight size={18} color={colors.accent} />
+              </View>
+            </Pressable>
           </View>
 
           <View style={styles.divider} />
@@ -241,24 +296,19 @@ export default function PropertyDetailScreen() {
           {/* Quick Specs Grid */}
           <View style={styles.specsGrid}>
             <View style={styles.specItem}>
-              <BedDouble size={20} color={colors.textPrimary} />
+              <BedDouble size={24} color={colors.textPrimary} />
               <Text style={styles.specValue}>{property.beds}</Text>
-              <Text style={styles.specLabel}>BEDS</Text>
+              <Text style={styles.specLabel}>{t.projects.rooms}</Text>
             </View>
             <View style={styles.specItem}>
-              <Bath size={20} color={colors.textPrimary} />
+              <Bath size={24} color={colors.textPrimary} />
               <Text style={styles.specValue}>{property.baths}</Text>
-              <Text style={styles.specLabel}>BATHS</Text>
+              <Text style={styles.specLabel}>{t.projects.baths}</Text>
             </View>
             <View style={styles.specItem}>
-              <Ruler size={20} color={colors.textPrimary} />
+              <Ruler size={24} color={colors.textPrimary} />
               <Text style={styles.specValue}>{property.area}</Text>
-              <Text style={styles.specLabel}>SQM</Text>
-            </View>
-            <View style={styles.specItem}>
-              <Building2 size={20} color={colors.textPrimary} />
-              <Text style={styles.specValue}>LUX</Text>
-              <Text style={styles.specLabel}>FINISH</Text>
+              <Text style={styles.specLabel}>{t.projects.area}</Text>
             </View>
           </View>
 
@@ -266,7 +316,7 @@ export default function PropertyDetailScreen() {
 
           {/* Description Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>DESCRIPTION</Text>
+            <Text style={styles.sectionTitle}>{t.property.description}</Text>
             <Text style={styles.descriptionText} numberOfLines={4}>
               {property.description}
             </Text>
@@ -274,7 +324,7 @@ export default function PropertyDetailScreen() {
               onPress={() => setIsDescriptionModalVisible(true)}
               style={styles.readMoreButton}
             >
-              <Text style={styles.readMoreText}>READ FULL DESCRIPTION</Text>
+              <Text style={styles.readMoreText}>{t.property.readMore}</Text>
               <ArrowRight size={14} color={colors.accent} />
             </Pressable>
           </View>
@@ -283,7 +333,7 @@ export default function PropertyDetailScreen() {
           <View style={styles.aiCard}>
             <View style={styles.aiHeader}>
               <Sparkles size={18} color={colors.accent} />
-              <Text style={styles.aiTitle}>INSTITUTIONAL SIGNAL</Text>
+              <Text style={styles.aiTitle}>{t.property.marketInsight}</Text>
             </View>
             <Text style={styles.aiBody}>{property.aiSummary}</Text>
           </View>
@@ -292,13 +342,13 @@ export default function PropertyDetailScreen() {
           {property.amenities.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>AMENITIES & FEATURES</Text>
+                <Text style={styles.sectionTitle}>{t.property.amenities}</Text>
                 {property.amenities.length > 8 && (
                   <Pressable 
                     onPress={() => setIsAmenitiesModalVisible(true)}
                     style={styles.readMoreButton}
                   >
-                    <Text style={styles.readMoreText}>VIEW ALL ({property.amenities.length})</Text>
+                    <Text style={styles.readMoreText}>{t.property.viewAll} ({property.amenities.length})</Text>
                   </Pressable>
                 )}
               </View>
@@ -308,7 +358,7 @@ export default function PropertyDetailScreen() {
                     <View style={styles.amenityIconContainer}>
                       {getAmenityIcon(amenity.label)}
                     </View>
-                    <Text style={styles.amenityText} numberOfLines={1}>{amenity.label.toUpperCase()}</Text>
+                    <Text style={styles.amenityText} numberOfLines={1}>{uppercaseLatin(amenity.label)}</Text>
                   </View>
                 ))}
               </View>
@@ -319,15 +369,15 @@ export default function PropertyDetailScreen() {
 
           {/* Broker & Agency Hierarchy Card */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>LISTING EXPERT & AGENCY</Text>
+            <Text style={styles.sectionTitle}>{t.property.listingExpert}</Text>
             <View style={styles.agencyBrokerCard}>
               <View style={styles.agencyHeader}>
                 <View style={styles.agencyLogoContainer}>
                   <Building2 size={24} color={colors.accent} />
                 </View>
                 <View style={styles.agencyInfo}>
-                  <Text style={styles.agencyNameLarge}>{property.broker.agency.toUpperCase()}</Text>
-                  <Text style={styles.legalLabel}>LICENSED REAL ESTATE AGENCY</Text>
+                  <Text style={styles.agencyNameLarge}>{uppercaseLatin(property.broker.agency)}</Text>
+                  <Text style={styles.legalLabel}>{t.property.legalAgency}</Text>
                 </View>
               </View>
               
@@ -342,8 +392,8 @@ export default function PropertyDetailScreen() {
                   style={styles.brokerAvatarSmall}
                 />
                 <View style={styles.brokerInfo}>
-                  <Text style={styles.brokerNameSmall}>{property.broker.name.toUpperCase()}</Text>
-                  <Text style={styles.brokerRole}>CERTIFIED ADVISOR</Text>
+                  <Text style={styles.brokerNameSmall}>{uppercaseLatin(property.broker.name)}</Text>
+                  <Text style={styles.brokerRole}>{t.property.certifiedAdvisor}</Text>
                 </View>
                 <ChevronRight size={18} color={colors.textMuted} />
               </Pressable>
@@ -353,9 +403,14 @@ export default function PropertyDetailScreen() {
           <View style={styles.divider} />
 
           {/* Recommendations Section - Minimal Horizontal Cards */}
-          {recommendations.length > 0 && (
+          {isRecommendationsLoading ? (
             <View style={styles.recSection}>
-              <Text style={styles.recSectionTitle}>SIMILAR PROPERTIES</Text>
+              <Text style={styles.recSectionTitle}>{t.property.recommendations}</Text>
+              <PropertySkeletonList count={2} compact />
+            </View>
+          ) : recommendations.length > 0 && (
+            <View style={styles.recSection}>
+              <Text style={styles.recSectionTitle}>{t.property.recommendations}</Text>
               <View style={styles.recListWrapper}>
                 <FlatList
                   data={recommendations}
@@ -385,84 +440,23 @@ export default function PropertyDetailScreen() {
 
       {/* Floating Action Bar */}
       <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-        <View style={styles.bottomPriceInfo}>
-          <Text style={styles.bottomPriceLabel}>TOTAL INVESTMENT</Text>
-          <Text style={styles.bottomPriceValue}>{property.priceLabel}</Text>
+        <View style={styles.ctaRow}>
+          <Pressable 
+            style={[styles.ctaButton, styles.whatsappPill]}
+            onPress={() => Alert.alert(t.property.whatsapp, t.property.contactExpert)}
+          >
+            <MessageCircle size={20} color={colors.textPrimary} />
+            <Text style={styles.whatsappPillText}>{t.property.whatsapp}</Text>
+          </Pressable>
+          <Pressable 
+            style={[styles.ctaButton, styles.callPill]}
+            onPress={() => Alert.alert(t.property.call, t.property.contactExpert)}
+          >
+            <Phone size={20} color={colors.background} />
+            <Text style={styles.callPillText}>{t.property.call}</Text>
+          </Pressable>
         </View>
-        <Pressable 
-          style={styles.primaryCta}
-          onPress={() => setIsContactSheetVisible(true)}
-        >
-          <Text style={styles.primaryCtaText}>GET IN TOUCH</Text>
-        </Pressable>
       </View>
-
-      {/* Contact Sheet */}
-      <Modal
-        visible={isContactSheetVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsContactSheetVisible(false)}
-      >
-        <Pressable 
-          style={styles.modalOverlay} 
-          onPress={() => setIsContactSheetVisible(false)}
-        >
-          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
-            <View style={styles.sheetHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>CONTACT EXPERT</Text>
-              <Pressable onPress={() => setIsContactSheetVisible(false)}>
-                <Text style={styles.modalCloseText}>CLOSE</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.contactOptions}>
-              <Pressable 
-                style={[styles.contactOption, { backgroundColor: "#25D366" + "15" }]}
-                onPress={() => Alert.alert("WhatsApp", "Opening secure chat...")}
-              >
-                <View style={[styles.contactIconContainer, { backgroundColor: "#25D366" }]}>
-                  <Info size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.contactInfo}>
-                  <Text style={[styles.contactLabel, { color: "#25D366" }]}>WHATSAPP CHAT</Text>
-                  <Text style={styles.contactSubLabel}>INSTANT ENGAGEMENT</Text>
-                </View>
-                <ChevronRight size={18} color="#25D366" />
-              </Pressable>
-
-              <Pressable 
-                style={[styles.contactOption, { backgroundColor: colors.accent + "15" }]}
-                onPress={() => Alert.alert("Call", "Initiating direct line...")}
-              >
-                <View style={[styles.contactIconContainer, { backgroundColor: colors.accent }]}>
-                  <Phone size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.contactInfo}>
-                  <Text style={[styles.contactLabel, { color: colors.accent }]}>DIRECT CALL</Text>
-                  <Text style={styles.contactSubLabel}>TECHNICAL ADVICE</Text>
-                </View>
-                <ChevronRight size={18} color={colors.accent} />
-              </Pressable>
-
-              <Pressable 
-                style={[styles.contactOption, { backgroundColor: colors.textPrimary + "10" }]}
-                onPress={() => Alert.alert("Email", "Opening secure mail...")}
-              >
-                <View style={[styles.contactIconContainer, { backgroundColor: colors.textPrimary }]}>
-                  <Sparkles size={20} color={colors.background} />
-                </View>
-                <View style={styles.contactInfo}>
-                  <Text style={styles.contactLabel}>EMAIL INQUIRY</Text>
-                  <Text style={styles.contactSubLabel}>OFFICIAL DOCUMENTATION</Text>
-                </View>
-                <ChevronRight size={18} color={colors.textPrimary} />
-              </Pressable>
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
 
       {/* Amenities Modal (Sheet) */}
       <Modal
@@ -477,10 +471,13 @@ export default function PropertyDetailScreen() {
         >
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
             <View style={styles.sheetHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>ALL AMENITIES</Text>
-              <Pressable onPress={() => setIsAmenitiesModalVisible(false)}>
-                <Text style={styles.modalCloseText}>CLOSE</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t.property.amenities}</Text>
+              <Pressable 
+                style={styles.readMoreButton}
+                onPress={() => setIsAmenitiesModalVisible(false)}
+              >
+                <Text style={styles.readMoreText}>{t.property.close}</Text>
               </Pressable>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -490,7 +487,7 @@ export default function PropertyDetailScreen() {
                     <View style={styles.amenityIconContainer}>
                       {getAmenityIcon(amenity.label)}
                     </View>
-                    <Text style={styles.amenityText}>{amenity.label.toUpperCase()}</Text>
+                    <Text style={styles.amenityText}>{uppercaseLatin(amenity.label)}</Text>
                   </View>
                 ))}
               </View>
@@ -512,10 +509,13 @@ export default function PropertyDetailScreen() {
         >
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
             <View style={styles.sheetHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>DESCRIPTION</Text>
-              <Pressable onPress={() => setIsDescriptionModalVisible(false)}>
-                <Text style={styles.modalCloseText}>CLOSE</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t.property.description}</Text>
+              <Pressable 
+                style={styles.readMoreButton}
+                onPress={() => setIsDescriptionModalVisible(false)}
+              >
+                <Text style={styles.readMoreText}>{t.property.close}</Text>
               </Pressable>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -528,7 +528,7 @@ export default function PropertyDetailScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
@@ -542,27 +542,28 @@ const createStyles = (colors: any) => StyleSheet.create({
   scroll: {
     flex: 1,
   },
-  floatingHeader: {
-    position: "absolute",
-    left: 20,
-    right: 20,
+  staticHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
     zIndex: 10,
   },
   headerButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
-    ...theme.shadows.calm,
+    borderColor: colors.divider,
   },
   headerActions: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     gap: 10,
   },
   heroContainer: {
@@ -596,9 +597,9 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   mainContent: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     paddingTop: 32,
-    gap: 32,
+    gap: 40,
   },
   pricingSection: {
     gap: 16,
@@ -619,47 +620,49 @@ const createStyles = (colors: any) => StyleSheet.create({
     letterSpacing: -1.5,
   },
   badgeRow: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     gap: 8,
     alignItems: "center",
   },
   matchBadge: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: colors.success + "15",
+    paddingVertical: 6,
+    borderRadius: theme.radii.pill,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.success + "30",
+    borderColor: colors.success,
   },
   matchBadgeText: {
     fontSize: 10,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.success,
+    letterSpacing: 0.5,
   },
   tagBadge: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: colors.accent + "15",
+    paddingVertical: 6,
+    borderRadius: theme.radii.pill,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.accent + "30",
+    borderColor: colors.accent,
   },
   tagBadgeText: {
     fontSize: 10,
     fontFamily: "Manrope_800ExtraBold",
     color: colors.accent,
+    letterSpacing: 0.5,
   },
   contextSection: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingTop: 8,
   },
   compoundBlock: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
   },
@@ -670,7 +673,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     letterSpacing: 0.5,
   },
   developerBadge: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
     backgroundColor: colors.surfaceRaised,
@@ -697,7 +700,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     letterSpacing: -0.5,
   },
   locationRow: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
     marginTop: 4,
@@ -709,7 +712,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     letterSpacing: 0.5,
   },
   referenceRow: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
     marginTop: 12,
@@ -725,9 +728,57 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.textPrimary,
     letterSpacing: 1,
   },
+  mapPreviewCard: {
+    borderRadius: theme.radii.lg,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.divider,
+    backgroundColor: colors.background,
+  },
+  mapPreviewRow: {
+    minHeight: 100,
+    flexDirection: isRTL ? "row-reverse" : "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+  mapPreviewBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: theme.radii.md,
+    backgroundColor: `${colors.accent}10`,
+    borderWidth: 1,
+    borderColor: `${colors.accent}30`,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mapPreviewContent: {
+    flex: 1,
+    gap: 4,
+  },
+  mapPreviewEyebrow: {
+    fontSize: 10,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textMuted,
+    letterSpacing: 1.4,
+  },
+  mapPreviewTitle: {
+    fontSize: 16,
+    fontFamily: "Manrope_800ExtraBold",
+    color: colors.textPrimary,
+    letterSpacing: 0.2,
+  },
+  mapPreviewBody: {
+    fontSize: 13,
+    fontFamily: "Manrope_500Medium",
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
   divider: {
     height: 1,
     backgroundColor: colors.border,
+    opacity: 0.5,
   },
   specsGrid: {
     flexDirection: "row",
@@ -754,7 +805,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 16,
   },
   sectionHeader: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
@@ -765,13 +816,13 @@ const createStyles = (colors: any) => StyleSheet.create({
     letterSpacing: 2,
   },
   descriptionText: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: "Manrope_500Medium",
     color: colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: 26,
   },
   readMoreButton: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
   },
@@ -782,15 +833,12 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   aiCard: {
     padding: 24,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.accent + "33",
-    gap: 16,
-    ...theme.shadows.calm,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceRaised,
+    gap: 12,
   },
   aiHeader: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 10,
   },
@@ -839,23 +887,21 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 12,
   },
   amenityItem: {
-    width: (SCREEN_WIDTH - 60) / 2,
-    flexDirection: "row",
+    width: (SCREEN_WIDTH - 44) / 2,
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: colors.surfaceRaised,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingVertical: 12,
   },
   amenityIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.accent + "10",
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceRaised,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   amenityText: {
     fontSize: 13,
@@ -869,7 +915,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: "hidden",
-    ...theme.shadows.calm,
   },
   agencyHeader: {
     padding: 20,
@@ -958,7 +1003,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: colors.border,
-    ...theme.shadows.calm,
   },
   recImageContainer: {
     width: "100%",
@@ -989,7 +1033,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.textPrimary,
   },
   recMetaRow: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
   },
@@ -1036,7 +1080,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    ...theme.shadows.calm,
   },
   bottomPriceInfo: {
     gap: 2,
@@ -1052,16 +1095,38 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontFamily: "Manrope_800ExtraBold",
     color: colors.textPrimary,
   },
-  primaryCta: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 28,
-    paddingVertical: 16,
-    borderRadius: 16,
+  ctaRow: {
+    flexDirection: isRTL ? "row-reverse" : "row",
+    gap: 12,
+    flex: 1,
   },
-  primaryCtaText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontFamily: "Manrope_800ExtraBold",
+  ctaButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: theme.radii.pill,
+    flexDirection: isRTL ? "row-reverse" : "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+  },
+  whatsappPill: {
+    backgroundColor: colors.background,
+    borderColor: colors.divider,
+  },
+  whatsappPillText: {
+    fontSize: 15,
+    fontFamily: "Manrope_700Bold",
+    color: colors.textPrimary,
+  },
+  callPill: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  callPillText: {
+    fontSize: 15,
+    fontFamily: "Manrope_700Bold",
+    color: colors.background,
   },
   modalOverlay: {
     flex: 1,

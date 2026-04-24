@@ -32,6 +32,10 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# editor artifacts
+*.swp
+*.swo
+
 # Next.js
 .next/
 out/

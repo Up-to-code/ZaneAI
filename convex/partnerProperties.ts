@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { canManageInventory, requireWorkspace } from "./core/lib";
+import { requireWorkspace, requireWorkspaceCapability } from "./core/lib";
 import {
   buildSearchText,
   mapProjectDocToWorkspaceProject,
@@ -32,6 +32,7 @@ const publicationStateValidator = v.union(v.literal("draft"), v.literal("publish
 
 const projectTypeValues = ["villas", "apartments", "land_plots", "mixed", "standalone", "custom"] as const;
 const registrationStatusValues = ["registered", "not_registered", "pending"] as const;
+const rentalPeriodValues = ["day", "week", "month", "year"] as const;
 
 type ProjectType = Doc<"projects">["projectType"];
 type RegistrationStatus = NonNullable<Doc<"listingCompliance">["registrationStatus"]>;
@@ -49,8 +50,9 @@ function asListingType(value: string | undefined): Doc<"projects">["listingType"
 }
 
 function asRentalPeriod(value: string | undefined): Doc<"projects">["rentalPeriod"] {
-  const valid = ["day", "week", "month", "year"];
-  return valid.includes(value as any) ? (value as any) : undefined;
+  return rentalPeriodValues.includes(value as NonNullable<Doc<"projects">["rentalPeriod"]>)
+    ? (value as Doc<"projects">["rentalPeriod"])
+    : undefined;
 }
 
 async function listProjectAssets(ctx: QueryCtx | MutationCtx, projectId: Id<"projects">) {
@@ -307,10 +309,11 @@ const projectInputValidator = {
 export const createWorkspaceProperty = mutation({
   args: projectInputValidator,
   handler: async (ctx, args) => {
-    const { profile, membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to create project drafts.");
-    }
+    const { profile, membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to create project drafts.",
+    );
     const now = Date.now();
     const projectId = await ctx.db.insert("projects", {
       organizationId: membership.organizationId,
@@ -364,10 +367,11 @@ export const updateWorkspaceProperty = mutation({
     data: v.object(projectInputValidator),
   },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to update project drafts.");
-    }
+    const { membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to update project drafts.",
+    );
     const row = await ctx.db.get(args.propertyId);
     if (!row || row.organizationId !== membership.organizationId) {
       throw new Error("Project not found.");
@@ -423,10 +427,11 @@ export const setWorkspacePropertyPublicationState = mutation({
     publicationState: publicationStateValidator,
   },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to publish projects.");
-    }
+    const { membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to publish projects.",
+    );
     const row = await ctx.db.get(args.propertyId);
     if (!row || row.organizationId !== membership.organizationId) {
       throw new Error("Project not found.");
@@ -454,10 +459,11 @@ export const setWorkspacePropertyPublicationState = mutation({
 export const deleteWorkspaceProperty = mutation({
   args: { propertyId: v.id("projects") },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to delete projects.");
-    }
+    const { membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to delete projects.",
+    );
     const row = await ctx.db.get(args.propertyId);
     if (!row || row.organizationId !== membership.organizationId) {
       throw new Error("Project not found.");

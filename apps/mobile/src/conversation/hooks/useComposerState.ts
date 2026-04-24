@@ -1,78 +1,50 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { NativeSyntheticEvent, TextInputContentSizeChangeEventData } from "react-native";
 
 const INPUT_MIN_HEIGHT = 24;
-const INPUT_MAX_HEIGHT = 108;
-const APPROX_CHARS_PER_LINE = 34;
-const APPROX_LINE_HEIGHT = 22;
-const EXPAND_THRESHOLD_HEIGHT = 74;
+const INPUT_LINE_HEIGHT = 22;
+const INPUT_MAX_VISIBLE_LINES = 3;
+const INPUT_MAX_HEIGHT = INPUT_LINE_HEIGHT * INPUT_MAX_VISIBLE_LINES;
+const EXPAND_THRESHOLD_HEIGHT = INPUT_MAX_HEIGHT;
 const EXPAND_THRESHOLD_LINES = 3;
-const COMPACT_TEXT_THRESHOLD = 52;
+const HEIGHT_UPDATE_DEADZONE = 2;
 
-function estimateVisualLineCount(text: string) {
-  if (!text.trim()) {
-    return 1;
-  }
-
-  return text.split("\n").reduce((total, segment) => {
-    const segmentLength = segment.length === 0 ? 1 : segment.length;
-    return total + Math.max(1, Math.ceil(segmentLength / APPROX_CHARS_PER_LINE));
-  }, 0);
-}
-
-function clampHeight(height: number) {
-  return Math.min(Math.max(height, INPUT_MIN_HEIGHT), INPUT_MAX_HEIGHT);
-}
+function clampHeight(height: number) { return Math.min(Math.max(height, INPUT_MIN_HEIGHT), INPUT_MAX_HEIGHT); }
+function getMeasuredLineCount(height: number) { return Math.max(1, Math.round(height / INPUT_LINE_HEIGHT)); }
 
 export function useComposerState(draftText: string) {
   const [measuredContentHeight, setMeasuredContentHeight] = useState(INPUT_MIN_HEIGHT);
 
-  const estimatedLineCount = useMemo(() => estimateVisualLineCount(draftText), [draftText]);
-  const estimatedContentHeight = useMemo(
-    () => clampHeight(estimatedLineCount * APPROX_LINE_HEIGHT),
-    [estimatedLineCount],
-  );
-
   useEffect(() => {
-    setMeasuredContentHeight((currentHeight) => {
-      if (!draftText.trim()) {
-        return INPUT_MIN_HEIGHT;
-      }
+    if (!draftText.trim()) {
+      setMeasuredContentHeight(INPUT_MIN_HEIGHT);
+    }
+  }, [draftText]);
 
-      if (currentHeight > estimatedContentHeight) {
-        return estimatedContentHeight;
-      }
-
-      return currentHeight;
-    });
-  }, [draftText, estimatedContentHeight]);
-
-  const inputHeight = clampHeight(Math.max(measuredContentHeight, estimatedContentHeight));
-  const inputExpanded = draftText.includes("\n") || draftText.trim().length > COMPACT_TEXT_THRESHOLD;
-  const showExpandComposer = estimatedLineCount > EXPAND_THRESHOLD_LINES || inputHeight >= EXPAND_THRESHOLD_HEIGHT;
+  const inputHeight = clampHeight(measuredContentHeight);
+  const measuredLineCount = getMeasuredLineCount(inputHeight);
+  const inputExpanded = measuredLineCount > 1 || draftText.includes("\n");
+  const showExpandComposer = measuredLineCount >= EXPAND_THRESHOLD_LINES || inputHeight >= EXPAND_THRESHOLD_HEIGHT;
 
   const handleContentSizeChange = (
     event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>,
   ) => {
     const contentHeight = Math.round(event.nativeEvent.contentSize.height);
-    setMeasuredContentHeight(clampHeight(contentHeight));
+    const nextHeight = clampHeight(contentHeight);
+    setMeasuredContentHeight((currentHeight) => (
+      Math.abs(currentHeight - nextHeight) >= HEIGHT_UPDATE_DEADZONE ? nextHeight : currentHeight
+    ));
   };
 
-  const resetComposerState = () => {
-    setMeasuredContentHeight(INPUT_MIN_HEIGHT);
-  };
+  const resetComposerState = () => { setMeasuredContentHeight(INPUT_MIN_HEIGHT); };
 
   return {
     inputHeight,
     inputExpanded,
-    estimatedLineCount,
+    measuredLineCount,
     showExpandComposer,
     handleContentSizeChange,
     resetComposerState,
   };
 }
-
-export const composerStateConstants = {
-  INPUT_MIN_HEIGHT,
-  INPUT_MAX_HEIGHT,
-};
+export const composerStateConstants = { INPUT_MIN_HEIGHT, INPUT_MAX_HEIGHT };

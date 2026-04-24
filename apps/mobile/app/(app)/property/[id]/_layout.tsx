@@ -17,6 +17,7 @@ export default function PropertyLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="amenities" />
+      <Stack.Screen name="map" />
     </Stack>
   );
 }

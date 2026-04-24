@@ -10,18 +10,78 @@ import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { usePropertyById } from "@/persistence/convex/usePropertyData";
+import { PropertySkeletonList } from "@/decision/components/PropertySkeleton";
+import { PropertyStateCard } from "@/decision/components/PropertyStateCard";
+import { usePropertyByIdState } from "@/persistence/convex/usePropertyData";
+import { useTranslation } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 export default function AmenitiesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t, isRTL } = useTranslation();
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const params = useLocalSearchParams<{ id: string }>();
 
-  const property = usePropertyById(params.id);
+  const { item: property, isLoading, isMissing } = usePropertyByIdState(params.id);
 
-  if (!property || !property.amenities) return null;
+  if (isLoading) {
+    return (
+      <Screen style={styles.screen}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <Pressable style={styles.circleBtn} onPress={() => router.back()}>
+            <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
+          </Pressable>
+          <Text variant="title" style={{ color: colors.textPrimary }}>{t.property.amenities}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.stateWrap}>
+          <PropertySkeletonList count={2} compact />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (isMissing || !property) {
+    return (
+      <Screen style={styles.screen}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <Pressable style={styles.circleBtn} onPress={() => router.back()}>
+            <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
+          </Pressable>
+          <Text variant="title" style={{ color: colors.textPrimary }}>{t.property.amenities}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.stateWrap}>
+          <PropertyStateCard
+            title={t.common.propertyUnavailableTitle}
+            body={t.common.propertyUnavailableBody}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (property.amenities.length === 0) {
+    return (
+      <Screen style={styles.screen}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          <Pressable style={styles.circleBtn} onPress={() => router.back()}>
+            <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
+          </Pressable>
+          <Text variant="title" style={{ color: colors.textPrimary }}>{t.property.amenities}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.stateWrap}>
+          <PropertyStateCard
+            title={t.common.noAmenitiesTitle}
+            body={t.common.noAmenitiesBody}
+          />
+        </View>
+      </Screen>
+    );
+  }
 
   // Group by category
   const categorized = property.amenities.reduce((acc, amenity) => {
@@ -35,9 +95,9 @@ export default function AmenitiesScreen() {
     <Screen style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <Pressable style={styles.circleBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors.textPrimary} />
+          <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
         </Pressable>
-        <Text variant="title" style={{ color: colors.textPrimary }}>All Amenities</Text>
+        <Text variant="title" style={{ color: colors.textPrimary }}>{t.property.amenities}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -71,13 +131,13 @@ export default function AmenitiesScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: theme.spacing.md,
@@ -97,6 +157,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderColor: colors.divider,
   },
   scrollContent: {
+    paddingTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  stateWrap: {
     paddingTop: theme.spacing.xl,
     paddingHorizontal: theme.spacing.lg,
   },

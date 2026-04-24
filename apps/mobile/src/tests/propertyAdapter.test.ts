@@ -76,6 +76,10 @@ test("toPropertyCardVM preserves enriched optional property fields when present"
       areaAveragePrice: 4_650_000,
       historicalData: [{ month: "Mar", value: 4_800_000 }],
     },
+    coordinates: {
+      latitude: 25.1124,
+      longitude: 55.1388,
+    },
   } as any;
 
   const vm = toPropertyCardVM(property);
@@ -84,4 +88,5 @@ test("toPropertyCardVM preserves enriched optional property fields when present"
   assert.deepEqual(vm.amenities, property.amenities);
   assert.deepEqual(vm.broker, property.broker);
   assert.deepEqual(vm.priceAnalysis, property.priceAnalysis);
+  assert.deepEqual(vm.coordinates, property.coordinates);
 });

@@ -382,7 +382,7 @@ export const getRunCostSummary = query({
     const rows = await ctx.db
       .query("usageLedger")
       .withIndex("by_runId", (q) => q.eq("runId", args.runId))
-      .collect();
+      .take(500);
 
     let totalTokens = 0;
     let totalCostUsd = 0;

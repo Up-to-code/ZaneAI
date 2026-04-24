@@ -33,10 +33,12 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surfaceRaised, // Pure solid circle
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   active: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.textPrimary,
   },
   pressed: {
     opacity: 0.9,

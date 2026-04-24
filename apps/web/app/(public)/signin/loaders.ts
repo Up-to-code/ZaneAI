@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { getAuthenticatedSession, sanitizeInternalReturnTo } from "@/lib/serverSession";
+import { sanitizeInternalReturnTo } from "@/lib/serverSession";
 
 export type SigninSearchParams = {
   returnTo?: string;
@@ -16,14 +15,8 @@ export type SigninPageState = {
 };
 
 export async function loadSigninPageState(searchParams: Promise<SigninSearchParams>): Promise<SigninPageState> {
-  const session = await getAuthenticatedSession();
   const { returnTo, mode, invite, token } = await searchParams;
 
-  const redirectTo = sanitizeInternalReturnTo(returnTo, "/ws");
-
-  if (session.token && !token) {
-    redirect(redirectTo);
-  }
   const resolvedMode =
     mode === "signup" || mode === "forgot" || mode === "reset"
       ? mode

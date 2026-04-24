@@ -8,12 +8,33 @@ import authConfig from "../auth.config";
 
 const appScheme = "zane-ai://";
 const localWebOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
-const localExpoOrigins = ["exp://*", "exps://*"];
+const localExpoOrigins = ["exp://**", "exps://**"];
 
 function normalizeWebOrigin(value: string | undefined) {
   const trimmed = value?.trim();
   if (!trimmed) {
     return undefined;
+  }
+
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    return trimmed.replace(/\/+$/, "");
+  }
+}
+
+function normalizeTrustedOrigin(value: string | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (trimmed.includes("*")) {
+    return trimmed;
+  }
+
+  if (trimmed.endsWith("://")) {
+    return trimmed;
   }
 
   try {
@@ -34,21 +55,29 @@ function readWebOriginsFromEnv() {
   return Array.from(new Set(rawOrigins.map(normalizeWebOrigin).filter((origin): origin is string => Boolean(origin))));
 }
 
+function readTrustedOriginsFromEnv() {
+  const rawOrigins = [
+    process.env.BETTER_AUTH_TRUSTED_ORIGINS,
+    process.env.TRUSTED_ORIGINS,
+  ].flatMap((value) => value?.split(",") ?? []);
+
+  return Array.from(
+    new Set(rawOrigins.map(normalizeTrustedOrigin).filter((origin): origin is string => Boolean(origin))),
+  );
+}
+
 function getTrustedWebOrigins() {
   return Array.from(new Set([...readWebOriginsFromEnv(), ...localWebOrigins]));
 }
 
 function getTrustedNativeOrigins() {
-  if (process.env.NODE_ENV !== "development") {
-    return [appScheme];
-  }
-
-  return [appScheme, ...localExpoOrigins];
+  return Array.from(new Set([appScheme, ...localExpoOrigins]));
 }
 
 export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } | any) {
   const webOrigins = getTrustedWebOrigins();
   const nativeOrigins = getTrustedNativeOrigins();
+  const extraTrustedOrigins = readTrustedOriginsFromEnv();
   const siteUrl = webOrigins[0];
   const socialProviders = {
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -56,6 +85,7 @@ export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } |
           google: {
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            overrideUserInfoOnSignIn: true,
           },
         }
       : {}),
@@ -72,7 +102,7 @@ export function createAuthOptions(ctx: { runMutation?: Function["prototype"] } |
   return {
     baseURL: process.env.BETTER_AUTH_URL || process.env.CONVEX_SITE_URL,
     basePath: "/api/auth",
-    trustedOrigins: [...nativeOrigins, ...webOrigins],
+    trustedOrigins: [...nativeOrigins, ...webOrigins, ...extraTrustedOrigins],
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,

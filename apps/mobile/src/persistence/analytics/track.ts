@@ -4,8 +4,6 @@ import { api } from "@/persistence/convex/api";
 import type { AnalyticsEventName } from "@/types/domain";
 
 let analyticsClient: ConvexReactClient | null = null;
-const analyticsDebugLoggingEnabled = __DEV__
-  && /^(1|true)$/i.test(process.env.EXPO_PUBLIC_ENABLE_ANALYTICS_LOGS ?? "");
 
 export function registerAnalyticsClient(client: ConvexReactClient | null) {
   analyticsClient = client;
@@ -21,9 +19,5 @@ export function track(eventName: AnalyticsEventName, payload: Record<string, unk
       source: typeof payload.source === "string" ? payload.source : undefined,
       payload: JSON.stringify(payload),
     });
-  }
-
-  if (analyticsDebugLoggingEnabled) {
-    console.log(`[analytics] ${eventName}`, payload);
   }
 }

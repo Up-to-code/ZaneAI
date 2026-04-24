@@ -39,8 +39,11 @@ export default function AppLayout() {
       <Stack.Screen name="saved" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="appearance" />
+      <Stack.Screen name="language" />
       <Stack.Screen name="compare" />
       <Stack.Screen name="listing" />
+      <Stack.Screen name="listing-map" />
+      <Stack.Screen name="listing-filters" />
       <Stack.Screen name="errors/index" />
       <Stack.Screen name="errors/[kind]" />
       <Stack.Screen name="property/[id]" />

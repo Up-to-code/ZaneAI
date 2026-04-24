@@ -13,6 +13,7 @@ import { Button } from "@/foundation/primitives/Button";
 import { Screen } from "@/foundation/primitives/Screen";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { useAppLocalization } from "@/foundation/localization";
 
 const TYPES = ["Apartment", "Villa", "Townhouse", "Duplex", "Twinhouse"];
 
@@ -20,9 +21,10 @@ export default function OnboardingTypesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t, isRTL } = useAppLocalization();
   const { isAuthenticated } = useAuthSession();
   const updateBuyerPreferences = useMutation(api.buyer.updateBuyerPreferences);
-  
+
   const setOnboardingComplete = useAppStore((state) => state.setOnboardingComplete);
   const preferenceProfile = useAppStore((state) => state.preferenceProfile);
   const patchPreferenceProfile = useAppStore((state) => state.patchPreferenceProfile);
@@ -87,6 +89,7 @@ export default function OnboardingTypesScreen() {
     },
     intro: {
       gap: 12,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     display: {
       fontSize: 32,
@@ -97,14 +100,15 @@ export default function OnboardingTypesScreen() {
       fontSize: 16,
       color: colors.textSecondary,
       lineHeight: 24,
+      textAlign: isRTL ? "right" : "left",
     },
     chipGrid: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       flexWrap: "wrap",
       gap: 12,
     },
     chip: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       gap: 8,
       paddingHorizontal: 16,
@@ -137,9 +141,9 @@ export default function OnboardingTypesScreen() {
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
-            <Text variant="display" style={styles.display}>Architecture</Text>
+            <Text variant="display" style={styles.display}>{t.onboarding.typesTitle}</Text>
             <Text style={styles.subtitle}>
-              Select the property types that match your architectural taste.
+              {t.onboarding.typesBody}
             </Text>
           </Animated.View>
 
@@ -147,7 +151,7 @@ export default function OnboardingTypesScreen() {
             {TYPES.map((type) => {
               const isSelected = selectedTypes.includes(type);
               const isVillaLike = type === "Villa" || type === "Townhouse" || type === "Twinhouse";
-              
+
               return (
                 <Pressable
                   key={type}
@@ -185,7 +189,7 @@ export default function OnboardingTypesScreen() {
         style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 32) }]}
       >
         <Button
-          label="Complete Journey"
+          label={t.onboarding.completeJourney}
           variant="primary"
           onPress={finalizeJourney}
           style={styles.mainBtn}

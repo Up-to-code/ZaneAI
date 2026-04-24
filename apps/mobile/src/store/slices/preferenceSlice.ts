@@ -1,14 +1,18 @@
 import type { StateCreator } from "zustand";
+import type { AppLocale } from "../../../../../packages/ag-ui/src/zaneai/locale";
 
 import type { PreferenceProfile } from "@/types/domain";
 
 export type AppearanceMode = "system" | "light" | "dark";
+export type LocalePreference = "system" | AppLocale;
 
 export type PreferenceSlice = {
   preferenceProfile: PreferenceProfile;
   appearanceMode: AppearanceMode;
+  localePreference: LocalePreference;
   patchPreferenceProfile: (value: Partial<PreferenceProfile>) => void;
   setAppearanceMode: (value: AppearanceMode) => void;
+  setLocalePreference: (value: LocalePreference) => void;
 };
 
 const defaultPreferenceProfile: PreferenceProfile = {
@@ -24,6 +28,7 @@ const defaultPreferenceProfile: PreferenceProfile = {
 export const createPreferenceSlice: StateCreator<PreferenceSlice, [], [], PreferenceSlice> = (set) => ({
   preferenceProfile: defaultPreferenceProfile,
   appearanceMode: "system",
+  localePreference: "system",
   patchPreferenceProfile: (value) =>
     set((state) => ({
       preferenceProfile: {
@@ -32,4 +37,5 @@ export const createPreferenceSlice: StateCreator<PreferenceSlice, [], [], Prefer
       },
     })),
   setAppearanceMode: (value) => set({ appearanceMode: value }),
+  setLocalePreference: (value) => set({ localePreference: value }),
 });

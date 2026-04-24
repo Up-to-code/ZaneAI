@@ -10,6 +10,7 @@ import { Button } from "@/foundation/primitives/Button";
 import { Screen } from "@/foundation/primitives/Screen";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { useAppLocalization } from "@/foundation/localization";
 
 const LOCATIONS = [
   "New Cairo",
@@ -25,7 +26,8 @@ export default function OnboardingLocationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  
+  const { t, isRTL } = useAppLocalization();
+
   const setOnboardingComplete = useAppStore((state) => state.setOnboardingComplete);
   const preferenceProfile = useAppStore((state) => state.preferenceProfile);
   const patchPreferenceProfile = useAppStore((state) => state.patchPreferenceProfile);
@@ -85,6 +87,7 @@ export default function OnboardingLocationsScreen() {
     },
     intro: {
       gap: 12,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     display: {
       fontSize: 32,
@@ -95,14 +98,15 @@ export default function OnboardingLocationsScreen() {
       fontSize: 16,
       color: colors.textSecondary,
       lineHeight: 24,
+      textAlign: isRTL ? "right" : "left",
     },
     chipGrid: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       flexWrap: "wrap",
       gap: 12,
     },
     chip: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       gap: 8,
       paddingHorizontal: 16,
@@ -135,9 +139,9 @@ export default function OnboardingLocationsScreen() {
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
-            <Text variant="display" style={styles.display}>Personalize</Text>
+            <Text variant="display" style={styles.display}>{t.onboarding.locationsTitle}</Text>
             <Text style={styles.subtitle}>
-              Where are you looking to buy or invest? Select all that apply.
+              {t.onboarding.locationsBody}
             </Text>
           </Animated.View>
 
@@ -177,7 +181,7 @@ export default function OnboardingLocationsScreen() {
         style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 32) }]}
       >
         <Button
-          label="Continue"
+          label={t.common.continue}
           variant="primary"
           onPress={handleNext}
           style={styles.mainBtn}

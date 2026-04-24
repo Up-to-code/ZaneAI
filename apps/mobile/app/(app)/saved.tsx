@@ -7,20 +7,25 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { EmptyPropertiesState } from "@/decision/components/EmptyPropertiesState";
 import { PropertyCard } from "@/decision/components/PropertyCard";
+import { PropertySkeletonList } from "@/decision/components/PropertySkeleton";
+import { useAppLocalization } from "@/foundation/localization";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { useSavedProperties } from "@/persistence/convex/usePropertyData";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
+import { useSavedPropertiesState } from "@/persistence/convex/usePropertyData";
 import type { PropertyCardVM } from "@/types/domain";
 
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t, isRTL } = useAppLocalization();
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const [searchQuery, setSearchQuery] = useState("");
-  
-  const savedListings = useSavedProperties()
+
+  const { items: savedRows, isLoading } = useSavedPropertiesState();
+  const savedListings = savedRows
     .map((item: { property: PropertyCardVM | null }) => item.property)
     .filter((property: PropertyCardVM | null): property is PropertyCardVM => property !== null);
 
@@ -36,20 +41,21 @@ export default function SavedScreen() {
     <Screen safe={false}>
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
-          <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={24} color={colors.textPrimary} />
+          <Pressable accessibilityLabel={t.common.back} style={styles.backBtn} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
-          <Text variant="title" style={styles.headerTitle}>Favorites</Text>
+          <Text variant="title" style={styles.headerTitle}>{t.saved.title}</Text>
           <View style={{ width: 44 }} />
         </View>
 
         <View style={styles.search}>
           <View style={styles.searchInner}>
             <Search size={18} color={colors.textMuted} />
-            <TextInput 
-              placeholder="Search collection..."
+            <TextInput
+              placeholder={t.saved.searchPlaceholder}
               placeholderTextColor={colors.textMuted}
               style={styles.input}
+              textAlign={isRTL ? "right" : "left"}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -59,20 +65,22 @@ export default function SavedScreen() {
 
       <ScrollView
         contentContainerStyle={[
-          styles.scrollContent, 
-          { paddingTop: insets.top + 120, paddingBottom: insets.bottom + 40 }
+          styles.scrollContent,
+          { paddingTop: insets.top + 120, paddingBottom: insets.bottom + 40 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {filteredProperties.length === 0 ? (
+        {isLoading ? (
+          <PropertySkeletonList count={3} compact />
+        ) : filteredProperties.length === 0 ? (
           <EmptyPropertiesState
-            title="No favorites yet"
-            body="Save properties from the heart button and they will appear here."
+            title={searchQuery.trim().length > 0 ? t.saved.noMatchesTitle : t.saved.emptyTitle}
+            body={searchQuery.trim().length > 0 ? t.saved.noMatchesBody : t.saved.emptyBody}
           />
         ) : (
           <View style={styles.list}>
             {filteredProperties.map((p: PropertyCardVM, i: number) => (
-              <Animated.View 
+              <Animated.View
                 key={p.id}
                 entering={FadeInDown.delay(i * 100).springify()}
                 style={styles.cardItem}
@@ -87,7 +95,7 @@ export default function SavedScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   header: {
     position: "absolute",
     top: 0,
@@ -101,7 +109,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingBottom: 12,
   },
   headerTop: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
     height: 44,
@@ -128,7 +136,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginTop: 4,
   },
   searchInner: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     backgroundColor: colors.surface,
     height: 44,

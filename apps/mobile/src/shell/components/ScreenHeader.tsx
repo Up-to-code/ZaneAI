@@ -37,14 +37,8 @@ export function ScreenHeader({ eyebrow, title, subtitle, showCopy = true }: Scre
 }
 
 const createStyles = (colors: any, insets: any) => StyleSheet.create({
-  container: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: insets.top + theme.spacing.md,
-    paddingBottom: theme.spacing.md,
-  },
-  copyBlock: {
-    gap: theme.spacing.xs,
-  },
+  container: { paddingHorizontal: theme.spacing.lg, paddingTop: insets.top + theme.spacing.md, paddingBottom: theme.spacing.md },
+  copyBlock: { gap: theme.spacing.xs },
   eyebrow: {
     textTransform: "uppercase",
     letterSpacing: 2.2, // Elite tracking

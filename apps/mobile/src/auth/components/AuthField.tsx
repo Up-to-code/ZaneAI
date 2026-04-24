@@ -1,6 +1,7 @@
 import { StyleSheet, TextInput, View, type TextInputProps } from "react-native";
 import { type LucideIcon } from "lucide-react-native";
 
+import { useAppLocalization } from "@/foundation/localization";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
@@ -12,6 +13,7 @@ type AuthFieldProps = TextInputProps & {
 
 export function AuthField({ label, icon: Icon, style, ...props }: AuthFieldProps) {
   const { colors } = useTheme();
+  const { isRTL } = useAppLocalization();
 
   return (
     <View style={styles.container}>
@@ -21,6 +23,7 @@ export function AuthField({ label, icon: Icon, style, ...props }: AuthFieldProps
       <View
         style={[
           styles.field,
+          isRTL && styles.fieldRtl,
           {
             backgroundColor: colors.background,
             borderColor: colors.divider,
@@ -32,7 +35,8 @@ export function AuthField({ label, icon: Icon, style, ...props }: AuthFieldProps
           accessibilityLabel={label}
           placeholderTextColor={colors.textMuted}
           selectionColor={colors.accent}
-          style={[styles.input, { color: colors.textPrimary }, style]}
+          style={[styles.input, isRTL && styles.inputRtl, { color: colors.textPrimary }, style]}
+          textAlign={isRTL ? "right" : "left"}
           {...props}
         />
       </View>
@@ -59,5 +63,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontFamily: "Manrope_500Medium",
     paddingVertical: theme.spacing.md,
+  },
+  fieldRtl: {
+    flexDirection: "row-reverse",
+  },
+  inputRtl: {
+    writingDirection: "rtl",
   },
 });

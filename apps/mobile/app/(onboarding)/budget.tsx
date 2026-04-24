@@ -10,6 +10,8 @@ import { Button } from "@/foundation/primitives/Button";
 import { Screen } from "@/foundation/primitives/Screen";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { useAppLocalization } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 const BUDGET_OPTIONS = [
   { label: "1.5M - 3M", value: [1500000, 3000000] },
@@ -23,7 +25,8 @@ export default function OnboardingBudgetScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  
+  const { t, isRTL } = useAppLocalization();
+
   const setOnboardingComplete = useAppStore((state) => state.setOnboardingComplete);
   const preferenceProfile = useAppStore((state) => state.preferenceProfile);
   const patchPreferenceProfile = useAppStore((state) => state.patchPreferenceProfile);
@@ -49,7 +52,7 @@ export default function OnboardingBudgetScreen() {
       backgroundColor: colors.background,
     },
     topSection: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       justifyContent: "space-between",
       paddingHorizontal: theme.spacing.xl,
       zIndex: 10,
@@ -74,6 +77,7 @@ export default function OnboardingBudgetScreen() {
     },
     intro: {
       gap: 12,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     display: {
       fontSize: 32,
@@ -84,12 +88,13 @@ export default function OnboardingBudgetScreen() {
       fontSize: 16,
       color: colors.textSecondary,
       lineHeight: 24,
+      textAlign: isRTL ? "right" : "left",
     },
     optionsStack: {
       gap: 12,
     },
     optionCard: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       gap: 12,
       paddingHorizontal: 20,
@@ -115,7 +120,7 @@ export default function OnboardingBudgetScreen() {
     <Screen style={styles.container}>
       <View style={[styles.topSection, { paddingTop: Math.max(insets.top, 20) }]}>
         <Pressable style={styles.navBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color={colors.textPrimary} />
+          <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
         </Pressable>
         <Pressable style={styles.navBtn} onPress={handleSkip}>
           <X size={20} color={colors.textPrimary} />
@@ -125,9 +130,9 @@ export default function OnboardingBudgetScreen() {
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
-            <Text variant="display" style={styles.display}>Scope</Text>
+            <Text variant="display" style={styles.display}>{t.onboarding.budgetTitle}</Text>
             <Text style={styles.subtitle}>
-              What is your desired investment budget? Select a baseline.
+              {t.onboarding.budgetBody}
             </Text>
           </Animated.View>
 
@@ -153,7 +158,7 @@ export default function OnboardingBudgetScreen() {
                       { color: isSelected ? colors.background : colors.textPrimary },
                     ]}
                   >
-                    {opt.label} EGP
+                    {opt.label} {t.onboarding.currency}
                   </Text>
                 </Pressable>
               );
@@ -167,7 +172,7 @@ export default function OnboardingBudgetScreen() {
         style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 32) }]}
       >
         <Button
-          label="Continue"
+          label={t.common.continue}
           variant="primary"
           onPress={handleNext}
           style={styles.mainBtn}

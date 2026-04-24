@@ -5,30 +5,33 @@ import { ArrowLeft, ChevronRight } from "lucide-react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useAppLocalization } from "@/foundation/localization";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 import { errorStates } from "@/shell/errorStates";
 
 export default function ErrorStatesIndexScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t, isRTL } = useAppLocalization();
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
 
   return (
     <Screen safe={false}>
       <View style={[styles.header, { paddingTop: insets.top + theme.spacing.sm }]}>
-        <Pressable accessibilityLabel="Back" onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={20} color={colors.textPrimary} />
+        <Pressable accessibilityLabel={t.common.back} onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
         </Pressable>
         <View style={styles.headerCopy}>
           <Text variant="caption" tone="muted" style={styles.eyebrow}>
-            SYSTEM STATES
+            {t.errorList.listEyebrow}
           </Text>
           <Text variant="title" style={styles.title}>
-            Error screens
+            {t.errorList.listTitle}
           </Text>
         </View>
       </View>
@@ -44,7 +47,7 @@ export default function ErrorStatesIndexScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text tone="secondary" style={styles.intro}>
-          Preview recovery states for broken drafts, crashes, missing routes, network loss, and service windows.
+          {t.errorList.listBody}
         </Text>
 
         <View style={styles.list}>
@@ -67,7 +70,7 @@ export default function ErrorStatesIndexScreen() {
                   <Text variant="caption" tone="muted" style={styles.code}>
                     {state.code}
                   </Text>
-                  <ChevronRight size={16} color={colors.textMuted} />
+                  <ChevronRight size={16} color={colors.textMuted} style={mirrorIcon(isRTL)} />
                 </Pressable>
               </Animated.View>
             );
@@ -78,7 +81,7 @@ export default function ErrorStatesIndexScreen() {
   );
 }
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, isRTL: boolean) =>
   StyleSheet.create({
     header: {
       position: "absolute",
@@ -86,7 +89,7 @@ const createStyles = (colors: any) =>
       left: 0,
       right: 0,
       zIndex: 20,
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       gap: theme.spacing.md,
       paddingHorizontal: theme.spacing.lg,
@@ -105,10 +108,11 @@ const createStyles = (colors: any) =>
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.divider,
     },
-    headerCopy: {
-      flex: 1,
-      gap: 2,
-    },
+      headerCopy: {
+        flex: 1,
+        gap: 2,
+        alignItems: isRTL ? "flex-end" : "flex-start",
+      },
     eyebrow: {
       letterSpacing: 2.2,
     },
@@ -128,7 +132,7 @@ const createStyles = (colors: any) =>
     },
     row: {
       minHeight: 86,
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       gap: theme.spacing.md,
       padding: theme.spacing.md,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import type { ConversationDetail, ConversationMessage, ConversationSummary, UserConversationTarget } from "@/server/contracts/inbox";
+import type { ConversationDetail, ConversationSummary, UserConversationTarget } from "@/server/contracts/inbox";
 import type { UseRealtimeInboxArgs, UseRealtimeInboxResult } from "./useRealtimeInbox.shared";
 
 export { useWorkspaceSignalCounts } from "./useWorkspaceSignalCounts";
@@ -12,63 +12,6 @@ function cloneConversation(conversation: ConversationDetail): ConversationDetail
     otherUser: { ...conversation.otherUser },
     lastMessage: conversation.lastMessage ? { ...conversation.lastMessage } : null,
     messages: [...conversation.messages],
-  };
-}
-
-function buildConversationDetail(summary: ConversationSummary): ConversationDetail {
-  return {
-    ...summary,
-    otherParticipantLastReadAt: null,
-    messages: summary.lastMessage
-      ? [
-          {
-            id: summary.lastMessage.id,
-            senderUserId: summary.lastMessage.senderUserId,
-            recipientUserId: summary.otherUser.id,
-            type: summary.lastMessage.type,
-            body: summary.lastMessage.body,
-            createdAt: summary.lastMessage.createdAt,
-            metadata: null,
-          } as ConversationMessage,
-        ]
-      : [],
-  };
-}
-
-function buildSearchResults(
-  conversations: ConversationSummary[],
-  query: string,
-  currentUserId: string,
-): UserConversationTarget[] {
-  if (!query) {
-    return [];
-  }
-
-  const normalizedQuery = query.toLowerCase();
-  return conversations
-    .map((conversation) => conversation.otherUser)
-    .filter((target) => target.id !== currentUserId)
-    .filter((target) => {
-      const haystack = [target.name, target.email ?? "", target.username ?? "", target.organizationName ?? ""]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(normalizedQuery);
-    });
-}
-
-function buildDemoConversation(target: UserConversationTarget, currentUserId: string): ConversationDetail {
-  const createdAt = Date.now();
-  return {
-    id: `demo-${target.id}`,
-    directKey: `demo-${currentUserId}-${target.id}`,
-    otherUser: target,
-    unreadCount: 0,
-    updatedAt: createdAt,
-    lastMessage: null,
-    lastMessagePreview: "",
-    archivedAt: null,
-    otherParticipantLastReadAt: null,
-    messages: [],
   };
 }
 
@@ -93,11 +36,17 @@ function syncConversationUrl(conversationId: string | null, method: "push" | "re
   window.history.pushState(null, "", nextHref);
 }
 
-/**
- * WHY:   The inbox should only auto-open the first conversation when the user has not already chosen one.
- * WHAT:  Returns the first conversation id eligible for automatic selection.
- * HOW:   Skips auto-selection when the route is already pinned to a conversation or when local state already has an active id.
- */
+async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
+  const response = await fetch(input, init);
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(typeof payload?.message === "string" ? payload.message : "Request failed.");
+  }
+
+  return payload as T;
+}
+
 export function getInboxAutoSelectedConversationId(args: {
   activeConversationId: string | null;
   conversations: Array<{ id: string }>;
@@ -111,13 +60,9 @@ export function getInboxAutoSelectedConversationId(args: {
   return args.conversations[0]?.id ?? null;
 }
 
-/**
- * WHY:   The inbox workspace still needs a single coordinator in demo mode.
- * WHAT:  Keeps the original inbox hook surface while storing conversation state locally.
- * HOW:   Seeds from server fixtures, mirrors conversation selection into the URL, and performs local archive/send/search updates.
- */
 export function useRealtimeInbox({
   currentUserId,
+  initialArchivedConversations,
   initialConversations,
   initialConversation,
   initialSelectedConversationId,
@@ -130,7 +75,13 @@ export function useRealtimeInbox({
       lastMessage: conversation.lastMessage ? { ...conversation.lastMessage } : null,
     })),
   );
-  const [archivedConversations, setArchivedConversations] = useState<ConversationSummary[]>([]);
+  const [archivedConversations, setArchivedConversations] = useState<ConversationSummary[]>(() =>
+    initialArchivedConversations.map((conversation) => ({
+      ...conversation,
+      otherUser: { ...conversation.otherUser },
+      lastMessage: conversation.lastMessage ? { ...conversation.lastMessage } : null,
+    })),
+  );
   const [conversationOverrides, setConversationOverrides] = useState<Record<string, ConversationDetail>>(() =>
     initialConversation ? { [initialConversation.id]: cloneConversation(initialConversation) } : {},
   );
@@ -138,10 +89,13 @@ export function useRealtimeInbox({
     initialSelectedConversationId ?? initialConversation?.id ?? initialConversations[0]?.id ?? null,
   );
   const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<UserConversationTarget[]>([]);
   const [sendError, setSendError] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(() => Boolean(initialConversation?.archivedAt));
   const [isArchivingConversation, setIsArchivingConversation] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isLiveConversationLoading, setIsLiveConversationLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const deferredSearch = useDeferredValue(search.trim());
 
   const activeConversationList = showArchived ? archivedConversations : activeConversations;
@@ -151,19 +105,8 @@ export function useRealtimeInbox({
       return null;
     }
 
-    const override = conversationOverrides[activeConversationId];
-    if (override) {
-      return override;
-    }
-
-    const summary = [...activeConversations, ...archivedConversations].find((item) => item.id === activeConversationId);
-    return summary ? buildConversationDetail(summary) : null;
-  }, [activeConversationId, activeConversations, archivedConversations, conversationOverrides]);
-
-  const searchResults = useMemo<UserConversationTarget[]>(
-    () => buildSearchResults([...activeConversations, ...archivedConversations], deferredSearch, currentUserId),
-    [activeConversations, archivedConversations, currentUserId, deferredSearch],
-  );
+    return conversationOverrides[activeConversationId] ?? null;
+  }, [activeConversationId, conversationOverrides]);
 
   useEffect(() => {
     if (initialSelectedConversationId) {
@@ -186,6 +129,75 @@ export function useRealtimeInbox({
     setActiveConversationId(nextConversationId);
     syncConversationUrl(nextConversationId, "replace");
   }, [activeConversationId, activeConversations, hasConversationRoute, initialConversation?.archivedAt, initialSelectedConversationId]);
+
+  useEffect(() => {
+    if (!activeConversationId || conversationOverrides[activeConversationId]) {
+      return;
+    }
+
+    let cancelled = false;
+    setIsLiveConversationLoading(true);
+
+    void fetchJson<ConversationDetail>(`/api/ws/inbox/conversations/${encodeURIComponent(activeConversationId)}`)
+      .then((nextConversation) => {
+        if (cancelled) {
+          return;
+        }
+
+        setConversationOverrides((current) => ({
+          ...current,
+          [nextConversation.id]: cloneConversation(nextConversation),
+        }));
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setSendError(error instanceof Error ? error.message : "تعذر تحميل المحادثة.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLiveConversationLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeConversationId, conversationOverrides]);
+
+  useEffect(() => {
+    if (!deferredSearch) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsSearching(true);
+
+    void fetchJson<UserConversationTarget[]>(
+      `/api/ws/inbox/search?query=${encodeURIComponent(deferredSearch)}`,
+    )
+      .then((results) => {
+        if (!cancelled) {
+          setSearchResults(results.filter((target) => target.id !== currentUserId));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSearchResults([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsSearching(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUserId, deferredSearch]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -218,6 +230,7 @@ export function useRealtimeInbox({
   }, [activeConversationId, activeConversationList]);
 
   const handleSelectConversation = (conversationId: string) => {
+    setSendError(null);
     setShowArchived(archivedConversations.some((item) => item.id === conversationId));
     setActiveConversationId(conversationId);
     syncConversationUrl(conversationId);
@@ -236,54 +249,55 @@ export function useRealtimeInbox({
 
     const archivedConversation = archivedConversations.find((item) => item.otherUser.id === targetUserId);
     if (archivedConversation) {
-      setArchivedConversations((current) => current.filter((item) => item.id !== archivedConversation.id));
-      setActiveConversations((current) => [{ ...archivedConversation, archivedAt: null }, ...current]);
-      setSearch("");
-      setShowArchived(false);
-      setActiveConversationId(archivedConversation.id);
-      syncConversationUrl(archivedConversation.id);
+      await handleSetConversationArchived(archivedConversation.id, false);
       return;
     }
 
-    const target = searchResults.find((item) => item.id === targetUserId) ?? {
-      id: targetUserId,
-      name: "Demo contact",
-      email: null,
-      username: null,
-      image: null,
-      role: "member",
-      brokerId: null,
-      redId: null,
-      organizationName: "Zane-ai Demo",
-      organizationType: "broker" as const,
-      membershipState: "member" as const,
-      conversationId: null,
-    };
-
-    const conversationDetail = buildDemoConversation(target, currentUserId);
+    const { conversationId } = await fetchJson<{ conversationId: string }>("/api/ws/inbox/resolve", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ targetUserId }),
+    });
+    const nextConversation = await fetchJson<ConversationDetail>(
+      `/api/ws/inbox/conversations/${encodeURIComponent(conversationId)}`,
+    );
     const summary: ConversationSummary = {
-      id: conversationDetail.id,
-      directKey: conversationDetail.directKey,
-      otherUser: conversationDetail.otherUser,
-      lastMessage: null,
-      lastMessagePreview: "",
-      updatedAt: conversationDetail.updatedAt,
-      unreadCount: 0,
-      archivedAt: null,
+      id: nextConversation.id,
+      directKey: nextConversation.directKey,
+      otherUser: nextConversation.otherUser,
+      lastMessage: nextConversation.lastMessage,
+      lastMessagePreview: nextConversation.lastMessagePreview,
+      updatedAt: nextConversation.updatedAt,
+      unreadCount: nextConversation.unreadCount,
+      archivedAt: nextConversation.archivedAt ?? null,
     };
 
-    setConversationOverrides((current) => ({ ...current, [conversationDetail.id]: conversationDetail }));
-    setActiveConversations((current) => [summary, ...current]);
+    setConversationOverrides((current) => ({ ...current, [nextConversation.id]: cloneConversation(nextConversation) }));
+    setActiveConversations((current) => [summary, ...current.filter((item) => item.id !== summary.id)]);
     setSearch("");
     setShowArchived(false);
-    setActiveConversationId(conversationDetail.id);
-    syncConversationUrl(conversationDetail.id);
+    setActiveConversationId(nextConversation.id);
+    syncConversationUrl(nextConversation.id);
   };
 
   const handleSetConversationArchived = async (conversationId: string, archived: boolean) => {
     setIsArchivingConversation(true);
+    setSendError(null);
 
     try {
+      await fetchJson<{ ok: true }>(
+        `/api/ws/inbox/conversations/${encodeURIComponent(conversationId)}/archive`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ archived }),
+        },
+      );
+
       if (archived) {
         const targetConversation = activeConversations.find((item) => item.id === conversationId);
         if (!targetConversation) {
@@ -322,7 +336,7 @@ export function useRealtimeInbox({
   };
 
   const handleSendMessage = async (body: string) => {
-    if (!activeConversationId || !conversation) {
+    if (!activeConversationId) {
       return;
     }
 
@@ -335,55 +349,39 @@ export function useRealtimeInbox({
     setIsSending(true);
 
     try {
-      const createdAt = Date.now();
-      const nextMessage: ConversationMessage = {
-        id: `demo-message-${createdAt}`,
-        senderUserId: currentUserId,
-        recipientUserId: conversation.otherUser.id,
-        type: "text",
-        body: trimmedBody,
-        createdAt,
-        metadata: {
-          clientRequestId: `demo-${createdAt}`,
-          optimistic: true,
+      await fetchJson<{ conversationId: string; messageId: string }>("/api/ws/inbox/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
         },
-      };
+        body: JSON.stringify({
+          conversationId: activeConversationId,
+          body: trimmedBody,
+          clientRequestId: `client-${Date.now()}`,
+        }),
+      });
 
-      const nextConversation: ConversationDetail = {
-        ...conversation,
-        updatedAt: createdAt,
-        unreadCount: 0,
-        lastMessage: {
-          id: nextMessage.id,
-          senderUserId: nextMessage.senderUserId,
-          body: nextMessage.body,
-          type: nextMessage.type,
-          createdAt: nextMessage.createdAt,
-        },
-        lastMessagePreview: nextMessage.body,
-        messages: [...conversation.messages, nextMessage],
-      };
+      const nextConversation = await fetchJson<ConversationDetail>(
+        `/api/ws/inbox/conversations/${encodeURIComponent(activeConversationId)}`,
+      );
 
-      setConversationOverrides((current) => ({ ...current, [activeConversationId]: nextConversation }));
+      setConversationOverrides((current) => ({ ...current, [activeConversationId]: cloneConversation(nextConversation) }));
       setActiveConversations((current) => {
-        const currentSummary = current.find((item) => item.id === activeConversationId);
         const nextSummary: ConversationSummary = {
-          id: activeConversationId,
+          id: nextConversation.id,
           directKey: nextConversation.directKey,
           otherUser: nextConversation.otherUser,
           lastMessage: nextConversation.lastMessage,
           lastMessagePreview: nextConversation.lastMessagePreview,
-          updatedAt: createdAt,
-          unreadCount: 0,
+          updatedAt: nextConversation.updatedAt,
+          unreadCount: nextConversation.unreadCount,
           archivedAt: null,
         };
 
-        if (!currentSummary) {
-          return [nextSummary, ...current];
-        }
-
         return [nextSummary, ...current.filter((item) => item.id !== activeConversationId)];
       });
+    } catch (error) {
+      setSendError(error instanceof Error ? error.message : "تعذر إرسال الرسالة.");
     } finally {
       setIsSending(false);
     }
@@ -396,10 +394,10 @@ export function useRealtimeInbox({
     conversations: activeConversationList,
     handleSetConversationArchived,
     isArchivingConversation,
-    isLiveConversationLoading: false,
+    isLiveConversationLoading,
     isShowingArchived: showArchived,
     isSending,
-    isSearching: deferredSearch.length > 0,
+    isSearching,
     search,
     searchResults,
     sendError,

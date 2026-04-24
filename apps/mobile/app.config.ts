@@ -93,6 +93,7 @@ const config: ExpoConfig = {
   plugins: [
     "expo-font",
     "expo-router",
+    "@rnmapbox/maps",
     [
       "expo-speech-recognition",
       {

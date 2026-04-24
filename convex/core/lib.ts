@@ -5,6 +5,7 @@ import { ensureProfile } from "../auth/profile";
 
 export type AppCtx = QueryCtx | MutationCtx;
 export type WorkspaceRole = Doc<"organizationMembers">["role"];
+export type WorkspaceCapability = "manageInventory" | "manageOrganization";
 
 export async function getProfileByAuthUserId(ctx: AppCtx, authUserId: string) {
   return await ctx.db
@@ -30,6 +31,12 @@ export async function requireProfile(ctx: AppCtx) {
   return { authUser, profile };
 }
 
+export async function getProfileIfExists(ctx: AppCtx) {
+  const authUser = await authComponent.getAuthUser(ctx);
+  const profile = await getProfileByAuthUserId(ctx, authUser._id);
+  return { authUser, profile };
+}
+
 export async function getDefaultMembership(ctx: AppCtx, profileId: Id<"profiles">) {
   const primary = await ctx.db
     .query("organizationMembers")
@@ -51,9 +58,13 @@ export async function requireWorkspace(ctx: AppCtx) {
   return { authUser, profile, membership, organization };
 }
 
-export function assertWorkspaceRole(role: WorkspaceRole, allowed: WorkspaceRole[]) {
+export function assertWorkspaceRole(
+  role: WorkspaceRole,
+  allowed: WorkspaceRole[],
+  message = "You do not have permission to perform this workspace action.",
+) {
   if (!allowed.includes(role)) {
-    throw new Error("You do not have permission to perform this workspace action.");
+    throw new Error(message);
   }
 }
 
@@ -63,6 +74,33 @@ export function canManageInventory(role: WorkspaceRole) {
 
 export function canManageOrganization(role: WorkspaceRole) {
   return role === "owner" || role === "manager";
+}
+
+export function canUseWorkspaceCapability(role: WorkspaceRole, capability: WorkspaceCapability) {
+  if (capability === "manageInventory") {
+    return canManageInventory(role);
+  }
+  return canManageOrganization(role);
+}
+
+export function assertWorkspaceCapability(
+  role: WorkspaceRole,
+  capability: WorkspaceCapability,
+  message = "You do not have permission to perform this workspace action.",
+) {
+  if (!canUseWorkspaceCapability(role, capability)) {
+    throw new Error(message);
+  }
+}
+
+export async function requireWorkspaceCapability(
+  ctx: AppCtx,
+  capability: WorkspaceCapability,
+  message?: string,
+) {
+  const workspace = await requireWorkspace(ctx);
+  assertWorkspaceCapability(workspace.membership.role, capability, message);
+  return workspace;
 }
 
 export function normalizeEmail(value: string | null | undefined) {

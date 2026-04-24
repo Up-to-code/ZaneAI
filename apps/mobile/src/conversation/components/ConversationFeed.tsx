@@ -45,7 +45,7 @@ function ScrollToLatestButton({
 
   return (
     <View style={styles.scrollButtonWrap}>
-      <IconButton onPress={onPress}>
+      <IconButton onPress={onPress} style={{ backgroundColor: colors.background }}>
         <ArrowDown size={18} color={colors.textPrimary} />
       </IconButton>
     </View>

@@ -1,6 +1,7 @@
 import { Fragment, useMemo, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { Sparkles } from "lucide-react-native";
 
 import type { AssistantAction, AssistantBlock, AssistantTurn } from "@/conversation/assistantProtocol";
 import { Text } from "@/foundation/primitives/Text";
@@ -63,18 +64,13 @@ function PropertyFallback({ propertyId }: { propertyId: string }) {
 
 function renderProperties(propertyIds: string[], renderPropertyPreview?: (propertyId: string) => ReactNode) {
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={rendererStyles.propertyRail}
-      contentContainerStyle={rendererStyles.propertyRailContent}
-    >
+    <View style={rendererStyles.verticalPropertyList}>
       {propertyIds.map((propertyId) => (
         <Fragment key={propertyId}>
           {renderPropertyPreview ? renderPropertyPreview(propertyId) : <PropertyFallback propertyId={propertyId} />}
         </Fragment>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -109,11 +105,11 @@ function ActionButtons({
   }
 
   return (
-    <PromptChips 
-      prompts={preparedActions} 
-      variant="link" 
-      isAr={isAr} 
-      containerStyle={styles.actionChipsContainer} 
+    <PromptChips
+      prompts={preparedActions}
+      variant="link"
+      isAr={isAr}
+      containerStyle={styles.actionChipsContainer}
     />
   );
 }
@@ -146,9 +142,29 @@ function RenderBlock({
       );
     case "property_list":
       return (
-        <Section title={block.title} tone={turn.motion.preset} isAr={isAr} cardless>
-          {block.subtitle ? <Text style={styles.subtleText}>{block.subtitle}</Text> : null}
-          {renderProperties(block.propertyIds, renderPropertyPreview)}
+        <Section tone={turn.motion.preset} isAr={isAr} cardless>
+
+
+          <View style={styles.compactPropertyList}>
+            {block.propertyIds.slice(0, 3).map((id) => (
+              <Fragment key={id}>
+                {renderPropertyPreview ? renderPropertyPreview(id) : <PropertyFallback propertyId={id} />}
+              </Fragment>
+            ))}
+          </View>
+
+          <Pressable 
+            style={[styles.seeAllBtn, isAr && { alignItems: "flex-end" }]}
+            onPress={() => onAction?.({
+              id: `see-all-${block.id}`,
+              name: "open_search",
+              title: "See more results",
+              payload: { query: block.searchQuery || block.querySummary }
+            }, turn)}
+          >
+            <Text style={styles.seeAllBtnText}>{isAr ? "عرض المزيد من النتائج →" : "See more results →"}</Text>
+          </Pressable>
+
           {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
@@ -169,6 +185,17 @@ function RenderBlock({
               );
             })}
           </View>
+          <Pressable 
+            style={[styles.seeAllBtn, isAr && { alignItems: "flex-end" }]}
+            onPress={() => onAction?.({
+              id: `see-more-${block.id}`,
+              name: "open_search",
+              title: "See more results",
+              payload: {}
+            }, turn)}
+          >
+            <Text style={styles.seeAllBtnText}>{isAr ? "عرض المزيد من النتائج →" : "See more results →"}</Text>
+          </Pressable>
           {renderBlockSuggestions(block, onSuggestionPress, false, isAr)}
         </Section>
       );
@@ -369,10 +396,15 @@ const rendererStyles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xl,
     paddingBottom: theme.spacing.xs,
   },
+  verticalPropertyList: {
+    gap: 0,
+    marginHorizontal: 8,
+  },
 });
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
+const createStyles = (colors: any) => {
+  const isDark = colors.background === "#000000";
+  return StyleSheet.create({
     container: {
       marginTop: 0,
       gap: 12, // Increased from 2 for better block separation
@@ -510,4 +542,58 @@ const createStyles = (colors: any) =>
       paddingTop: 2,
       paddingBottom: 4,
     },
+    aiSuggestsBanner: {
+      backgroundColor: isDark ? "rgba(218,63,69,0.1)" : "#FCEDEE",
+      borderRadius: radii.md,
+      padding: theme.spacing.lg,
+      gap: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+      marginHorizontal: theme.spacing.xl,
+    },
+    aiSuggestsHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    aiSuggestsTitle: {
+      fontSize: 14,
+      fontFamily: "Manrope_800ExtraBold",
+      color: colors.textPrimary,
+    },
+    aiSuggestsBody: {
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.textSecondary,
+      fontFamily: "Manrope_500Medium",
+      marginBottom: 6,
+    },
+    viewSuggestionsBtn: {
+      alignSelf: "flex-start",
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    viewSuggestionsBtnText: {
+      fontSize: 12,
+      fontFamily: "Manrope_700Bold",
+      color: "#DA3F45",
+    },
+    compactPropertyList: {
+      gap: 0,
+      marginHorizontal: 8,
+    },
+    seeAllBtn: {
+      marginTop: theme.spacing.md,
+      marginHorizontal: theme.spacing.xl,
+      alignItems: "flex-start",
+    },
+    seeAllBtnText: {
+      fontSize: 12,
+      fontFamily: "Manrope_700Bold",
+      color: "#DA3F45",
+    },
   });
+};

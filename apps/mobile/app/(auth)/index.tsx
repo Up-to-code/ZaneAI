@@ -15,11 +15,13 @@ import { authClient, signInAnonymously } from "@/auth/authClient";
 import { AppleIcon, GoogleIcon } from "@/foundation/components/BrandIcons";
 import { TypewriterText } from "@/foundation/components/TypewriterText";
 import { useAppStore } from "@/store";
+import { useAppLocalization } from "@/foundation/localization";
 
 export default function AuthScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { t } = useAppLocalization();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { canAccessApp, canUpgrade, isReady } = useAuthSession();
   const setGuestMode = useAppStore((state) => state.setGuestMode);
@@ -32,7 +34,7 @@ export default function AuthScreen() {
     try {
       const { error } = await (authClient as any).signIn.social({
         provider,
-        callbackURL: "/",
+        callbackURL: "/auth-callback",
       });
       if (error) {
         throw new Error(error.message ?? `${provider} sign in is not configured for this environment.`);
@@ -40,7 +42,10 @@ export default function AuthScreen() {
       await authClient.getSession();
       router.replace("/(app)");
     } catch (error) {
-      Alert.alert("Sign in unavailable", error instanceof Error ? error.message : "Unable to start sign in.");
+      Alert.alert(
+        t.auth.signInUnavailableTitle,
+        error instanceof Error ? error.message : t.auth.signInUnavailableBody,
+      );
     }
   };
 
@@ -52,8 +57,8 @@ export default function AuthScreen() {
     } catch (error) {
       setGuestMode(false);
       Alert.alert(
-        "Guest mode unavailable",
-        error instanceof Error ? error.message : "Unable to start guest mode right now.",
+        t.auth.guestUnavailableTitle,
+        error instanceof Error ? error.message : t.auth.guestUnavailableBody,
       );
     }
   };
@@ -69,10 +74,9 @@ export default function AuthScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Absolute Dismiss Button */}
       <View style={[styles.header, { top: insets.top + 10 }]}>
-        <Pressable 
-          accessibilityLabel="Dismiss sign in"
+        <Pressable
+          accessibilityLabel={t.common.close}
           onPress={() => void handleDismiss()}
           style={styles.closeBtn}
         >
@@ -104,7 +108,6 @@ export default function AuthScreen() {
           </View>
         </Animated.View>
 
-
         <Animated.View
           entering={FadeInDown.delay(220).springify()}
           style={styles.actionsWrap}
@@ -114,7 +117,7 @@ export default function AuthScreen() {
               testID="auth.continue_apple"
               variant="primary"
               leading={<AppleIcon size={18} color={colors.background} />}
-              label="Continue with Apple"
+              label={t.auth.continueWithApple}
               onPress={() => void handleSocialSignIn("apple")}
               style={[styles.primaryBtn, { backgroundColor: colors.textPrimary }]}
               textStyle={{ color: colors.background }}
@@ -124,7 +127,7 @@ export default function AuthScreen() {
               testID="auth.continue_google"
               variant="secondary"
               leading={<GoogleIcon size={20} />}
-              label="Continue with Google"
+              label={t.auth.continueWithGoogle}
               onPress={() => void handleSocialSignIn("google")}
               style={[
                 styles.secondaryBtn,
@@ -137,7 +140,7 @@ export default function AuthScreen() {
               testID="auth.continue_email"
               variant="secondary"
               leading={<Mail size={20} color={colors.textPrimary} />}
-              label="Continue with Email"
+              label={t.auth.continueWithEmail}
               onPress={() => {
                 router.push("/(auth)/email-options");
               }}
@@ -155,7 +158,7 @@ export default function AuthScreen() {
                 style={styles.guestAction}
               >
                 <Text variant="caption" tone="muted">
-                  Or continue as guest
+                  {t.auth.continueAsGuest}
                 </Text>
               </Pressable>
             )}
@@ -179,11 +182,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: "center",
     gap: 20,
     marginTop: 100,
-  },
-  logoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
   },
   wordmark: {
     fontSize: 42,

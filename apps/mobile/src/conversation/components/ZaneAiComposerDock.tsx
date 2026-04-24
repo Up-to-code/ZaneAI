@@ -13,11 +13,13 @@ import {
 } from "react-native";
 import Animated, { FadeIn, FadeInDown, FadeInUp, FadeOut, FadeOutDown, LinearTransition } from "react-native-reanimated";
 import { ArrowDown, ArrowUp, Maximize2, Mic, Square, X } from "lucide-react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets, type EdgeInsets } from "react-native-safe-area-context";
 
 import { EdgeFade } from "@/conversation/components/EdgeFade";
-import { PromptChips, type PromptChipData } from "./PromptChips";
+import { PromptChips } from "./PromptChips";
+import { EDITING_COPY, EXPANDED_COPY, getPreparedPlacePrompts } from "./composerPromptData";
 import { theme } from "@/foundation/theme/tokens";
+import type { AppColors } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { Text } from "@/foundation/primitives/Text";
 import { composerStateConstants, useComposerState } from "@/conversation/hooks/useComposerState";
@@ -26,7 +28,6 @@ import { useDetectionHeightAndWidthOfTheScreen } from "@/lib/detectionHeightAndW
 import { useAppStore } from "@/store";
 import { useVoiceComposer } from "@/voice/hooks/useVoiceComposer";
 import { RecordingVisualizer } from "@/voice/components/RecordingVisualizer";
-import type { ImageSource } from "expo-image";
 import type { AssistantDirection, AssistantSurfaceCopy, AssistantUiLocale } from "@/conversation/assistantProtocol";
 import { isRtlDirection } from "@/conversation/lib/assistantPresentation";
 
@@ -45,182 +46,6 @@ type ZaneAiComposerDockProps = {
   uiLocale?: AssistantUiLocale | null;
   isEditing?: boolean;
   onCancelEdit?: () => void;
-};
-
-type PlacePrompt = {
-  id: string;
-  name: string;
-  tag: string;
-  image: ImageSource;
-  query: string;
-};
-
-const PLACE_PROMPTS: Record<"ar" | "en" | "fr", PlacePrompt[]> = {
-  ar: [
-    {
-      id: "new_cairo",
-      name: "القاهرة الجديدة",
-      tag: "فيلات وكومباوند",
-      image: require("../../../assets/places/new_cairo.png"),
-      query: "ورّيني عقارات في القاهرة الجديدة، خصوصًا الفيلات والكومباوندات",
-    },
-    {
-      id: "sheikh_zayed",
-      name: "الشيخ زايد",
-      tag: "كمبوندات مغلقة",
-      image: require("../../../assets/places/sheikh_zayed.png"),
-      query: "دورلي على شقق داخل كمبوندات مغلقة في الشيخ زايد",
-    },
-    {
-      id: "maadi",
-      name: "المعادي",
-      tag: "هادية وقريبة",
-      image: require("../../../assets/places/maadi.png"),
-      query: "إيه أفضل الفيلات والبيوت المعروضة للبيع في المعادي؟",
-    },
-    {
-      id: "new_capital",
-      name: "العاصمة الجديدة",
-      tag: "استثمار وعائد",
-      image: require("../../../assets/places/new_capital.png"),
-      query: "ورّيني فرص استثمارية قوية في العاصمة الإدارية الجديدة",
-    },
-    {
-      id: "north_coast",
-      name: "الساحل الشمالي",
-      tag: "شاطئ ومصيف",
-      image: require("../../../assets/places/north_coast.png"),
-      query: "دورلي على شاليهات وفيلات مميزة في الساحل الشمالي",
-    },
-    {
-      id: "october",
-      name: "6 أكتوبر",
-      tag: "عائلي وسعره معقول",
-      image: require("../../../assets/places/october_city.png"),
-      query: "ورّيني شقق وكمبوندات مناسبة للعائلات في 6 أكتوبر",
-    },
-    {
-      id: "deep_search",
-      name: "بحث سوق عميق",
-      tag: "تحليل وبيانات",
-      image: require("../../../assets/places/new_cairo.png"),
-      query: "اعمل بحث سوق عميق عن العقارات الفاخرة ذات أفضل عائد استثماري في شرق القاهرة",
-    },
-  ],
-  en: [
-  {
-    id: "new_cairo",
-    name: "New Cairo",
-    tag: "Villas & Compounds",
-    image: require("../../../assets/places/new_cairo.png"),
-    query: "Show me properties in New Cairo — villas and compounds",
-  },
-  {
-    id: "sheikh_zayed",
-    name: "Sheikh Zayed",
-    tag: "Gated Communities",
-    image: require("../../../assets/places/sheikh_zayed.png"),
-    query: "Find gated compound apartments in Sheikh Zayed City",
-  },
-  {
-    id: "maadi",
-    name: "Maadi",
-    tag: "Leafy Suburb · Nile Views",
-    image: require("../../../assets/places/maadi.png"),
-    query: "What are the best villas and houses for sale in Maadi?",
-  },
-  {
-    id: "new_capital",
-    name: "New Capital",
-    tag: "Rising City · Best ROI",
-    image: require("../../../assets/places/new_capital.png"),
-    query: "Show investment opportunities in the New Administrative Capital",
-  },
-  {
-    id: "north_coast",
-    name: "North Coast",
-    tag: "Sahel · Beachfront",
-    image: require("../../../assets/places/north_coast.png"),
-    query: "Find beach chalets and villas on Egypt's North Coast",
-  },
-  {
-    id: "october",
-    name: "6th October",
-    tag: "Affordable · Family",
-    image: require("../../../assets/places/october_city.png"),
-    query: "Show family apartments and compounds in 6th October City",
-  },
-  {
-    id: "deep_search",
-    name: "Deep Market Search",
-    tag: "Analysis · Data",
-    image: require("../../../assets/places/new_cairo.png"), // Reusing an existing icon placeholder
-    query: "Perform a deep market search for luxury properties with the best ROI in East Cairo",
-  },
-  ],
-  fr: [
-    {
-      id: "new_cairo",
-      name: "Nouveau Caire",
-      tag: "Villas et compounds",
-      image: require("../../../assets/places/new_cairo.png"),
-      query: "Montre-moi des biens au Nouveau Caire, surtout des villas et des compounds",
-    },
-    {
-      id: "sheikh_zayed",
-      name: "Sheikh Zayed",
-      tag: "Résidences sécurisées",
-      image: require("../../../assets/places/sheikh_zayed.png"),
-      query: "Trouve des appartements en résidence fermée à Sheikh Zayed",
-    },
-    {
-      id: "maadi",
-      name: "Maadi",
-      tag: "Calme et verdoyant",
-      image: require("../../../assets/places/maadi.png"),
-      query: "Quelles sont les meilleures villas et maisons à vendre à Maadi ?",
-    },
-    {
-      id: "new_capital",
-      name: "Nouvelle Capitale",
-      tag: "Croissance et rendement",
-      image: require("../../../assets/places/new_capital.png"),
-      query: "Montre-moi les meilleures opportunités d’investissement dans la Nouvelle Capitale Administrative",
-    },
-    {
-      id: "north_coast",
-      name: "North Coast",
-      tag: "Plage et été",
-      image: require("../../../assets/places/north_coast.png"),
-      query: "Trouve des chalets et villas en bord de mer sur la côte nord de l’Égypte",
-    },
-    {
-      id: "october",
-      name: "6 Octobre",
-      tag: "Familial et accessible",
-      image: require("../../../assets/places/october_city.png"),
-      query: "Montre-moi des appartements et compounds familiaux à 6 Octobre",
-    },
-    {
-      id: "deep_search",
-      name: "Recherche de marché",
-      tag: "Analyse et données",
-      image: require("../../../assets/places/new_cairo.png"),
-      query: "Fais une recherche de marché approfondie sur les biens de luxe avec le meilleur rendement dans l’est du Caire",
-    },
-  ],
-};
-
-const EDITING_COPY: Record<"ar" | "en" | "fr", { label: string; cancel: string }> = {
-  ar: { label: "تعديل الرسالة", cancel: "إلغاء" },
-  en: { label: "Editing message", cancel: "Cancel" },
-  fr: { label: "Modification du message", cancel: "Annuler" },
-};
-
-const EXPANDED_COPY: Record<"ar" | "en" | "fr", { title: string; done: string; placeholder: string }> = {
-  ar: { title: "اكتب براحتك", done: "تم", placeholder: "اكتب سؤالك أو تفاصيل طلبك..." },
-  en: { title: "Write in detail", done: "Done", placeholder: "Write your question or details..." },
-  fr: { title: "Écrire en détail", done: "Terminé", placeholder: "Écris ta question ou les détails..." },
 };
 
 const { INPUT_MIN_HEIGHT, INPUT_MAX_HEIGHT } = composerStateConstants;
@@ -427,14 +252,9 @@ export function ZaneAiComposerDock({
   const editingCancelFontFamily = usesArabicScript(editingCopy.cancel) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
   const sheetTitleFontFamily = usesArabicScript(expandedCopy.title) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
   const sheetDoneFontFamily = usesArabicScript(expandedCopy.done) ? ARABIC_LABEL_FONT : DEFAULT_LABEL_FONT;
-  const preparedPrompts = useMemo<PromptChipData[]>(() =>
-    PLACE_PROMPTS[promptLocale].map(p => ({
-      id: p.id,
-      label: p.name,
-      tag: p.tag,
-      onPress: () => setDraftText(p.query)
-    })),
-    [promptLocale, setDraftText]
+  const preparedPrompts = useMemo(
+    () => getPreparedPlacePrompts(promptLocale, setDraftText),
+    [promptLocale, setDraftText],
   );
 
   const handleVoicePress = () => {
@@ -533,8 +353,8 @@ export function ZaneAiComposerDock({
                     enablesReturnKeyAutomatically
                     placeholder={disabled ? surfaceCopy.composerDisabledPlaceholder : surfaceCopy.composerPlaceholder}
                     placeholderTextColor={colors.textMuted}
-                    cursorColor={colors.accent}
-                    selectionColor={colors.accent}
+                    cursorColor={colors.textPrimary}
+                    selectionColor={`${colors.textPrimary}44`}
                     underlineColorAndroid="transparent"
                     textAlignVertical={inputExpanded ? "top" : "center"}
                     scrollEnabled={inputExpanded}
@@ -555,7 +375,7 @@ export function ZaneAiComposerDock({
                       exiting={FadeOut.duration(90)}
                       style={styles.inputFadeTop}
                     >
-                      <EdgeFade color={colors.surfaceRaised} placement="top" />
+                      <EdgeFade color={colors.background} placement="top" />
                     </Animated.View>
                   ) : null}
                   {inputExpanded ? (
@@ -565,7 +385,7 @@ export function ZaneAiComposerDock({
                       exiting={FadeOut.duration(90)}
                       style={styles.inputFadeBottom}
                     >
-                      <EdgeFade color={colors.surfaceRaised} placement="bottom" />
+                      <EdgeFade color={colors.background} placement="bottom" />
                     </Animated.View>
                   ) : null}
                 </>
@@ -617,7 +437,7 @@ export function ZaneAiComposerDock({
                   onPress={handleVoicePress}
                   style={({ pressed }) => [
                     styles.actionButton,
-                    isRecording ? styles.actionActive : styles.actionIdle,
+                    isRecording ? styles.actionActive : styles.micIdle,
                     pressed ? styles.actionPressed : null,
                     isVoicePending || disabled ? styles.actionDisabled : null,
                   ]}
@@ -625,7 +445,7 @@ export function ZaneAiComposerDock({
                   {isRecording ? (
                     <Square size={16} color="#FFFFFF" fill="#FFFFFF" />
                   ) : (
-                    <Mic size={18} color={colors.textSecondary} />
+                    <Mic size={18} color={colors.textPrimary} />
                   )}
                 </Pressable>
               )}
@@ -640,141 +460,141 @@ export function ZaneAiComposerDock({
         visible={expandedComposerOpen}
         onRequestClose={() => closeExpandedComposer({ restoreDockFocus: true })}
       >
-          <View style={[styles.sheetBackdrop, { paddingBottom: sheetKeyboardOffset, paddingTop: insets.top }]}>
-            <Pressable style={styles.sheetDismissZone} onPress={() => closeExpandedComposer({ restoreDockFocus: true })} />
-            <Animated.View
-              entering={FadeInUp.duration(sheetMotion.enterDurationMs)}
-              exiting={FadeOutDown.duration(sheetMotion.exitDurationMs)}
-              style={[
-                styles.expandedSheet,
-                {
-                  height: sheetHeight,
-                  maxHeight: sheetAvailableHeight,
-                  paddingHorizontal: screen.composerSheet.horizontalPadding,
-                  paddingBottom: sheetSafeBottom,
-                },
-              ]}
-            >
-              <View style={[styles.sheetHandle, isRtl ? styles.sheetHandleRtl : null]}>
-                <View style={[styles.sheetHeaderSide, { width: screen.composerSheet.headerSideWidth }]}>
-                  <Pressable
-                    hitSlop={10}
-                    onPress={() => closeExpandedComposer({ restoreDockFocus: true })}
-                    style={({ pressed }) => [
-                      styles.sheetIconButton,
-                      {
-                        width: screen.composerSheet.iconButtonSize,
-                        height: screen.composerSheet.iconButtonSize,
-                        borderRadius: screen.composerSheet.iconButtonSize / 2,
-                      },
-                      pressed ? styles.actionPressed : null,
-                    ]}
-                  >
-                    <X size={18} color={colors.textSecondary} strokeWidth={2.2} />
-                  </Pressable>
-                </View>
-                <Text style={[styles.sheetTitle, { fontFamily: sheetTitleFontFamily, fontSize: screen.composerSheet.titleFontSize }]}>
-                  {expandedCopy.title}
-                </Text>
-                <View style={[styles.sheetHeaderSide, styles.sheetHeaderSideEnd, { width: screen.composerSheet.headerSideWidth }]}>
-                  <Pressable
-                    hitSlop={10}
-                    onPress={() => closeExpandedComposer({ restoreDockFocus: true })}
-                    style={({ pressed }) => [
-                      styles.sheetDoneButton,
-                      {
-                        width: screen.composerSheet.headerSideWidth,
-                        height: screen.composerSheet.headerButtonHeight,
-                        borderRadius: screen.composerSheet.headerButtonHeight / 2,
-                      },
-                      pressed ? styles.actionPressed : null,
-                    ]}
-                  >
-                    <Text style={[styles.sheetDoneText, { fontFamily: sheetDoneFontFamily }]}>{expandedCopy.done}</Text>
-                  </Pressable>
-                </View>
-              </View>
-              <View style={styles.sheetInputWrap}>
-                <TextInput
-                  ref={sheetInputRef}
-                  value={draftText}
-                  editable={!disabled}
-                  onChangeText={setDraftText}
-                  multiline
-                  autoCorrect
-                  autoCapitalize="sentences"
-                  placeholder={expandedCopy.placeholder}
-                  placeholderTextColor={colors.textMuted}
-                  cursorColor={colors.accent}
-                  selectionColor={colors.accent}
-                  textAlignVertical="top"
-                  onFocus={() => setComposerFocused(true)}
-                  onBlur={() => setComposerFocused(false)}
-                  style={[
-                    styles.sheetInput,
-                    {
-                      fontFamily: composerFontFamily,
-                      fontSize: screen.composerSheet.inputFontSize,
-                      lineHeight: screen.composerSheet.inputLineHeight,
-                    },
-                    isRtl ? { textAlign: "right", writingDirection: "rtl" } : null,
-                  ]}
-                />
-                <View pointerEvents="none" style={styles.sheetInputFadeTop}>
-                  <EdgeFade color={colors.background} placement="top" startOpacity={0.88} midOpacity={0.3} />
-                </View>
-                <View pointerEvents="none" style={styles.sheetInputFadeBottom}>
-                  <EdgeFade color={colors.background} placement="bottom" startOpacity={0.88} midOpacity={0.3} />
-                </View>
-              </View>
-              <View
-                style={[
-                  styles.sheetFooter,
-                  isRtl ? styles.sheetFooterRtl : null,
-                  { paddingTop: screen.composerSheet.footerTopPadding },
-                ]}
-              >
+        <View style={[styles.sheetBackdrop, { paddingBottom: sheetKeyboardOffset, paddingTop: insets.top }]}>
+          <Pressable style={styles.sheetDismissZone} onPress={() => closeExpandedComposer({ restoreDockFocus: true })} />
+          <Animated.View
+            entering={FadeInUp.duration(sheetMotion.enterDurationMs)}
+            exiting={FadeOutDown.duration(sheetMotion.exitDurationMs)}
+            style={[
+              styles.expandedSheet,
+              {
+                height: sheetHeight,
+                maxHeight: sheetAvailableHeight,
+                paddingHorizontal: screen.composerSheet.horizontalPadding,
+                paddingBottom: sheetSafeBottom,
+              },
+            ]}
+          >
+            <View style={[styles.sheetHandle, isRtl ? styles.sheetHandleRtl : null]}>
+              <View style={[styles.sheetHeaderSide, { width: screen.composerSheet.headerSideWidth }]}>
                 <Pressable
-                  disabled={!hasText || disabled}
-                  onPress={() => {
-                    handleSend({ fromExpandedComposer: true });
-                  }}
-                  style={({ pressed }) => [
-                    styles.sheetSendButton,
-                    {
-                      width: screen.composerSheet.footerButtonSize,
-                      height: screen.composerSheet.footerButtonSize,
-                      borderRadius: screen.composerSheet.footerButtonSize / 2,
-                    },
-                    pressed ? styles.actionPressed : null,
-                    !hasText || disabled ? styles.actionDisabled : null,
-                  ]}
-                >
-                  <ArrowUp size={18} color="#FFFFFF" strokeWidth={2.5} />
-                </Pressable>
-                <Pressable
+                  hitSlop={10}
                   onPress={() => closeExpandedComposer({ restoreDockFocus: true })}
                   style={({ pressed }) => [
-                    styles.sheetCollapseButton,
+                    styles.sheetIconButton,
                     {
-                      width: screen.composerSheet.footerButtonSize,
-                      height: screen.composerSheet.footerButtonSize,
-                      borderRadius: screen.composerSheet.footerButtonSize / 2,
+                      width: screen.composerSheet.iconButtonSize,
+                      height: screen.composerSheet.iconButtonSize,
+                      borderRadius: screen.composerSheet.iconButtonSize / 2,
                     },
                     pressed ? styles.actionPressed : null,
                   ]}
                 >
-                  <ArrowDown size={17} color={colors.textSecondary} strokeWidth={2.2} />
+                  <X size={18} color={colors.textSecondary} strokeWidth={2.2} />
                 </Pressable>
               </View>
-            </Animated.View>
-          </View>
+              <Text style={[styles.sheetTitle, { fontFamily: sheetTitleFontFamily, fontSize: screen.composerSheet.titleFontSize }]}>
+                {expandedCopy.title}
+              </Text>
+              <View style={[styles.sheetHeaderSide, styles.sheetHeaderSideEnd, { width: screen.composerSheet.headerSideWidth }]}>
+                <Pressable
+                  hitSlop={10}
+                  onPress={() => closeExpandedComposer({ restoreDockFocus: true })}
+                  style={({ pressed }) => [
+                    styles.sheetDoneButton,
+                    {
+                      width: screen.composerSheet.headerSideWidth,
+                      height: screen.composerSheet.headerButtonHeight,
+                      borderRadius: screen.composerSheet.headerButtonHeight / 2,
+                    },
+                    pressed ? styles.actionPressed : null,
+                  ]}
+                >
+                  <Text style={[styles.sheetDoneText, { fontFamily: sheetDoneFontFamily }]}>{expandedCopy.done}</Text>
+                </Pressable>
+              </View>
+            </View>
+            <View style={styles.sheetInputWrap}>
+              <TextInput
+                ref={sheetInputRef}
+                value={draftText}
+                editable={!disabled}
+                onChangeText={setDraftText}
+                multiline
+                autoCorrect
+                autoCapitalize="sentences"
+                placeholder={expandedCopy.placeholder}
+                placeholderTextColor={colors.textMuted}
+                cursorColor={colors.textPrimary}
+                selectionColor={`${colors.textPrimary}44`}
+                textAlignVertical="top"
+                onFocus={() => setComposerFocused(true)}
+                onBlur={() => setComposerFocused(false)}
+                style={[
+                  styles.sheetInput,
+                  {
+                    fontFamily: composerFontFamily,
+                    fontSize: screen.composerSheet.inputFontSize,
+                    lineHeight: screen.composerSheet.inputLineHeight,
+                  },
+                  isRtl ? { textAlign: "right", writingDirection: "rtl" } : null,
+                ]}
+              />
+              <View pointerEvents="none" style={styles.sheetInputFadeTop}>
+                <EdgeFade color={colors.background} placement="top" startOpacity={0.88} midOpacity={0.3} />
+              </View>
+              <View pointerEvents="none" style={styles.sheetInputFadeBottom}>
+                <EdgeFade color={colors.background} placement="bottom" startOpacity={0.88} midOpacity={0.3} />
+              </View>
+            </View>
+            <View
+              style={[
+                styles.sheetFooter,
+                isRtl ? styles.sheetFooterRtl : null,
+                { paddingTop: screen.composerSheet.footerTopPadding },
+              ]}
+            >
+              <Pressable
+                disabled={!hasText || disabled}
+                onPress={() => {
+                  handleSend({ fromExpandedComposer: true });
+                }}
+                style={({ pressed }) => [
+                  styles.sheetSendButton,
+                  {
+                    width: screen.composerSheet.footerButtonSize,
+                    height: screen.composerSheet.footerButtonSize,
+                    borderRadius: screen.composerSheet.footerButtonSize / 2,
+                  },
+                  pressed ? styles.actionPressed : null,
+                  !hasText || disabled ? styles.actionDisabled : null,
+                ]}
+              >
+                <ArrowUp size={18} color="#FFFFFF" strokeWidth={2.5} />
+              </Pressable>
+              <Pressable
+                onPress={() => closeExpandedComposer({ restoreDockFocus: true })}
+                style={({ pressed }) => [
+                  styles.sheetCollapseButton,
+                  {
+                    width: screen.composerSheet.footerButtonSize,
+                    height: screen.composerSheet.footerButtonSize,
+                    borderRadius: screen.composerSheet.footerButtonSize / 2,
+                  },
+                  pressed ? styles.actionPressed : null,
+                ]}
+              >
+                <ArrowDown size={17} color={colors.textSecondary} strokeWidth={2.2} />
+              </Pressable>
+            </View>
+          </Animated.View>
+        </View>
       </Modal>
     </View>
   );
 }
 
-const createStyles = (colors: any, insets: any) => StyleSheet.create({
+const createStyles = (colors: AppColors, insets: EdgeInsets) => StyleSheet.create({
   container: {
     zIndex: 2000,
     position: "relative",
@@ -814,9 +634,9 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 16,
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
   },
   editingStripRtl: {
     alignSelf: "flex-end",
@@ -841,9 +661,9 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 8,
     borderRadius: theme.radii.lg,
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -873,17 +693,12 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     flexDirection: "row",
     minHeight: 56,
     borderRadius: 28,
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: "transparent",
     paddingLeft: theme.spacing.lg,
     paddingRight: 6,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    borderColor: colors.divider,
   },
   unifiedBarCompact: {
     alignItems: "center",
@@ -963,9 +778,9 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
   },
   actionButton: {
     width: 40,
@@ -979,6 +794,11 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   },
   actionIdle: {
     backgroundColor: "transparent",
+  },
+  micIdle: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   actionDisabled: {
     opacity: 0.5,
@@ -1003,12 +823,7 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     overflow: "hidden",
     backgroundColor: colors.background,
     borderTopWidth: 1,
-    borderColor: colors.border,
-    shadowColor: "#000",
-    shadowOpacity: 0.22,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: -10 },
-    elevation: 14,
+    borderColor: colors.divider,
   },
   sheetHandle: {
     minHeight: 44,
@@ -1031,7 +846,9 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   sheetIconButton: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   sheetTitle: {
     flex: 1,
@@ -1044,12 +861,14 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   sheetDoneText: {
-    fontFamily: "Manrope_700Bold",
+    fontFamily: "Manrope_800ExtraBold",
     fontSize: 13,
-    color: colors.accent,
+    color: colors.textPrimary,
   },
   sheetInputWrap: {
     flex: 1,
@@ -1093,13 +912,13 @@ const createStyles = (colors: any, insets: any) => StyleSheet.create({
   sheetSendButton: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.textPrimary,
   },
   sheetCollapseButton: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surfaceRaised,
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.divider,
   },
 });

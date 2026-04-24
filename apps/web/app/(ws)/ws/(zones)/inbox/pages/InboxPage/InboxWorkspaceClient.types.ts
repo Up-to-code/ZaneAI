@@ -24,6 +24,7 @@ export type InboxWorkspaceClientProps = {
   canUseBusinessActions: boolean;
   currentUserId: string;
   dealOptions: InboxDealOption[];
+  initialArchivedConversations: ConversationSummary[];
   initialConversations: ConversationSummary[];
   initialConversation: ConversationDetail | null;
   initialSelectedConversationId: string | null;

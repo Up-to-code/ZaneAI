@@ -32,13 +32,18 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             | {
                 data: {
                   createdAt: number;
+                  displayUsername?: null | string;
                   email: string;
                   emailVerified: boolean;
                   image?: null | string;
-                  isAnonymous?: boolean;
+                  isAnonymous?: null | boolean;
                   name: string;
+                  phoneNumber?: null | string;
+                  phoneNumberVerified?: null | boolean;
+                  twoFactorEnabled?: null | boolean;
                   updatedAt: number;
                   userId?: null | string;
+                  username?: null | string;
                 };
                 model: "user";
               }
@@ -56,10 +61,16 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
               }
             | {
                 data: {
+                  accessToken?: null | string;
+                  accessTokenExpiresAt?: null | number;
                   accountId: string;
                   createdAt: number;
+                  idToken?: null | string;
                   password?: null | string;
                   providerId: string;
+                  refreshToken?: null | string;
+                  refreshTokenExpiresAt?: null | number;
+                  scope?: null | string;
                   updatedAt: number;
                   userId: string;
                 };
@@ -74,6 +85,51 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                   value: string;
                 };
                 model: "verification";
+              }
+            | {
+                data: { backupCodes: string; secret: string; userId: string };
+                model: "twoFactor";
+              }
+            | {
+                data: {
+                  clientId?: null | string;
+                  clientSecret?: null | string;
+                  createdAt?: null | number;
+                  disabled?: null | boolean;
+                  icon?: null | string;
+                  metadata?: null | string;
+                  name?: null | string;
+                  redirectUrls?: null | string;
+                  type?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                model: "oauthApplication";
+              }
+            | {
+                data: {
+                  accessToken?: null | string;
+                  accessTokenExpiresAt?: null | number;
+                  clientId?: null | string;
+                  createdAt?: null | number;
+                  refreshToken?: null | string;
+                  refreshTokenExpiresAt?: null | number;
+                  scopes?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                model: "oauthAccessToken";
+              }
+            | {
+                data: {
+                  clientId?: null | string;
+                  consentGiven?: null | boolean;
+                  createdAt?: null | number;
+                  scopes?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                model: "oauthConsent";
               }
             | {
                 data: {
@@ -107,10 +163,15 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "name"
                     | "email"
                     | "emailVerified"
-                    | "isAnonymous"
                     | "image"
                     | "createdAt"
                     | "updatedAt"
+                    | "twoFactorEnabled"
+                    | "isAnonymous"
+                    | "username"
+                    | "displayUsername"
+                    | "phoneNumber"
+                    | "phoneNumberVerified"
                     | "userId"
                     | "_id";
                   operator?:
@@ -176,6 +237,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "accountId"
                     | "providerId"
                     | "userId"
+                    | "accessToken"
+                    | "refreshToken"
+                    | "idToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "scope"
                     | "password"
                     | "createdAt"
                     | "updatedAt"
@@ -211,6 +278,139 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "twoFactor";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthApplication";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "name"
+                    | "icon"
+                    | "metadata"
+                    | "clientId"
+                    | "clientSecret"
+                    | "redirectUrls"
+                    | "type"
+                    | "disabled"
+                    | "userId"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthAccessToken";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "accessToken"
+                    | "refreshToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthConsent";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "consentGiven"
                     | "_id";
                   operator?:
                     | "lt"
@@ -316,10 +516,15 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "name"
                     | "email"
                     | "emailVerified"
-                    | "isAnonymous"
                     | "image"
                     | "createdAt"
                     | "updatedAt"
+                    | "twoFactorEnabled"
+                    | "isAnonymous"
+                    | "username"
+                    | "displayUsername"
+                    | "phoneNumber"
+                    | "phoneNumberVerified"
                     | "userId"
                     | "_id";
                   operator?:
@@ -385,6 +590,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "accountId"
                     | "providerId"
                     | "userId"
+                    | "accessToken"
+                    | "refreshToken"
+                    | "idToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "scope"
                     | "password"
                     | "createdAt"
                     | "updatedAt"
@@ -420,6 +631,139 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "twoFactor";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthApplication";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "name"
+                    | "icon"
+                    | "metadata"
+                    | "clientId"
+                    | "clientSecret"
+                    | "redirectUrls"
+                    | "type"
+                    | "disabled"
+                    | "userId"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthAccessToken";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "accessToken"
+                    | "refreshToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthConsent";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "consentGiven"
                     | "_id";
                   operator?:
                     | "lt"
@@ -515,6 +859,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             | "session"
             | "account"
             | "verification"
+            | "twoFactor"
+            | "oauthApplication"
+            | "oauthAccessToken"
+            | "oauthConsent"
             | "jwks"
             | "rateLimit";
           offset?: number;
@@ -565,6 +913,10 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             | "session"
             | "account"
             | "verification"
+            | "twoFactor"
+            | "oauthApplication"
+            | "oauthAccessToken"
+            | "oauthConsent"
             | "jwks"
             | "rateLimit";
           select?: Array<string>;
@@ -604,13 +956,18 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 model: "user";
                 update: {
                   createdAt?: number;
+                  displayUsername?: null | string;
                   email?: string;
                   emailVerified?: boolean;
                   image?: null | string;
-                  isAnonymous?: boolean;
+                  isAnonymous?: null | boolean;
                   name?: string;
+                  phoneNumber?: null | string;
+                  phoneNumberVerified?: null | boolean;
+                  twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
                   userId?: null | string;
+                  username?: null | string;
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -618,10 +975,15 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "name"
                     | "email"
                     | "emailVerified"
-                    | "isAnonymous"
                     | "image"
                     | "createdAt"
                     | "updatedAt"
+                    | "twoFactorEnabled"
+                    | "isAnonymous"
+                    | "username"
+                    | "displayUsername"
+                    | "phoneNumber"
+                    | "phoneNumberVerified"
                     | "userId"
                     | "_id";
                   operator?:
@@ -691,10 +1053,16 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             | {
                 model: "account";
                 update: {
+                  accessToken?: null | string;
+                  accessTokenExpiresAt?: null | number;
                   accountId?: string;
                   createdAt?: number;
+                  idToken?: null | string;
                   password?: null | string;
                   providerId?: string;
+                  refreshToken?: null | string;
+                  refreshTokenExpiresAt?: null | number;
+                  scope?: null | string;
                   updatedAt?: number;
                   userId?: string;
                 };
@@ -704,6 +1072,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "accountId"
                     | "providerId"
                     | "userId"
+                    | "accessToken"
+                    | "refreshToken"
+                    | "idToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "scope"
                     | "password"
                     | "createdAt"
                     | "updatedAt"
@@ -746,6 +1120,176 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "twoFactor";
+                update: {
+                  backupCodes?: string;
+                  secret?: string;
+                  userId?: string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthApplication";
+                update: {
+                  clientId?: null | string;
+                  clientSecret?: null | string;
+                  createdAt?: null | number;
+                  disabled?: null | boolean;
+                  icon?: null | string;
+                  metadata?: null | string;
+                  name?: null | string;
+                  redirectUrls?: null | string;
+                  type?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "name"
+                    | "icon"
+                    | "metadata"
+                    | "clientId"
+                    | "clientSecret"
+                    | "redirectUrls"
+                    | "type"
+                    | "disabled"
+                    | "userId"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthAccessToken";
+                update: {
+                  accessToken?: null | string;
+                  accessTokenExpiresAt?: null | number;
+                  clientId?: null | string;
+                  createdAt?: null | number;
+                  refreshToken?: null | string;
+                  refreshTokenExpiresAt?: null | number;
+                  scopes?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "accessToken"
+                    | "refreshToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthConsent";
+                update: {
+                  clientId?: null | string;
+                  consentGiven?: null | boolean;
+                  createdAt?: null | number;
+                  scopes?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "consentGiven"
                     | "_id";
                   operator?:
                     | "lt"
@@ -854,13 +1398,18 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                 model: "user";
                 update: {
                   createdAt?: number;
+                  displayUsername?: null | string;
                   email?: string;
                   emailVerified?: boolean;
                   image?: null | string;
-                  isAnonymous?: boolean;
+                  isAnonymous?: null | boolean;
                   name?: string;
+                  phoneNumber?: null | string;
+                  phoneNumberVerified?: null | boolean;
+                  twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
                   userId?: null | string;
+                  username?: null | string;
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -868,10 +1417,15 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "name"
                     | "email"
                     | "emailVerified"
-                    | "isAnonymous"
                     | "image"
                     | "createdAt"
                     | "updatedAt"
+                    | "twoFactorEnabled"
+                    | "isAnonymous"
+                    | "username"
+                    | "displayUsername"
+                    | "phoneNumber"
+                    | "phoneNumberVerified"
                     | "userId"
                     | "_id";
                   operator?:
@@ -941,10 +1495,16 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             | {
                 model: "account";
                 update: {
+                  accessToken?: null | string;
+                  accessTokenExpiresAt?: null | number;
                   accountId?: string;
                   createdAt?: number;
+                  idToken?: null | string;
                   password?: null | string;
                   providerId?: string;
+                  refreshToken?: null | string;
+                  refreshTokenExpiresAt?: null | number;
+                  scope?: null | string;
                   updatedAt?: number;
                   userId?: string;
                 };
@@ -954,6 +1514,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "accountId"
                     | "providerId"
                     | "userId"
+                    | "accessToken"
+                    | "refreshToken"
+                    | "idToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "scope"
                     | "password"
                     | "createdAt"
                     | "updatedAt"
@@ -996,6 +1562,176 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
                     | "expiresAt"
                     | "createdAt"
                     | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "twoFactor";
+                update: {
+                  backupCodes?: string;
+                  secret?: string;
+                  userId?: string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthApplication";
+                update: {
+                  clientId?: null | string;
+                  clientSecret?: null | string;
+                  createdAt?: null | number;
+                  disabled?: null | boolean;
+                  icon?: null | string;
+                  metadata?: null | string;
+                  name?: null | string;
+                  redirectUrls?: null | string;
+                  type?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "name"
+                    | "icon"
+                    | "metadata"
+                    | "clientId"
+                    | "clientSecret"
+                    | "redirectUrls"
+                    | "type"
+                    | "disabled"
+                    | "userId"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthAccessToken";
+                update: {
+                  accessToken?: null | string;
+                  accessTokenExpiresAt?: null | number;
+                  clientId?: null | string;
+                  createdAt?: null | number;
+                  refreshToken?: null | string;
+                  refreshTokenExpiresAt?: null | number;
+                  scopes?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "accessToken"
+                    | "refreshToken"
+                    | "accessTokenExpiresAt"
+                    | "refreshTokenExpiresAt"
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "oauthConsent";
+                update: {
+                  clientId?: null | string;
+                  consentGiven?: null | boolean;
+                  createdAt?: null | number;
+                  scopes?: null | string;
+                  updatedAt?: null | number;
+                  userId?: null | string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field:
+                    | "clientId"
+                    | "userId"
+                    | "scopes"
+                    | "createdAt"
+                    | "updatedAt"
+                    | "consentGiven"
                     | "_id";
                   operator?:
                     | "lt"

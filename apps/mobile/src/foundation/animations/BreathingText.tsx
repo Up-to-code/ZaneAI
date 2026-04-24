@@ -21,10 +21,6 @@ type BreathingTextProps = TextProps & {
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
-/**
- * A text component that gently breathes (animates opacity) to indicate activity or status.
- * Used for high-precision branding and status indicators.
- */
 export function BreathingText({
   text,
   duration = 2000,
@@ -53,13 +49,6 @@ export function BreathingText({
     );
   }, [duration, minOpacity, maxOpacity, opacity]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  return (
-    <AnimatedText style={[style, animatedStyle]} tone={tone} {...props}>
-      {text}
-    </AnimatedText>
-  );
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  return <AnimatedText style={[style, animatedStyle]} tone={tone} {...props}>{text}</AnimatedText>;
 }

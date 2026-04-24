@@ -1,4 +1,4 @@
-export const MOBILE_STORE_VERSION = 3;
+export const MOBILE_STORE_VERSION = 4;
 
 export function migratePersistedAppStore(state: unknown, version: number) {
   if (!state || typeof state !== "object") {
@@ -19,6 +19,13 @@ export function migratePersistedAppStore(state: unknown, version: number) {
       ...withoutStaleThreadSelection
     } = nextState;
     nextState = withoutStaleThreadSelection;
+  }
+
+  if (version < 4) {
+    nextState = {
+      localePreference: "system",
+      ...nextState,
+    };
   }
 
   return nextState;

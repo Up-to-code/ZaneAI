@@ -23,6 +23,7 @@ import { useRealtimeInbox } from "./useRealtimeInbox";
 export default function InboxWorkspaceClient({
   canUseBusinessActions,
   currentUserId,
+  initialArchivedConversations,
   initialConversations,
   initialConversation,
   initialSelectedConversationId,
@@ -71,6 +72,7 @@ export default function InboxWorkspaceClient({
     setSearch,
   } = useRealtimeInbox({
     currentUserId,
+    initialArchivedConversations,
     initialConversations,
     initialConversation,
     initialSelectedConversationId,

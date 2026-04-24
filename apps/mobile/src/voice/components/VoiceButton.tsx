@@ -19,11 +19,12 @@ export function VoiceButton({ inverted }: VoiceButtonProps) {
 
   const defaultColor = inverted ? colors.background : colors.textPrimary;
   const mutedColor = inverted ? colors.textSecondary : colors.textMuted;
+  const activeColor = colors.background;
 
   return (
     <IconButton active={active} disabled={disabled} onPress={active ? stop : start} style={disabled ? styles.disabled : undefined}>
       {active ? (
-        <MicOff size={18} color={defaultColor} />
+        <MicOff size={18} color={activeColor} />
       ) : (
         <Mic size={18} color={disabled ? mutedColor : defaultColor} />
       )}

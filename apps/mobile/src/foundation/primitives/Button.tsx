@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useMemo, type ReactNode } from "react";
 
+import { useAppLocalization } from "@/foundation/localization";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
@@ -30,6 +31,7 @@ export function Button({
   ...props 
 }: ButtonProps) {
   const { colors } = useTheme();
+  const { isRTL } = useAppLocalization();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
@@ -37,6 +39,7 @@ export function Button({
       style={(state) => [
         styles.base,
         styles[variant],
+        isRTL && styles.rtl,
         state.pressed && styles.pressed,
         typeof style === "function" ? style(state) : style,
       ]}
@@ -45,8 +48,11 @@ export function Button({
       {leading ? <View style={styles.leading}>{leading}</View> : null}
       <Text 
         variant="label" 
-        tone={variant === "primary" ? "primary" : "secondary"} 
-        style={[styles.label, textStyle]}
+        style={[
+          styles.label, 
+          variant === "primary" ? styles.primaryLabel : styles.secondaryLabel,
+          textStyle
+        ]}
       >
         {label}
       </Text>
@@ -69,8 +75,8 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.accent,
   },
   secondary: {
-    backgroundColor: colors.surfaceRaised,
-    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: "transparent",
+    borderWidth: 1,
     borderColor: colors.divider,
   },
   ghost: {
@@ -80,6 +86,12 @@ const createStyles = (colors: any) => StyleSheet.create({
     opacity: 0.88,
   },
   label: {
+    fontFamily: "Manrope_800ExtraBold",
+  },
+  primaryLabel: {
+    color: "#FFFFFF",
+  },
+  secondaryLabel: {
     color: colors.textPrimary,
   },
   leading: {
@@ -87,5 +99,8 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   trailing: {
     marginLeft: theme.spacing.xs,
+  },
+  rtl: {
+    flexDirection: "row-reverse",
   },
 });

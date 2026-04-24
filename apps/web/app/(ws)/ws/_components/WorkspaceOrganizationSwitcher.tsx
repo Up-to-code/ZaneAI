@@ -6,9 +6,7 @@ import { cn } from "@/lib/i18n";
 import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 
 /**
- * WHY:   Demo workspace chrome still needs organization context inside the identity menu.
- * WHAT:  Shows the active demo organization plus a non-persistent create-demo shortcut.
- * HOW:   Avoids Clerk and sync routes entirely while preserving the existing menu footprint.
+ * Shows the active organization plus a shortcut into organization creation/onboarding.
  */
 export default function WorkspaceOrganizationSwitcher({
   organizationName,

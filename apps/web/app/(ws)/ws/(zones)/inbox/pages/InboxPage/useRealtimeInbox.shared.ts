@@ -9,6 +9,7 @@ import type {
 
 export type UseRealtimeInboxArgs = {
   currentUserId: string;
+  initialArchivedConversations: ConversationSummary[];
   initialConversations: ConversationSummary[];
   initialConversation: ConversationDetail | null;
   initialSelectedConversationId: string | null;

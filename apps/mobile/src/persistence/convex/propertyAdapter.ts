@@ -6,7 +6,7 @@ const FALLBACK_PRICE_ANALYSIS: PriceAnalysisVM = {
   historicalData: [],
 };
 
-type ListingPropertyRow = {
+export type ListingPropertyRow = {
   externalId?: string;
   _id?: string;
   heroUrl: string;
@@ -32,11 +32,24 @@ type ListingPropertyRow = {
   priceAnalysis?: PropertyCardVM["priceAnalysis"];
   developerName?: string;
   compoundName?: string;
+  coordinates?: PropertyCardVM["coordinates"];
+  latitude?: number;
+  longitude?: number;
 };
 
 export function toPropertyCardVM(property: ListingPropertyRow): PropertyCardVM {
   const id = property.externalId ?? property._id ?? property.title;
   const summary = property.aiSummary ?? property.summary ?? property.description ?? "";
+  const coordinates = property.coordinates
+    ?? (
+      Number.isFinite(property.latitude) && Number.isFinite(property.longitude)
+        ? {
+            latitude: property.latitude as number,
+            longitude: property.longitude as number,
+          }
+        : undefined
+    );
+
   return {
     id,
     heroUrl: property.heroUrl,
@@ -45,6 +58,7 @@ export function toPropertyCardVM(property: ListingPropertyRow): PropertyCardVM {
     description: property.description ?? summary,
     priceLabel: property.priceLabel,
     locationLabel: property.locationLabel ?? property.location ?? "",
+    coordinates,
     beds: property.beds ?? property.bedrooms ?? 0,
     baths: property.baths ?? property.bathrooms ?? 0,
     area: property.area ?? property.areaSqm ?? 0,

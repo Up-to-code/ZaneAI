@@ -7,6 +7,7 @@ import type {
   ThreadPresentation,
 } from "@/conversation/assistantProtocol";
 import type { StreamState } from "@/types/domain";
+import { detectDeviceLocale, resolveEffectiveLocale } from "@/foundation/localization/core";
 import {
   getCuratedAssistantSurfaceCopy,
   resolveAssistantSurfaceCopy,
@@ -14,16 +15,15 @@ import {
   resolveUiLocaleFromLanguageTag,
 } from "@/conversation/assistantProtocol";
 import type { AgentRuntimeHealth } from "@/types/domain";
+import { useAppStore } from "@/store";
 
 type ResolvedThreadPresentation = ThreadPresentation & {
   surfaceCopy: AssistantSurfaceCopy;
 };
 
 export function getDeviceLocale(): AssistantUiLocale {
-  const locale = Intl.DateTimeFormat().resolvedOptions().locale?.toLowerCase() ?? "en";
-  if (locale.startsWith("ar")) return "ar";
-  if (locale.startsWith("fr")) return "fr";
-  return "en";
+  const preference = useAppStore.getState().localePreference;
+  return resolveEffectiveLocale(preference, detectDeviceLocale());
 }
 
 export function buildFallbackThreadPresentation(): ResolvedThreadPresentation {

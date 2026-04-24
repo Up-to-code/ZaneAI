@@ -11,6 +11,7 @@ import {
   isArabicText,
   resolveAssistantDirection,
 } from "./WorkspaceAssistantBadges";
+import { useWebLocale } from "@/app/_components/WebLocaleProvider";
 
 const MessageRowComponent = function MessageRow({
   isUser,
@@ -35,6 +36,8 @@ const MessageRowComponent = function MessageRow({
   isStreaming?: boolean;
   children?: React.ReactNode;
 }) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const { dictionary } = useWebLocale();
   const direction = resolveAssistantDirection(content);
   const shouldUseArabicChrome = isArabicText(content);
   const assistantBadges = !isUser
@@ -45,6 +48,9 @@ const MessageRowComponent = function MessageRow({
         fallbackAgentName,
       })
     : [];
+  
+  const isLong = !isUser && content && content.length > 600;
+  const visibleContent = (isLong && content && !isExpanded) ? `${content.slice(0, 500)}...` : (content || "");
 
   return (
     <div
@@ -82,20 +88,31 @@ const MessageRowComponent = function MessageRow({
               {isUser ? (
                 content
               ) : (
-                <MarkdownContent
-                  content={content}
-                  className={cn(
-                    "workspace-assistant-markdown max-w-none break-words [overflow-wrap:anywhere]",
-                    "[&_h1]:mt-0 [&_h1]:text-2xl [&_h1]:font-black [&_h2]:text-xl [&_h2]:font-black [&_h2]:border-none [&_h2]:pb-0",
-                    "[&_h3]:text-lg [&_h3]:font-extrabold [&_p]:mt-0 [&_p]:leading-8 [&_p]:text-[15px] md:[&_p]:text-[16px]",
-                    "[&_ul]:my-3 [&_ul]:space-y-2 [&_ul]:marker:text-[var(--workspace-highlight)] [&_ol]:my-3 [&_ol]:space-y-2 [&_ol]:marker:font-black [&_ol]:marker:text-[var(--workspace-highlight)] [&_li]:mt-0",
-                    "[&_table]:my-4 [&_table]:w-full [&_table]:overflow-hidden [&_table]:rounded-2xl [&_table]:border [&_table]:border-slate-200 dark:[&_table]:border-white/10",
-                    "[&_th]:bg-slate-100 [&_th]:px-3 [&_th]:py-2 [&_th]:text-right dark:[&_th]:bg-white/5",
-                    "[&_td]:border-t [&_td]:border-slate-200 [&_td]:px-3 [&_td]:py-2 dark:[&_td]:border-white/10",
-                    "[&_pre]:max-w-full [&_pre]:overflow-x-auto [&_code]:break-words [&_blockquote]:rounded-2xl [&_blockquote]:bg-slate-100/70 [&_blockquote]:py-3 dark:[&_blockquote]:bg-white/5",
-                    shouldUseArabicChrome ? "[&_ul]:mr-5 [&_ol]:mr-5 [&_blockquote]:border-r-2 [&_blockquote]:border-l-0 [&_blockquote]:pr-4 [&_blockquote]:pl-0" : "[&_ul]:ml-5 [&_ol]:ml-5",
+                <>
+                  <MarkdownContent
+                    content={visibleContent}
+                    className={cn(
+                      "workspace-assistant-markdown max-w-none break-words [overflow-wrap:anywhere]",
+                      "[&_h1]:mt-0 [&_h1]:text-2xl [&_h1]:font-black [&_h2]:text-xl [&_h2]:font-black [&_h2]:border-none [&_h2]:pb-0",
+                      "[&_h3]:text-lg [&_h3]:font-extrabold [&_p]:mt-0 [&_p]:leading-8 [&_p]:text-[15px] md:[&_p]:text-[16px]",
+                      "[&_ul]:my-3 [&_ul]:space-y-2 [&_ul]:marker:text-[var(--workspace-highlight)] [&_ol]:my-3 [&_ol]:space-y-2 [&_ol]:marker:font-black [&_ol]:marker:text-[var(--workspace-highlight)] [&_li]:mt-0",
+                      "[&_table]:my-4 [&_table]:w-full [&_table]:overflow-hidden [&_table]:rounded-2xl [&_table]:border [&_table]:border-slate-200 dark:[&_table]:border-white/10",
+                      "[&_th]:bg-slate-100 [&_th]:px-3 [&_th]:py-2 [&_th]:text-right dark:[&_th]:bg-white/5",
+                      "[&_td]:border-t [&_td]:border-slate-200 [&_td]:px-3 [&_td]:py-2 dark:[&_td]:border-white/10",
+                      "[&_pre]:max-w-full [&_pre]:overflow-x-auto [&_code]:break-words [&_blockquote]:rounded-2xl [&_blockquote]:bg-slate-100/70 [&_blockquote]:py-3 dark:[&_blockquote]:bg-white/5",
+                      shouldUseArabicChrome ? "[&_ul]:mr-5 [&_ol]:mr-5 [&_blockquote]:border-r-2 [&_blockquote]:border-l-0 [&_blockquote]:pr-4 [&_blockquote]:pl-0" : "[&_ul]:ml-5 [&_ol]:ml-5",
+                    )}
+                  />
+                  {isLong && (
+                    <button
+                      type="button"
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="mt-4 text-[14px] font-bold text-primary hover:opacity-80 transition-opacity"
+                    >
+                      {isExpanded ? dictionary.assistant.seeLess : dictionary.assistant.seeMore}
+                    </button>
                   )}
-                />
+                </>
               )}
             </div>
           </div>

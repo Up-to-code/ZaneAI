@@ -2,57 +2,61 @@ import { useMemo, useState, useEffect } from "react";
 import { StyleSheet, View, TextInput, ScrollView, Pressable, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { Search } from "lucide-react-native";
-import Animated, { 
-  FadeIn, 
-  FadeInDown, 
-  Layout, 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSpring 
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  Layout,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring
 } from "react-native-reanimated";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EmptyPropertiesState } from "@/decision/components/EmptyPropertiesState";
 import { PropertyCard } from "@/decision/components/PropertyCard";
+import { PropertySkeletonList } from "@/decision/components/PropertySkeleton";
+import { PropertyStateCard } from "@/decision/components/PropertyStateCard";
 import { EdgeFade } from "@/conversation/components/EdgeFade";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { Text } from "@/foundation/primitives/Text";
 import { useTranslation } from "@/foundation/localization";
 import { useScrollPositionMotion } from "@/lib/useScrollPositionMotion";
-import { useCandidateProperties, useSavedProperties } from "@/persistence/convex/usePropertyData";
+import { useCandidatePropertiesState, useSavedPropertiesState } from "@/persistence/convex/usePropertyData";
 import type { PropertyCardVM } from "@/types/domain";
 
 const BANNER_HEIGHT = 320;
-const BRAND_DOT_COLOR = "#EC2D35";
+const BRAND_DOT_COLOR = "#DA3F45";
 const SCROLL_HEADER_THRESHOLD = 44;
 
 /**
  * SlidingIndicator for segmented controls
  */
-function SlidingIndicator({ 
-  activeIndex, 
-  itemsCount, 
-  containerWidth, 
+function SlidingIndicator({
+  activeIndex,
+  itemsCount,
+  containerWidth,
   resolvedColorScheme,
-  colors
-}: { 
-  activeIndex: number; 
+  colors,
+  isRTL
+}: {
+  activeIndex: number;
   itemsCount: number;
   containerWidth: number;
   resolvedColorScheme: string;
   colors: any;
+  isRTL: boolean;
 }) {
   const itemWidth = (containerWidth - 8) / itemsCount; // 8 is total horizontal padding (4 on each side)
   const offset = useSharedValue(activeIndex);
-  
+
   useEffect(() => {
     offset.value = withSpring(activeIndex, { damping: 25, stiffness: 220, mass: 0.5 });
   }, [activeIndex, offset]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: itemWidth,
-    transform: [{ translateX: offset.value * itemWidth }],
+    transform: [{ translateX: offset.value * itemWidth * (isRTL ? -1 : 1) }],
   }));
 
   const indicatorColor = colors.textPrimary;
@@ -64,7 +68,6 @@ function SlidingIndicator({
 
 type PropertyRailSectionProps = {
   title: string;
-  subtitle: string;
   ctaLabel: string;
   properties: PropertyCardVM[];
   cardWidth: number;
@@ -77,7 +80,6 @@ type PropertyRailSectionProps = {
 
 function PropertyRailSection({
   title,
-  subtitle,
   ctaLabel,
   properties,
   cardWidth,
@@ -96,7 +98,6 @@ function PropertyRailSection({
       <View style={viewStyles.railHeader}>
         <View style={viewStyles.railTitleBlock}>
           <Text style={viewStyles.sectionTitle}>{title}</Text>
-          <Text style={viewStyles.sectionSubtitle}>{subtitle}</Text>
         </View>
         <Pressable accessibilityRole="button" onPress={onViewAll} style={viewStyles.sectionCta}>
           <Text style={viewStyles.viewAllText}>{ctaLabel}</Text>
@@ -147,10 +148,10 @@ export function NormalModeView() {
     backgroundColor: `${colors.background}E6`,
     borderColor: colors.divider,
   });
-  
+
   const [transaction, setTransaction] = useState<"buy" | "rent">("buy");
-  const properties = useCandidateProperties();
-  const savedListings = useSavedProperties();
+  const { items: properties, isLoading: isPropertiesLoading } = useCandidatePropertiesState();
+  const { items: savedListings, isLoading: isSavedLoading } = useSavedPropertiesState();
 
   const containerPadding = 24 * 2;
   const contentWidth = windowWidth - containerPadding;
@@ -177,8 +178,8 @@ export function NormalModeView() {
   };
 
   return (
-    <Animated.View 
-      entering={FadeIn.duration(300)} 
+    <Animated.View
+      entering={FadeIn.duration(300)}
       style={viewStyles.container}
     >
       <Animated.View
@@ -199,8 +200,8 @@ export function NormalModeView() {
         </Animated.View>
       </Animated.View>
 
-      <Animated.ScrollView 
-        contentContainerStyle={viewStyles.scrollContent} 
+      <Animated.ScrollView
+        contentContainerStyle={viewStyles.scrollContent}
         showsVerticalScrollIndicator={false}
         onScroll={scrollMotion.onScroll}
         scrollEventThrottle={16}
@@ -218,17 +219,17 @@ export function NormalModeView() {
 
         {/* Search Interaction Layer */}
         <View style={viewStyles.contentBlock}>
-          
+
           {/* Main Search Component (Composer Style) */}
-          <Animated.View 
+          <Animated.View
             entering={FadeInDown.delay(100).duration(300)}
             layout={Layout.springify()}
             style={viewStyles.composerContainer}
           >
             {/* Unified Search Bar (Matches AI Composer Dock) */}
             <View style={viewStyles.unifiedBar}>
-              <Pressable 
-                style={[viewStyles.actionButton, { backgroundColor: "#EC2D35" }]}
+              <Pressable
+                style={[viewStyles.actionButton, { backgroundColor: "#DA3F45" }]}
                 onPress={() => openListing()}
               >
                 <Search size={20} color="#FFFFFF" strokeWidth={2.5} />
@@ -246,14 +247,15 @@ export function NormalModeView() {
 
             {/* Inner Transaction Toggle (Buy vs Rent) - Now UNDER Search */}
             <View style={viewStyles.transactionRow}>
-              <SlidingIndicator 
-                activeIndex={transaction === "rent" ? 0 : 1} 
-                itemsCount={2} 
+              <SlidingIndicator
+                activeIndex={transaction === "rent" ? 0 : 1}
+                itemsCount={2}
                 containerWidth={contentWidth} // No padding needed as it's separate
                 resolvedColorScheme={resolvedColorScheme}
                 colors={colors}
+                isRTL={isRTL}
               />
-              <Pressable 
+              <Pressable
                 onPress={() => setTransaction("rent")}
                 style={viewStyles.transactionBtn}
               >
@@ -264,7 +266,7 @@ export function NormalModeView() {
                   {transaction === "rent" && <View style={viewStyles.brandDot} />}
                 </View>
               </Pressable>
-              <Pressable 
+              <Pressable
                 onPress={() => setTransaction("buy")}
                 style={viewStyles.transactionBtn}
               >
@@ -281,17 +283,20 @@ export function NormalModeView() {
           {/* Spacer between search pill and projects */}
           <View style={{ height: 36 }} />
 
-          {properties.length === 0 ? (
-              <EmptyPropertiesState
-                title="No new properties"
-                body="Fresh matches will show here as soon as ZaneAI finds them."
-              />
+          {isPropertiesLoading ? (
+            <View style={viewStyles.skeletonWrap}>
+              <PropertySkeletonList count={2} compact />
+            </View>
+          ) : properties.length === 0 ? (
+            <EmptyPropertiesState
+              title={t.listing.emptyTitle}
+              body={t.listing.emptyBody}
+            />
           ) : (
             <>
               <PropertyRailSection
-                title="TOP MATCHES"
-                subtitle="Highest-confidence homes for this session."
-                ctaLabel="SEE MORE"
+                title={t.homeSearch.topMatchesTitle}
+                ctaLabel={t.homeSearch.viewAll}
                 properties={topMatchProperties}
                 cardWidth={railCardWidth}
                 delay={300}
@@ -299,27 +304,33 @@ export function NormalModeView() {
                 onViewAll={() => openListing()}
               />
               <PropertyRailSection
-                title="TOP SEARCH"
-                subtitle="Fresh inventory Zane can compare quickly."
-                ctaLabel="SEE MORE"
+                title={t.homeSearch.searchTitle}
+                ctaLabel={t.homeSearch.viewAll}
                 properties={searchProperties}
                 cardWidth={railCardWidth}
                 delay={380}
                 viewStyles={viewStyles}
-                onViewAll={() => openListing("All")}
+                onViewAll={() => openListing("all")}
               />
               <PropertyRailSection
-                title="SAVED PROPERTIES"
-                subtitle="Your shortlisted homes stay one swipe away."
-                ctaLabel="SAVED"
+                title={t.homeSearch.savedTitle}
+                ctaLabel={t.homeSearch.viewAll}
                 properties={savedProperties}
                 cardWidth={railCardWidth}
                 delay={460}
-                emptyTitle="No saved homes yet"
-                emptyBody="Tap the heart on any card and it will stay here for fast comparison."
+                emptyTitle={t.homeSearch.emptySavedTitle}
+                emptyBody={t.homeSearch.emptySavedBody}
                 viewStyles={viewStyles}
                 onViewAll={() => router.navigate("/(app)/saved")}
               />
+              {isSavedLoading ? (
+                <View style={viewStyles.savedLoadingWrap}>
+                  <PropertyStateCard
+                    title={t.homeSearch.syncingSavedTitle}
+                    body={t.homeSearch.syncingSavedBody}
+                  />
+                </View>
+              ) : null}
             </>
           )}
         </View>
@@ -378,6 +389,14 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     alignItems: "center",
     marginTop: -84, // Centers the 40px transaction selector exactly on the banner's baseline (Search bar is 52px + 12px gap + 20px half-toggle = 84px)
   },
+  skeletonWrap: {
+    width: "100%",
+    gap: 16,
+  },
+  savedLoadingWrap: {
+    width: "100%",
+    marginTop: 8,
+  },
   categoryPillContainer: {
     flexDirection: "row",
     backgroundColor: colors.surfaceRaised,
@@ -427,7 +446,7 @@ const createStyles = (colors: any, insets: any, isRTL: boolean, colorScheme: str
     flexDirection: "row",
     backgroundColor: colors.surfaceRaised,
     borderRadius: 16,
-    padding: 2, 
+    padding: 2,
     width: "100%",
     height: 40, // Slimmer, more professional profile
     borderWidth: 1,

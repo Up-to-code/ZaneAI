@@ -12,15 +12,19 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ConversationViewport } from "@/conversation/components/ConversationViewport";
+import { useAppLocalization } from "@/foundation/localization";
 import { Screen } from "@/foundation/primitives/Screen";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { Text } from "@/foundation/primitives/Text";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
+import { uppercaseLatin } from "@/foundation/utils/textDisplay";
 import { useAppStore } from "@/store";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { colors, resolvedColorScheme } = useTheme();
+  const { t, isRTL } = useAppLocalization();
   const insets = useSafeAreaInsets();
   const { isGuest, user } = useAuthSession();
   
@@ -62,12 +66,12 @@ export default function HomeScreen() {
             }
           ]} 
           onPress={() => router.navigate(isAiMode ? "/(app)/menu" : "/(app)/saved")}
-          accessibilityLabel={isAiMode ? "Menu" : "Favorites"}
+          accessibilityLabel={isAiMode ? t.menu.title : t.saved.title}
         >
           {isAiMode ? (
             <Menu size={18} color={colors.textPrimary} />
           ) : (
-            <Heart size={18} color="#EC2D35" fill={resolvedColorScheme === 'dark' ? '#EC2D35' : 'transparent'} />
+            <Heart size={18} color="#DA3F45" fill={resolvedColorScheme === 'dark' ? '#DA3F45' : 'transparent'} />
           )}
         </Pressable>
 
@@ -81,23 +85,28 @@ export default function HomeScreen() {
             resolvedColorScheme={resolvedColorScheme}
           />
           <ModeTab 
-            label="SEARCH" 
+            label={uppercaseLatin(t.common.search)} 
             active={!isAiMode} 
             onPress={() => handleModeChange("normal")} 
             colors={colors}
             resolvedColorScheme={resolvedColorScheme}
           />
           {/* Sliding Indicator */}
-          <SlidingIndicator activeIndex={isAiMode ? 0 : 1} resolvedColorScheme={resolvedColorScheme} colors={colors} />
+          <SlidingIndicator
+            activeIndex={isAiMode ? 0 : 1}
+            resolvedColorScheme={resolvedColorScheme}
+            colors={colors}
+            isRTL={isRTL}
+          />
         </View>
 
         <Pressable 
           style={styles.navBtn} 
           onPress={() => router.navigate("/(app)/profile")}
-          accessibilityLabel="Profile"
+          accessibilityLabel={t.common.profile}
         >
           <View style={[styles.avatarCircle, { backgroundColor: colors.accent }]}>
-            <Text style={styles.avatarLabel}>{displayName.toUpperCase()}</Text>
+            <Text style={styles.avatarLabel}>{uppercaseLatin(displayName)}</Text>
           </View>
         </Pressable>
       </View>
@@ -111,19 +120,19 @@ function ModeTab({ label, active, onPress, colors, resolvedColorScheme }: { labe
   return (
     <Pressable onPress={onPress} style={styles.tabItem}>
       <View style={styles.tabContent}>
-        <Text style={[
+            <Text style={[
           styles.tabText, 
           { color: active ? activeTextColor : colors.textSecondary }
         ]}>
           {label}
         </Text>
-        {active && <View style={[styles.brandDot, { backgroundColor: '#EC2D35' }]} />}
+        {active && <View style={[styles.brandDot, { backgroundColor: '#DA3F45' }]} />}
       </View>
     </Pressable>
   );
 }
 
-function SlidingIndicator({ activeIndex, resolvedColorScheme, colors }: { activeIndex: number; resolvedColorScheme: string; colors: any }) {
+function SlidingIndicator({ activeIndex, resolvedColorScheme, colors, isRTL }: { activeIndex: number; resolvedColorScheme: string; colors: any; isRTL: boolean }) {
   const offset = useSharedValue(activeIndex);
   
   useEffect(() => {
@@ -131,13 +140,13 @@ function SlidingIndicator({ activeIndex, resolvedColorScheme, colors }: { active
   }, [activeIndex]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: offset.value * 64 }],
+    transform: [{ translateX: offset.value * 64 * (isRTL ? -1 : 1) }],
   }));
 
   const indicatorColor = colors.textPrimary;
 
   return (
-    <Animated.View style={[styles.indicator, animatedStyle, { backgroundColor: indicatorColor }]} />
+      <Animated.View style={[styles.indicator, animatedStyle, { backgroundColor: indicatorColor }]} />
   );
 }
 

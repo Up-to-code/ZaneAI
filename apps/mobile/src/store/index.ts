@@ -13,15 +13,7 @@ import { createSessionSlice, type SessionSlice } from "@/store/slices/sessionSli
 import { createUiSlice, type UiSlice } from "@/store/slices/uiSlice";
 import { createVoiceSlice, type VoiceSlice } from "@/store/slices/voiceSlice";
 
-export type AppStore = SessionSlice &
-  E2ESlice &
-  GuestMirrorSlice &
-  ConversationSlice &
-  ComposerSlice &
-  VoiceSlice &
-  PropertySlice &
-  PreferenceSlice &
-  UiSlice;
+export type AppStore = SessionSlice & E2ESlice & GuestMirrorSlice & ConversationSlice & ComposerSlice & VoiceSlice & PropertySlice & PreferenceSlice & UiSlice;
 
 export const useAppStore = create<AppStore>()(
   persist(
@@ -50,12 +42,11 @@ export const useAppStore = create<AppStore>()(
         comparePropertyIds: state.comparePropertyIds,
         preferenceProfile: state.preferenceProfile,
         appearanceMode: state.appearanceMode,
+        localePreference: state.localePreference,
         activeThreadId: state.activeThreadId,
       }),
       migrate: migratePersistedAppStore,
-      onRehydrateStorage: () => (state) => {
-        state?.setHydrationComplete(true);
-      },
+      onRehydrateStorage: () => (state) => { state?.setHydrationComplete(true); },
     },
   ),
 );

@@ -3,13 +3,14 @@
 import { v } from "convex/values";
 
 import { internal } from "../../_generated/api";
-import { internalAction } from "../../_generated/server";
+import type { Id } from "../../_generated/dataModel";
+import { internalAction, type ActionCtx } from "../../_generated/server";
 import { hasOpenAIKey } from "../../shared/env";
 import { factText } from "../lib/factText";
 import { rag } from "./client";
 
-export async function syncFactRecord(ctx: any, fact: {
-  _id: string;
+export async function syncFactRecord(ctx: ActionCtx, fact: {
+  _id: Id<"knowledgeFacts">;
   ownerKey: string;
   key: string;
   title: string;
@@ -33,7 +34,7 @@ export const syncFactToRag = internalAction({
   args: { factId: v.id("knowledgeFacts") },
   handler: async (ctx, args): Promise<string | null> => {
     const fact: {
-      _id: string;
+      _id: Id<"knowledgeFacts">;
       ownerKey: string;
       key: string;
       title: string;

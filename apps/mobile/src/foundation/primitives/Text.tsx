@@ -1,6 +1,7 @@
-import { Text as RNText, StyleSheet, type TextProps as RNTextProps } from "react-native";
+import { Text as RNText, StyleSheet, type TextProps as RNTextProps, type TextStyle } from "react-native";
 import React, { Children, isValidElement, useMemo, type ReactNode } from "react";
 
+import { useAppLocalization } from "@/foundation/localization";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { isArabic } from "@/foundation/utils/rtl";
@@ -17,12 +18,15 @@ type TextProps = RNTextProps & {
 export const Text = React.forwardRef<RNText, TextProps>(
   ({ style, variant = "body", tone = "primary", selectable, children, ...props }, ref) => {
     const { colors } = useTheme();
+    const { isRTL } = useAppLocalization();
     const styles = useMemo(() => createStyles(colors), [colors]);
 
     const arabic = useMemo(() => isArabic(extractTextContent(children)), [children]);
+    const shouldUseArabicTypography = isRTL || arabic;
+    const flattenedStyle = useMemo(() => StyleSheet.flatten(style) as TextStyle | undefined, [style]);
 
     const arabicStyle = useMemo(() => {
-      if (!arabic) return null;
+      if (!shouldUseArabicTypography) return null;
       const arabicFontFamilyByVariant: Record<Variant, string> = {
         display: "Cairo_700Bold",
         title: "Cairo_700Bold",
@@ -32,9 +36,10 @@ export const Text = React.forwardRef<RNText, TextProps>(
       };
       return {
         fontFamily: arabicFontFamilyByVariant[variant],
-        textAlign: "right" as const,
+        textAlign: flattenedStyle?.textAlign ?? ("right" as const),
+        writingDirection: flattenedStyle?.writingDirection ?? ("rtl" as const),
       };
-    }, [arabic, variant]);
+    }, [flattenedStyle?.textAlign, flattenedStyle?.writingDirection, shouldUseArabicTypography, variant]);
 
     return (
       <RNText

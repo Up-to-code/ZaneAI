@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, View, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ArrowLeft, Phone, Mail, Star, MapPin, Building2 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -20,6 +20,7 @@ export default function BrokerScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const params = useLocalSearchParams<{ id: string }>();
+  const [activeTab, setActiveTab] = useState<"about" | "properties">("properties");
 
   const rawProperties = useCandidateProperties();
   
@@ -46,42 +47,60 @@ export default function BrokerScreen() {
         {/* Profile Card */}
         <Animated.View entering={FadeInDown.delay(100)} style={styles.profileCard}>
            <Image source={broker.avatarUrl} style={styles.avatar} contentFit="cover" />
-           <Text variant="display" style={{ color: colors.textPrimary, marginTop: 12 }}>{broker.name}</Text>
-           <Text tone="secondary" variant="body" style={{ marginTop: 4 }}>{broker.agency}</Text>
+           <Text style={styles.brokerName}>{broker.name}</Text>
+           <Text style={styles.agencyName}>{broker.agency}</Text>
            
            <View style={styles.metaRow}>
-             <View style={styles.metaBadge}>
+             <View style={[styles.metaBadge, { borderColor: "#FBBF24" }]}>
                <Star size={14} color="#FBBF24" fill="#FBBF24" />
-               <Text variant="label" style={{ fontWeight: "700" }}>{broker.rating}</Text>
+               <Text style={[styles.badgeText, { color: "#FBBF24" }]}>{broker.rating}</Text>
              </View>
-             <View style={styles.metaBadge}>
+             <View style={[styles.metaBadge, { borderColor: colors.accent }]}>
                <Building2 size={14} color={colors.accent} />
-               <Text variant="label" tone="secondary">{broker.activeListingsCount} Listings</Text>
+               <Text style={[styles.badgeText, { color: colors.accent }]}>{broker.activeListingsCount} Listings</Text>
              </View>
            </View>
-
-           <Text tone="secondary" style={styles.bio}>{broker.description}</Text>
 
            <View style={styles.actionRow}>
              <Pressable style={[styles.actionBtn, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
                <Phone size={18} color={colors.background} />
-               <Text variant="label" style={{ color: colors.background }}>Call Agent</Text>
+               <Text style={styles.actionTextPrimary}>Call Agent</Text>
              </Pressable>
-             <Pressable style={styles.actionBtn}>
+             <Pressable style={[styles.actionBtn, { backgroundColor: colors.background, borderColor: colors.divider }]}>
                <Mail size={18} color={colors.textPrimary} />
              </Pressable>
            </View>
         </Animated.View>
 
-        {/* Listings Section */}
-        <View style={styles.listingsSection}>
-           <Text variant="title" style={{ color: colors.textPrimary, marginBottom: 16 }}>Active Listings</Text>
-           {brokerListings.map((property: PropertyCardVM, idx: number) => (
-             <Animated.View key={property.id} entering={FadeInDown.delay(200 + (idx * 100))}>
-               <PropertyCard property={property} compact={false} style={{ marginBottom: theme.spacing.md }} />
-             </Animated.View>
-           ))}
+        {/* Tabs */}
+        <View style={styles.tabsRow}>
+          <Pressable 
+            style={[styles.tab, activeTab === "about" && styles.activeTab]} 
+            onPress={() => setActiveTab("about")}
+          >
+            <Text style={[styles.tabText, activeTab === "about" && styles.activeTabText]}>About</Text>
+          </Pressable>
+          <Pressable 
+            style={[styles.tab, activeTab === "properties" && styles.activeTab]} 
+            onPress={() => setActiveTab("properties")}
+          >
+            <Text style={[styles.tabText, activeTab === "properties" && styles.activeTabText]}>Active Listings</Text>
+          </Pressable>
         </View>
+
+        {activeTab === "about" ? (
+          <Animated.View entering={FadeInDown.delay(100)} style={styles.aboutSection}>
+             <Text style={styles.bio}>{broker.description}</Text>
+          </Animated.View>
+        ) : (
+          <View style={styles.listingsSection}>
+             {brokerListings.map((property: PropertyCardVM, idx: number) => (
+               <Animated.View key={property.id} entering={FadeInDown.delay(100 + (idx * 50))}>
+                 <PropertyCard property={property} compact={false} style={{ marginBottom: theme.spacing.md }} />
+               </Animated.View>
+             ))}
+          </View>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -99,10 +118,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: "center",
   },
   circleBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
@@ -113,7 +132,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   profileCard: {
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderRadius: theme.radii.lg,
     padding: theme.spacing.xl,
     borderWidth: 1,
@@ -124,12 +143,22 @@ const createStyles = (colors: any) => StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    borderWidth: 3,
-    borderColor: colors.background,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  brokerName: {
+    marginTop: 16,
+    fontFamily: "Manrope_800ExtraBold",
+    fontSize: 28,
+    color: colors.textPrimary,
+    letterSpacing: -1,
+  },
+  agencyName: {
+    marginTop: 4,
+    fontFamily: "Manrope_700Bold",
+    fontSize: 14,
+    color: colors.textMuted,
+    letterSpacing: 0.5,
   },
   metaRow: {
     flexDirection: "row",
@@ -143,12 +172,20 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: `${colors.accent}15`,
+    backgroundColor: "transparent",
+    borderWidth: 1,
     borderRadius: theme.radii.pill,
+  },
+  badgeText: {
+    fontFamily: "Manrope_800ExtraBold",
+    fontSize: 12,
   },
   bio: {
     textAlign: "center",
+    fontFamily: "Manrope_500Medium",
+    fontSize: 14,
     lineHeight: 22,
+    color: colors.textSecondary,
     marginBottom: 24,
   },
   actionRow: {
@@ -164,9 +201,42 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 8,
     height: 48,
     borderRadius: theme.radii.pill,
-    backgroundColor: colors.surface,
+    borderWidth: 1,
+  },
+  actionTextPrimary: {
+    fontFamily: "Manrope_800ExtraBold",
+    fontSize: 14,
+    color: colors.background,
+  },
+  tabsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 24,
+  },
+  tab: {
+    flex: 1,
+    height: 44,
+    borderRadius: theme.radii.pill,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.divider,
+    backgroundColor: "transparent",
+  },
+  activeTab: {
+    backgroundColor: colors.textPrimary,
+    borderColor: colors.textPrimary,
+  },
+  tabText: {
+    fontFamily: "Manrope_800ExtraBold",
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  activeTabText: {
+    color: colors.background,
+  },
+  aboutSection: {
+    paddingBottom: theme.spacing.xl,
   },
   listingsSection: {
     paddingBottom: theme.spacing.xl,

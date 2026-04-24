@@ -5,44 +5,47 @@ import { ArrowLeft, Search, ChevronRight } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInUp } from "react-native-reanimated";
 
+import { useAppLocalization } from "@/foundation/localization";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
-import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 import { useThreads } from "@/persistence/convex/useConversationData";
 import { useAppStore } from "@/store";
 
 export default function TheoriesScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t, formatDate, isRTL } = useAppLocalization();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const threads = useThreads();
   const setActiveThreadId = useAppStore((state) => state.setActiveThreadId);
 
   const filteredTheories = threads.filter((thread: any) =>
-    (thread.title ?? "Untitled search").toLowerCase().includes(searchQuery.toLowerCase()),
+    (thread.title ?? t.theories.untitled).toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
     <Screen safe={false}>
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
-          <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={24} color={colors.textPrimary} />
+          <Pressable accessibilityLabel={t.common.back} style={styles.backBtn} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
-          <Text variant="title" style={styles.headerTitle}>Archive</Text>
+          <Text variant="title" style={styles.headerTitle}>{t.theories.title}</Text>
           <View style={{ width: 44 }} />
         </View>
 
         <View style={styles.searchBlock}>
           <View style={styles.searchSurface}>
             <Search size={18} color={colors.textMuted} />
-            <TextInput 
-              placeholder="Search conversations..."
+            <TextInput
+              placeholder={t.theories.searchPlaceholder}
               placeholderTextColor={colors.textMuted}
               style={styles.searchInput}
+              textAlign={isRTL ? "right" : "left"}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -50,10 +53,10 @@ export default function TheoriesScreen() {
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[
-          styles.scrollContent, 
-          { paddingTop: insets.top + 120, paddingBottom: insets.bottom + 40 }
+          styles.scrollContent,
+          { paddingTop: insets.top + 120, paddingBottom: insets.bottom + 40 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -71,16 +74,16 @@ export default function TheoriesScreen() {
                 >
                   <View style={styles.theoryMain}>
                     <View style={styles.theoryContent}>
-                      <Text variant="body" style={styles.theoryTitle}>{thread.title ?? "Untitled search"}</Text>
+                      <Text variant="body" style={styles.theoryTitle}>{thread.title ?? t.theories.untitled}</Text>
                       <Text variant="caption" style={styles.theoryPreview} numberOfLines={1}>
-                        {thread.summary ?? "Open this thread to continue the research."}
+                        {thread.summary ?? t.theories.openThreadBody}
                       </Text>
                     </View>
                     <View style={styles.theoryMeta}>
                       <Text variant="caption" style={styles.theoryTime}>
-                        {new Date(thread._creationTime).toLocaleDateString()}
+                        {formatDate(thread._creationTime)}
                       </Text>
-                      <ChevronRight size={14} color={colors.textMuted} />
+                      <ChevronRight size={14} color={colors.textMuted} style={mirrorIcon(isRTL)} />
                     </View>
                   </View>
                 </Pressable>
@@ -88,13 +91,11 @@ export default function TheoriesScreen() {
               </View>
             ))}
           </View>
-          
+
           {filteredTheories.length === 0 && (
             <View style={styles.emptyState}>
               <Text variant="body" tone="muted">
-                No theories found matching {"\""}
-                {searchQuery}
-                {"\""}
+                {t.theories.emptyPrefix} &quot;{searchQuery}&quot;
               </Text>
             </View>
           )}
@@ -104,7 +105,7 @@ export default function TheoriesScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   header: {
     position: "absolute",
     top: 0,
@@ -119,7 +120,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 12,
   },
   headerTop: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
     height: 44,
@@ -146,7 +147,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingVertical: 4,
   },
   searchSurface: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     backgroundColor: colors.surface,
     height: 44,
@@ -180,35 +181,38 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingHorizontal: 20,
   },
   theoryMain: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   theoryContent: {
     flex: 1,
-    marginRight: 12,
+    marginHorizontal: 12,
     gap: 2,
+    alignItems: isRTL ? "flex-end" : "flex-start",
   },
   theoryTitle: {
     fontSize: 16,
     fontWeight: "800",
     color: colors.textPrimary,
     letterSpacing: -0.4,
+    textAlign: isRTL ? "right" : "left",
   },
   theoryPreview: {
     fontSize: 13,
     color: colors.textSecondary,
     opacity: 0.7,
+    textAlign: isRTL ? "right" : "left",
   },
   theoryMeta: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 10,
   },
   theoryTime: {
     fontSize: 11,
     color: colors.textMuted,
-    fontFamily: "SpaceMono_400Regular",
+    fontFamily: "Manrope_700Bold",
   },
   divider: {
     height: 1,

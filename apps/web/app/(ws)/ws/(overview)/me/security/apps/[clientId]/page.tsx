@@ -4,9 +4,7 @@ import { buildWorkspaceOrganizationAppsPath } from "@/lib/serverSession";
 type WorkspaceSecurityDetailPageProps = { params: Promise<{ clientId: string }> };
 
 /**
- * WHY:   Legacy app detail links should stay valid after the workspace becomes a static demo.
- * WHAT:  Redirects the old personal detail route to the organization apps tab.
- * HOW:   Ignores auth state and forwards directly into the demo settings surface.
+ * Redirects the old personal app detail route to the organization apps settings tab.
  */
 export default async function WorkspaceSecurityDetailPage({ params }: WorkspaceSecurityDetailPageProps) {
   await params;

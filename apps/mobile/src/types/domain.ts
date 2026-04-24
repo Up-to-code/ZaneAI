@@ -129,6 +129,10 @@ export type PropertyCardVM = {
   description?: string; // added description
   priceLabel: string;
   locationLabel: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
   beds: number;
   baths: number;
   area: number;

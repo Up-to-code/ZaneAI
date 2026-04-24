@@ -1,7 +1,18 @@
-import { ScrollView, StyleSheet, View, Pressable } from "react-native";
+import { ScrollView, StyleSheet, View, Pressable, Image, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
-import { Settings, LogOut, Shield, ChevronRight, Bell, Heart, CreditCard, ArrowLeft, SunMoon } from "lucide-react-native";
+import {
+  Settings,
+  LogOut,
+  Shield,
+  ChevronRight,
+  Bell,
+  Heart,
+  CreditCard,
+  ArrowLeft,
+  SunMoon,
+  Languages,
+} from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInUp } from "react-native-reanimated";
 
@@ -12,12 +23,16 @@ import { authClient, deleteAnonymousAccount } from "@/auth/authClient";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { resetE2EAuthState } from "@/e2e/store";
 import { useAppStore } from "@/store";
+import { useAppLocalization } from "@/foundation/localization";
+import { formatLanguagePreferenceLabel } from "@/foundation/localization/languageSettings";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { colors, appearanceMode } = useTheme();
+  const { colors } = useTheme();
+  const { t, isRTL, localePreference } = useAppLocalization();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const { user, isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const setGuestMode = useAppStore((state) => state.setGuestMode);
@@ -27,62 +42,93 @@ export default function ProfileScreen() {
   const setSelectedPropertyId = useAppStore((state) => state.setSelectedPropertyId);
 
   const handleLogout = () => {
-    if (e2eQaMode) {
-      resetE2EAuthState();
-      router.replace("/(auth)");
-      return;
-    }
-    if (isGuest) {
-      void deleteAnonymousAccount().catch(() => authClient.signOut().catch(() => null));
-      clearGuestMirror();
-      setComparePropertyIds([]);
-      setSelectedPropertyId(null);
-      resetConversationState();
-      setGuestMode(false);
-      router.replace("/(auth)");
-      return;
-    }
-    if (isAuthenticated) {
-      void authClient.signOut();
-    }
+    Alert.alert(
+      isGuest ? t.profile.resetSession : t.profile.signOut,
+      "Are you sure you want to end your current session?",
+      [
+        { text: t.common.close || "Cancel", style: "cancel" },
+        {
+          text: isGuest ? t.profile.resetSession : t.profile.signOut,
+          style: "destructive",
+          onPress: () => {
+            if (e2eQaMode) {
+              resetE2EAuthState();
+              router.replace("/(auth)");
+              return;
+            }
+            if (isGuest) {
+              void deleteAnonymousAccount().catch(() => authClient.signOut().catch(() => null));
+              clearGuestMirror();
+              setComparePropertyIds([]);
+              setSelectedPropertyId(null);
+              resetConversationState();
+              setGuestMode(false);
+              router.replace("/(auth)");
+              return;
+            }
+            if (isAuthenticated) {
+              void authClient.signOut();
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const displayName = isGuest ? "Anonymous Session" : user?.name ?? user?.email ?? "Ahmed Mansour";
+  const displayName = isGuest ? t.menu.anonymousSession : user?.name ?? user?.email ?? "Ahmed Mansour";
+  const avatarUrl = !isGuest ? user?.image ?? null : null;
   const initials = displayName
     .split(" ")
     .map((part: string) => part[0]?.toUpperCase() ?? "")
     .join("")
     .slice(0, 2);
+  const languageSummary = formatLanguagePreferenceLabel(t, localePreference);
 
-  const menuGroups = [
+  const menuGroups: {
+    label: string;
+    items: {
+      id: string;
+      label: string;
+      icon: React.ReactNode;
+      description?: string;
+      onPress?: () => void;
+    }[];
+  }[] = [
     {
-      label: "Account",
+      label: t.profile.account,
       items: [
-        { id: "pref", label: "AI Search Style", icon: <Settings size={18} color={colors.accent} /> },
-        { id: "appearance", label: "Appearance", icon: <SunMoon size={18} color={colors.textPrimary} />, onPress: () => router.push("/(app)/appearance") },
-      ]
+        { id: "pref", label: t.profile.aiSearchStyle, icon: <Settings size={18} color={colors.accent} />, onPress: () => router.push("/(app)/ai-search-style" as never) },
+        { id: "appearance", label: t.appSettings.appearanceTitle, icon: <SunMoon size={18} color={colors.textPrimary} />, onPress: () => router.push("/(app)/appearance" as never) },
+        {
+          id: "language",
+          label: t.appSettings.languageTitle,
+          description: languageSummary,
+          icon: <Languages size={18} color={colors.textPrimary} />,
+          onPress: () => router.push("/(app)/language" as never),
+        },
+      ],
     },
     {
-      label: "Security",
+      label: t.profile.security,
       items: [
-        { id: "security", label: "Login & Security", icon: <Shield size={18} color={colors.textPrimary} /> },
-        { id: "privacy", label: "Memory & Privacy", icon: <Heart size={18} color={colors.textPrimary} /> },
-      ]
+        { id: "security", label: t.profile.loginSecurity, icon: <Shield size={18} color={colors.textPrimary} /> },
+        { id: "privacy", label: t.profile.memoryPrivacy, icon: <Heart size={18} color={colors.textPrimary} /> },
+      ],
     },
     {
-      label: "Services",
+      label: t.profile.services,
       items: [
-        { id: "billing", label: "Subscription", icon: <CreditCard size={18} color={colors.accent} /> },
-        { id: "notif", label: "Market Alerts", icon: <Bell size={18} color={colors.textPrimary} /> },
-      ]
-    }
+        { id: "billing", label: t.profile.subscription, icon: <CreditCard size={18} color={colors.accent} /> },
+        { id: "notif", label: t.profile.marketAlerts, icon: <Bell size={18} color={colors.textPrimary} /> },
+      ],
+    },
   ];
 
   return (
     <Screen safe={false}>
       <View style={[styles.header, { top: insets.top + 10 }]}>
-        <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
-          <ArrowLeft size={24} color={colors.textPrimary} />
+        <Pressable accessibilityLabel={t.common.back} style={styles.backBtn} onPress={() => router.back()}>
+          <ArrowLeft size={24} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
         </Pressable>
       </View>
 
@@ -95,9 +141,13 @@ export default function ProfileScreen() {
       >
         <Animated.View entering={FadeInUp.springify()} style={styles.hero}>
           <View style={styles.avatarWrap}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials || "Z"}</Text>
-            </View>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{initials || "Z"}</Text>
+              </View>
+            )}
           </View>
           <View style={styles.heroText}>
             <Text variant="display" style={styles.userName}>{displayName}</Text>
@@ -107,8 +157,8 @@ export default function ProfileScreen() {
         {isGuest && (
           <View style={styles.authPrompt}>
             <Pressable style={styles.loginBtn} onPress={() => router.push("/(auth)")}>
-              <Text style={styles.loginBtnText}>Log In to Sync Research</Text>
-              <ChevronRight size={16} color={colors.background} />
+              <Text style={styles.loginBtnText}>{t.profile.logInToSync}</Text>
+              <ChevronRight size={16} color={colors.background} style={mirrorIcon(isRTL)} />
             </Pressable>
           </View>
         )}
@@ -127,9 +177,14 @@ export default function ProfileScreen() {
                         </View>
                         <View style={styles.itemTextWrap}>
                           <Text variant="body" style={styles.itemLabel}>{item.label}</Text>
+                          {item.description ? (
+                            <Text variant="caption" tone="muted" style={styles.itemDescription}>
+                              {item.description}
+                            </Text>
+                          ) : null}
                         </View>
                       </View>
-                      <ChevronRight size={14} color={colors.textMuted} />
+                      <ChevronRight size={14} color={colors.textMuted} style={mirrorIcon(isRTL)} />
                     </Pressable>
                     {idx < group.items.length - 1 && <View style={styles.divider} />}
                   </View>
@@ -142,7 +197,7 @@ export default function ProfileScreen() {
         <View style={styles.footer}>
           <Pressable style={styles.signOutBtn} onPress={handleLogout}>
             <LogOut size={18} color={colors.textPrimary} />
-            <Text style={styles.signOutText}>{isGuest ? "Reset session" : "Sign Out"}</Text>
+            <Text style={styles.signOutText}>{isGuest ? t.profile.resetSession : t.profile.signOut}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -150,10 +205,10 @@ export default function ProfileScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   header: {
     position: "absolute",
-    left: 20,
+    ...(isRTL ? { right: 20 } : { left: 20 }),
     zIndex: 100,
   },
   backBtn: {
@@ -170,6 +225,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   hero: {
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 16,
     marginBottom: 32,
@@ -179,36 +235,38 @@ const createStyles = (colors: any) => StyleSheet.create({
     position: "relative",
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surface,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
     borderColor: colors.divider,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+  },
+  avatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: colors.divider,
   },
   avatarText: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: "900",
     color: colors.textPrimary,
-    lineHeight: 34,
     letterSpacing: -1,
     textAlign: "center",
     includeFontPadding: false,
   },
   heroText: {
-    alignItems: "center",
+    alignItems: isRTL ? "flex-end" : "flex-start",
+    flex: 1,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: "800",
-    textAlign: "center",
+    fontSize: 20,
+    fontFamily: "Manrope_800ExtraBold",
+    textAlign: isRTL ? "right" : "left",
   },
   authPrompt: {
     marginBottom: 40,
@@ -217,7 +275,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   loginBtn: {
     backgroundColor: colors.textPrimary,
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 8,
     paddingVertical: 14,
@@ -236,7 +294,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 10,
   },
   groupCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: "transparent",
     borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.divider,
@@ -246,59 +304,66 @@ const createStyles = (colors: any) => StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 2,
     fontSize: 10,
-    marginLeft: 12,
+    fontFamily: "Manrope_800ExtraBold",
   },
   item: {
-    flexDirection: "row",
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
   },
   itemMain: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
-    gap: 14,
+    gap: 12,
+    flex: 1,
   },
   itemIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.background,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: colors.divider,
   },
   itemTextWrap: {
+    flex: 1,
+    alignItems: isRTL ? "flex-end" : "flex-start",
     gap: 2,
   },
   itemLabel: {
-    fontSize: 16,
-    fontWeight: "700",
+    textAlign: isRTL ? "right" : "left",
+    fontFamily: "Manrope_800ExtraBold",
+  },
+  itemDescription: {
+    textAlign: isRTL ? "right" : "left",
   },
   divider: {
     height: 1,
     backgroundColor: colors.divider,
-    marginLeft: 68,
+    marginHorizontal: 16,
   },
   footer: {
-    marginTop: 60,
-    paddingTop: 24,
+    marginTop: 28,
+    marginBottom: 16,
+    alignItems: "center",
   },
   signOutBtn: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-    paddingVertical: 18,
-    borderRadius: 24,
-    gap: 12,
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: colors.divider,
   },
   signOutText: {
-    fontSize: 16,
-    fontWeight: "800",
+    color: colors.textPrimary,
+    fontWeight: "700",
   },
 });

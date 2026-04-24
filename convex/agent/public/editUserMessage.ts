@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 import { api, internal } from "../../_generated/api";
 import type { Id } from "../../_generated/dataModel";
-import { mutation } from "../../_generated/server";
+import { mutation, type MutationCtx } from "../../_generated/server";
 import { requireAuthUser } from "../../auth/requireAuth";
 import { ensureProfile } from "../../auth/profile";
 import { rateLimiter } from "../../llm/rateLimiter";
@@ -39,7 +39,7 @@ function getEditReasonCode(error: unknown) {
   return "workflow_failed";
 }
 
-async function deleteThreadTail(ctx: any, target: AgentMessageDoc) {
+async function deleteThreadTail(ctx: MutationCtx, target: AgentMessageDoc) {
   let startOrder = target.order;
   let startStepOrder = target.stepOrder + 1;
 
@@ -62,20 +62,20 @@ async function deleteThreadTail(ctx: any, target: AgentMessageDoc) {
   throw new Error("Message tail is too large to rewrite in one edit.");
 }
 
-async function deleteSearchSession(ctx: any, sessionId: Id<"propertySearchSessions">) {
+async function deleteSearchSession(ctx: MutationCtx, sessionId: Id<"propertySearchSessions">) {
   for await (const result of ctx.db
     .query("propertySearchResults")
-    .withIndex("by_sessionId", (q: any) => q.eq("sessionId", sessionId))) {
+    .withIndex("by_sessionId", (q) => q.eq("sessionId", sessionId))) {
     await ctx.db.delete(result._id);
   }
   await ctx.db.delete(sessionId);
 }
 
-async function truncateOperationalMemoryAfter(ctx: any, threadId: string, cutoffAt: number) {
+async function truncateOperationalMemoryAfter(ctx: MutationCtx, threadId: string, cutoffAt: number) {
   const staleRuns: Id<"agentRuns">[] = [];
   const now = Date.now();
 
-  for await (const run of ctx.db.query("agentRuns").withIndex("by_threadId", (q: any) => q.eq("threadId", threadId))) {
+  for await (const run of ctx.db.query("agentRuns").withIndex("by_threadId", (q) => q.eq("threadId", threadId))) {
     if (run.createdAt <= cutoffAt) {
       continue;
     }
@@ -90,20 +90,20 @@ async function truncateOperationalMemoryAfter(ctx: any, threadId: string, cutoff
   }
 
   for (const runId of staleRuns) {
-    for await (const event of ctx.db.query("agentEvents").withIndex("by_runId", (q: any) => q.eq("runId", runId))) {
+    for await (const event of ctx.db.query("agentEvents").withIndex("by_runId", (q) => q.eq("runId", runId))) {
       await ctx.db.delete(event._id);
     }
   }
 
   for await (const turn of ctx.db
     .query("assistantTurns")
-    .withIndex("by_threadId_and_createdAt", (q: any) => q.eq("threadId", threadId).gt("createdAt", cutoffAt))) {
+    .withIndex("by_threadId_and_createdAt", (q) => q.eq("threadId", threadId).gt("createdAt", cutoffAt))) {
     await ctx.db.delete(turn._id);
   }
 
   for await (const toolCall of ctx.db
     .query("agentToolCalls")
-    .withIndex("by_threadId", (q: any) => q.eq("threadId", threadId))) {
+    .withIndex("by_threadId", (q) => q.eq("threadId", threadId))) {
     if (toolCall.createdAt > cutoffAt) {
       await ctx.db.delete(toolCall._id);
     }
@@ -111,12 +111,12 @@ async function truncateOperationalMemoryAfter(ctx: any, threadId: string, cutoff
 
   for await (const session of ctx.db
     .query("propertySearchSessions")
-    .withIndex("by_threadId_and_updatedAt", (q: any) => q.eq("threadId", threadId).gt("updatedAt", cutoffAt))) {
+    .withIndex("by_threadId_and_updatedAt", (q) => q.eq("threadId", threadId).gt("updatedAt", cutoffAt))) {
     await deleteSearchSession(ctx, session._id);
   }
 }
 
-async function isFirstUserMessage(ctx: any, target: AgentMessageDoc) {
+async function isFirstUserMessage(ctx: MutationCtx, target: AgentMessageDoc) {
   const result = await ctx.runQuery(agentComponent.messages.listMessagesByThreadId, {
     threadId: target.threadId as never,
     order: "asc",

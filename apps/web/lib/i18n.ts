@@ -875,6 +875,8 @@ export type WebDictionary = {
     search: string;
     deepSearch: string;
     stop: string;
+    seeMore: string;
+    seeLess: string;
     voiceTitle: string;
     closeVoicePanel: string;
     voiceCancel: string;
@@ -1632,6 +1634,8 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       search: "بحث",
       deepSearch: "بحث عميق",
       stop: "إيقاف",
+      seeMore: "عرض المزيد",
+      seeLess: "عرض أقل",
       voiceTitle: "التسجيل الصوتي",
       closeVoicePanel: "إغلاق لوحة التسجيل",
       voiceCancel: "إلغاء",
@@ -2526,6 +2530,8 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       search: "Search",
       deepSearch: "Deep search",
       stop: "Stop",
+      seeMore: "See More",
+      seeLess: "See Less",
       voiceTitle: "Voice recording",
       closeVoicePanel: "Close voice panel",
       voiceCancel: "Cancel",
@@ -3420,6 +3426,8 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       search: "Recherche",
       deepSearch: "Recherche approfondie",
       stop: "Arrêter",
+      seeMore: "Voir plus",
+      seeLess: "Voir moins",
       voiceTitle: "Enregistrement vocal",
       closeVoicePanel: "Fermer le panneau vocal",
       voiceCancel: "Annuler",

@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, View, Pressable, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Image } from "expo-image";
-import { Scale, Bookmark, MapPin, BedDouble, Bath, Ruler, ArrowLeft } from "lucide-react-native";
+import { Scale, Bookmark, MapPin, ArrowLeft } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInUp } from "react-native-reanimated";
 
@@ -10,27 +10,32 @@ import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
+import { PropertySkeletonList } from "@/decision/components/PropertySkeleton";
+import { PropertyStateCard } from "@/decision/components/PropertyStateCard";
 import { toggleE2ESavedProperty } from "@/e2e/store";
 import { track } from "@/persistence/analytics/track";
 import { api } from "@/persistence/convex/api";
 import { useAppStore } from "@/store";
-import { usePropertiesByIds, useSavedProperties } from "@/persistence/convex/usePropertyData";
+import { usePropertiesByIds, useSavedPropertiesState } from "@/persistence/convex/usePropertyData";
 import { useMutation } from "convex/react";
 import type { PropertyCardVM } from "@/types/domain";
 import { useAuthSession } from "@/auth/useAuthSession";
+import { useAppLocalization } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 export default function CompareScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t, formatNumber, isRTL } = useAppLocalization();
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
   const { isAuthenticated, isGuest } = useAuthSession();
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
 
   const comparePropertyIds = useAppStore((state) => state.comparePropertyIds);
   const toggleCompareProperty = useAppStore((state) => state.toggleCompareProperty);
   const toggleGuestMirrorSavedProperty = useAppStore((state) => state.toggleGuestMirrorSavedProperty);
-  const savedListings = useSavedProperties();
+  const { items: savedListings, isLoading: isSavedLoading } = useSavedPropertiesState();
   const toggleSavedListing = useMutation(api.listings.toggleSavedListing);
   const compareProperties = usePropertiesByIds(comparePropertyIds);
   const savedPropertyIds = useMemo(
@@ -42,45 +47,46 @@ export default function CompareScreen() {
     <Screen safe={false}>
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
-          <Pressable accessibilityLabel="Back" style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={24} color={colors.textPrimary} />
+          <Pressable accessibilityLabel={t.common.back} style={styles.backBtn} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
-          <Text variant="title" style={styles.headerTitle}>Comparison</Text>
+          <Text variant="title" style={styles.headerTitle}>{t.compare.title}</Text>
           <View style={{ width: 44 }} />
         </View>
         <Text variant="caption" tone="muted" style={styles.subtitle}>
-          Side-by-side breakdown of your selected choices.
+          {t.compare.subtitle}
         </Text>
       </View>
 
       <ScrollView
         contentContainerStyle={[
-          styles.content, 
-          { paddingTop: insets.top + 110, paddingBottom: insets.bottom + 40 }
+          styles.content,
+          { paddingTop: insets.top + 110, paddingBottom: insets.bottom + 40 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {compareProperties.length === 0 ? (
+        {comparePropertyIds.length > 0 && compareProperties.length === 0 ? (
+          <PropertySkeletonList count={Math.min(comparePropertyIds.length, 2)} compact />
+        ) : compareProperties.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconWrap}>
               <Scale size={48} color={colors.accent} strokeWidth={1} />
             </View>
-            <Text variant="title" style={styles.emptyTitle}>Compare tray is empty</Text>
+            <Text variant="title" style={styles.emptyTitle}>{t.compare.emptyTitle}</Text>
             <Text variant="body" tone="muted" style={styles.emptySubtitle}>
-              Tap the scale icon on any property card to add it for side-by-side analysis.
+              {t.compare.emptyBody}
             </Text>
           </View>
         ) : (
           <>
-            {/* Comparison Details Card */}
             {compareProperties.length === 2 && (
               <Animated.View entering={FadeInUp.springify()} style={styles.comparisonSheet}>
                 <View testID="compare.table" style={styles.compareTable}>
                   {[
-                    { label: "Price", values: compareProperties.map((p: PropertyCardVM) => p.priceLabel) },
-                    { label: "Location", values: compareProperties.map((p: PropertyCardVM) => p.locationLabel) },
-                    { label: "Beds", values: compareProperties.map((p: PropertyCardVM) => `${p.beds}`) },
-                    { label: "Area", values: compareProperties.map((p: PropertyCardVM) => `${p.area.toLocaleString()} sqft`) },
+                    { label: t.compare.price, values: compareProperties.map((p: PropertyCardVM) => p.priceLabel) },
+                    { label: t.compare.location, values: compareProperties.map((p: PropertyCardVM) => p.locationLabel) },
+                    { label: t.compare.beds, values: compareProperties.map((p: PropertyCardVM) => `${p.beds}`) },
+                    { label: t.compare.area, values: compareProperties.map((p: PropertyCardVM) => `${formatNumber(p.area)} sqft`) },
                   ].map(({ label, values }, index) => (
                     <View key={label} style={[styles.tableRow, index === 0 && { borderTopWidth: 0 }]}>
                       <Text variant="caption" tone="muted" style={styles.tableLabel}>{label}</Text>
@@ -93,7 +99,6 @@ export default function CompareScreen() {
               </Animated.View>
             )}
 
-            {/* Individual Property Cards */}
             <View style={styles.propertyList}>
               {compareProperties.map((property: PropertyCardVM) => {
                 const isSaved = savedPropertyIds.includes(property.id);
@@ -123,13 +128,13 @@ export default function CompareScreen() {
                           onPress={() => toggleCompareProperty(property.id)}
                         >
                           <Scale size={16} color={colors.textMuted} />
-                          <Text variant="caption" tone="muted">Remove</Text>
+                          <Text variant="caption" tone="muted">{t.common.remove}</Text>
                         </Pressable>
                         <Pressable
                           style={styles.actionBtn}
                           onPress={() => {
                             if (!isAuthenticated && !isGuest && !e2eQaMode) {
-                              Alert.alert("Sign in required", "Sign in to save properties.");
+                              Alert.alert(t.compare.signInRequiredTitle, t.compare.signInRequiredBody);
                               return;
                             }
                             if (e2eQaMode) {
@@ -147,7 +152,7 @@ export default function CompareScreen() {
                             fill={isSaved ? colors.accent : "transparent"}
                           />
                           <Text variant="caption" tone={isSaved ? "accent" : "muted"}>
-                            {isSaved ? "Saved" : "Save"}
+                            {isSaved ? t.common.saved : t.common.save}
                           </Text>
                         </Pressable>
                       </View>
@@ -158,12 +163,18 @@ export default function CompareScreen() {
             </View>
           </>
         )}
+        {isSavedLoading && compareProperties.length > 0 ? (
+          <PropertyStateCard
+            title={t.compare.syncingTitle}
+            body={t.compare.syncingBody}
+          />
+        ) : null}
       </ScrollView>
     </Screen>
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   header: {
     position: "absolute",
     top: 0,
@@ -177,7 +188,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingBottom: 16,
   },
   headerTop: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
     height: 44,
@@ -224,7 +235,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   emptyTitle: { textAlign: "center" },
   emptySubtitle: { textAlign: "center", lineHeight: 22, maxWidth: 260 },
-
   comparisonSheet: {
     backgroundColor: colors.surface,
     borderRadius: 24,
@@ -233,10 +243,9 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderColor: colors.divider,
     overflow: "hidden",
   },
-  compareTable: {
-  },
+  compareTable: {},
   tableRow: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
@@ -251,49 +260,48 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   tableValue: {
     flex: 1,
-    textAlign: "right",
-    fontWeight: "800",
-    fontSize: 14,
+    textAlign: "center",
   },
   propertyList: {
-    gap: 20,
+    gap: 16,
   },
   card: {
     borderRadius: 24,
-    backgroundColor: colors.surface,
     overflow: "hidden",
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.divider,
   },
   cardImage: {
     width: "100%",
-    height: 180,
+    height: 220,
   },
   cardBody: {
-    padding: 16,
-    gap: 12,
+    padding: 18,
+    gap: 16,
   },
-  cardInfo: { flex: 1, gap: 4 },
+  cardInfo: {
+    gap: 6,
+    alignItems: isRTL ? "flex-end" : "flex-start",
+  },
   locationRow: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     gap: 6,
   },
   cardActions: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     gap: 12,
-    marginTop: 8,
   },
   actionBtn: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: colors.background,
+    minHeight: 42,
+    borderRadius: theme.radii.pill,
     borderWidth: 1,
     borderColor: colors.divider,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: isRTL ? "row-reverse" : "row",
+    gap: 8,
   },
 });

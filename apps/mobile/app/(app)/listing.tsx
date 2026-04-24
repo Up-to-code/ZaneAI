@@ -1,138 +1,279 @@
-import { ScrollView, StyleSheet, View, Pressable, TextInput } from "react-native";
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View, Pressable, TextInput } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react-native";
+import { ArrowLeft, Map, Search, SlidersHorizontal } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { EmptyPropertiesState } from "@/decision/components/EmptyPropertiesState";
+import {
+  buildListingFilterParams,
+  countActiveListingFilters,
+  readListingFilters,
+} from "@/decision/listingFilters";
+import { FILTER_KEYS, MIN_RESULTS_BEFORE_REMOTE_EXPANSION, type FilterKey } from "@/decision/listingBrowse";
 import { PropertyCard } from "@/decision/components/PropertyCard";
+import { PropertySkeletonList } from "@/decision/components/PropertySkeleton";
+import { PropertyStateCard } from "@/decision/components/PropertyStateCard";
+import { useAppLocalization } from "@/foundation/localization";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
 import { theme } from "@/foundation/theme/tokens";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
-import { useCandidateProperties } from "@/persistence/convex/usePropertyData";
-
-const FILTERS = ["All", "For Sale", "For Rent", "Villas", "Apartments", "Studios"];
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
+import { useCandidatePropertySearchState } from "@/persistence/convex/usePropertyData";
 
 export default function ListingScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ filter?: string }>();
+  const params = useLocalSearchParams<{
+    filter?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    locations?: string;
+    minBeds?: string;
+    minBaths?: string;
+    propertyTypes?: string;
+  }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t, isRTL, formatNumber } = useAppLocalization();
+  const styles = useMemo(() => createStyles(colors, isRTL), [colors, isRTL]);
+  const advancedFilters = useMemo(() => readListingFilters(params), [params]);
+  const activeAdvancedFilterCount = useMemo(
+    () => countActiveListingFilters(advancedFilters),
+    [advancedFilters],
+  );
+  const filterResetKey = useMemo(
+    () => JSON.stringify({
+      minPrice: advancedFilters.minPrice,
+      maxPrice: advancedFilters.maxPrice,
+      locations: advancedFilters.locations,
+      minBeds: advancedFilters.minBeds,
+      minBaths: advancedFilters.minBaths,
+      propertyTypes: advancedFilters.propertyTypes,
+    }),
+    [advancedFilters],
+  );
+
+  const filterLabels = useMemo<Record<FilterKey, string>>(() => ({
+    all: t.listing.filters.all,
+    forSale: t.listing.filters.forSale,
+    forRent: t.listing.filters.forRent,
+    villas: t.listing.filters.villas,
+    apartments: t.listing.filters.apartments,
+    studios: t.listing.filters.studios,
+  }), [t]);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
+  const [remoteExpansionEnabled, setRemoteExpansionEnabled] = useState(false);
 
   useEffect(() => {
-    if (typeof params.filter === "string" && FILTERS.includes(params.filter)) {
-      setActiveFilter(params.filter);
+    const next = FILTER_KEYS.find((key) => key === params.filter || filterLabels[key] === params.filter);
+    if (next) {
+      setActiveFilter(next);
     }
-  }, [params.filter]);
-  
-  const rawProperties = useCandidateProperties();
+  }, [filterLabels, params.filter]);
 
-  const properties = useMemo(() => {
-    let filtered = [...rawProperties];
-    
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.title.toLowerCase().includes(q) || 
-        p.locationLabel.toLowerCase().includes(q)
-      );
+  useEffect(() => {
+    setRemoteExpansionEnabled(false);
+  }, [activeFilter, filterResetKey, searchQuery]);
+
+  const {
+    items: properties,
+    isLoading,
+    hasLoaded,
+    isLoadingMore,
+    canLoadMore,
+    hasSearchIntent,
+    loadMore,
+  } = useCandidatePropertySearchState({
+    searchQuery,
+    activeFilter,
+    advancedFilters,
+    remoteExpansionEnabled,
+  });
+
+  function buildListingHref(pathname: string, nextFilter: typeof advancedFilters = advancedFilters) {
+    const nextParams = new URLSearchParams();
+    if (activeFilter !== "all") {
+      nextParams.set("filter", activeFilter);
     }
 
-    if (activeFilter !== "All") {
-      filtered = filtered.filter(p => p.tags.includes(activeFilter) || p.title.includes(activeFilter));
+    const detailedParams = buildListingFilterParams(nextFilter);
+    Object.entries(detailedParams).forEach(([key, value]) => {
+      if (value) {
+        nextParams.set(key, value);
+      }
+    });
+
+    const query = nextParams.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }
+
+  useEffect(() => {
+    if (
+      !remoteExpansionEnabled
+      || !hasSearchIntent
+      || properties.length > MIN_RESULTS_BEFORE_REMOTE_EXPANSION
+      || isLoadingMore
+      || !canLoadMore
+    ) {
+      return;
     }
 
-    return filtered;
-  }, [rawProperties, searchQuery, activeFilter]);
+    loadMore();
+  }, [canLoadMore, hasSearchIntent, isLoadingMore, loadMore, properties.length, remoteExpansionEnabled]);
+
+  function handleEndReached() {
+    if (
+      !hasSearchIntent
+      || isLoading
+      || isLoadingMore
+      || properties.length > MIN_RESULTS_BEFORE_REMOTE_EXPANSION
+    ) {
+      return;
+    }
+
+    if (!remoteExpansionEnabled) {
+      setRemoteExpansionEnabled(true);
+      return;
+    }
+
+    if (canLoadMore) {
+      loadMore();
+    }
+  }
+
+  function renderFooter() {
+    if (!remoteExpansionEnabled || !isLoadingMore || properties.length === 0) {
+      return <View style={styles.listFooterSpacer} />;
+    }
+
+    return (
+      <View style={styles.listFooterLoader}>
+        <ActivityIndicator size="small" color={colors.textPrimary} />
+        <Text variant="caption" tone="muted">
+          {t.listing.stillConnectingTitle}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <Screen style={styles.screen}>
-      {/* Crystal Header */}
       <View style={[styles.crystalHeader, { paddingTop: insets.top }]}>
         <View style={styles.headerContent}>
-          <Pressable accessibilityLabel="Go back" style={styles.circleBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
+          <Pressable accessibilityLabel={t.common.back} style={styles.circleBtn} onPress={() => router.back()}>
+            <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
-          
-          {/* Integrated Search Bar */}
+
           <View style={styles.searchBox}>
             <Search size={16} color={colors.textMuted} style={styles.searchIcon} />
             <TextInput
               style={[styles.searchInput, { color: colors.textPrimary }]}
-              placeholder="Search areas..."
+              placeholder={t.listing.searchPlaceholder}
+              textAlign={isRTL ? "right" : "left"}
               placeholderTextColor={colors.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
           </View>
-          
-          <Pressable style={styles.circleBtn}>
-            <SlidersHorizontal size={18} color={colors.textPrimary} />
-          </Pressable>
+
+          <View style={styles.actionsGroup}>
+            <Pressable
+              accessibilityLabel={t.listing.mapButton}
+              style={styles.circleBtn}
+              onPress={() => router.push(buildListingHref("/(app)/listing-map") as never)}
+            >
+              <Map size={18} color={colors.textPrimary} />
+            </Pressable>
+
+            <Pressable
+              accessibilityLabel={t.listing.filterButton}
+              style={[styles.circleBtn, activeAdvancedFilterCount > 0 && styles.circleBtnActive]}
+              onPress={() => router.push(buildListingHref("/(app)/listing-filters") as never)}
+            >
+              <SlidersHorizontal size={18} color={colors.textPrimary} />
+              {activeAdvancedFilterCount > 0 ? (
+                <View style={styles.filterCountBadge}>
+                  <Text style={styles.filterCountText}>{formatNumber(activeAdvancedFilterCount)}</Text>
+                </View>
+              ) : null}
+            </Pressable>
+          </View>
         </View>
 
-        {/* Filter Chips */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterScroll}
           style={styles.filterWrapper}
         >
-          {FILTERS.map((f) => (
-            <Pressable 
-              key={f} 
-              style={[
-                styles.filterChip, 
-                activeFilter === f && { backgroundColor: colors.accent, borderColor: colors.accent }
-              ]}
-              onPress={() => setActiveFilter(f)}
-            >
-              <Text 
-                variant="caption" 
+          {FILTER_KEYS.map((key) => {
+            const label = filterLabels[key];
+            return (
+              <Pressable
+                key={key}
                 style={[
-                  styles.filterText, 
-                  activeFilter === f && { color: colors.background }
+                  styles.filterChip,
+                  activeFilter === key && { backgroundColor: colors.accent, borderColor: colors.accent },
                 ]}
+                onPress={() => setActiveFilter(key)}
               >
-                {f}
-              </Text>
-            </Pressable>
-          ))}
+                <Text
+                  variant="caption"
+                  style={[
+                    styles.filterText,
+                    activeFilter === key && { color: colors.background },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </ScrollView>
       </View>
 
-      {/* Main Feed */}
-      <ScrollView
+      <FlatList
+        data={properties}
+        keyExtractor={(property) => property.id}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40, paddingTop: insets.top + 120 }]}
         showsVerticalScrollIndicator={false}
-      >
-        {properties.length === 0 ? (
-          <EmptyPropertiesState
-            title="No properties found"
-            body="Try a different search or filter to see more homes."
-          />
-        ) : (
-          properties.map((property, index) => (
-            <Animated.View
-              key={property.id}
-              entering={FadeInDown.delay(index * 100).duration(400)}
-            >
-              <PropertyCard property={property} style={styles.propertyCard} />
-            </Animated.View>
-          ))
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.35}
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={styles.stateWrap}>
+              <PropertySkeletonList count={4} compact />
+            </View>
+          ) : !hasLoaded ? (
+            <View style={styles.stateWrap}>
+              <PropertyStateCard
+                title={t.listing.stillConnectingTitle}
+                body={t.listing.stillConnectingBody}
+              />
+            </View>
+          ) : (
+            <EmptyPropertiesState
+              title={searchQuery || activeFilter !== "all" || activeAdvancedFilterCount > 0 ? t.listing.noResultsTitle : t.listing.emptyTitle}
+              body={searchQuery || activeFilter !== "all" || activeAdvancedFilterCount > 0 ? t.listing.noResultsBody : t.listing.emptyBody}
+            />
+          )
+        }
+        ListFooterComponent={renderFooter}
+        renderItem={({ item, index }) => (
+          <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
+            <PropertyCard property={item} style={styles.propertyCard} />
+          </Animated.View>
         )}
-      </ScrollView>
+      />
     </Screen>
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isRTL: boolean) => StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
@@ -143,12 +284,12 @@ const createStyles = (colors: any) => StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-    backgroundColor: `${colors.background}E6`, // 90% opacity for glass effect
+    backgroundColor: `${colors.background}E6`,
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
   },
   headerContent: {
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: theme.spacing.md,
@@ -164,17 +305,38 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: colors.divider,
+    overflow: "visible",
+  },
+  circleBtnActive: {
+    borderColor: colors.accent,
+  },
+  actionsGroup: {
+    flexDirection: isRTL ? "row-reverse" : "row",
+    gap: theme.spacing.sm,
   },
   scrollContent: {
-    paddingTop: 180, // Space for larger header with search
+    paddingTop: 180,
     paddingHorizontal: 0,
   },
   propertyCard: {
     marginHorizontal: theme.spacing.lg,
   },
+  stateWrap: {
+    paddingHorizontal: theme.spacing.lg,
+    gap: theme.spacing.lg,
+  },
+  listFooterLoader: {
+    paddingVertical: theme.spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.spacing.sm,
+  },
+  listFooterSpacer: {
+    height: theme.spacing.xl,
+  },
   searchBox: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: isRTL ? "row-reverse" : "row",
     alignItems: "center",
     backgroundColor: colors.surface,
     borderRadius: theme.radii.pill,
@@ -184,12 +346,29 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderColor: colors.divider,
   },
   searchIcon: {
-    marginRight: 6,
+    marginHorizontal: 6,
   },
   searchInput: {
     flex: 1,
     fontFamily: theme.typography.body.fontFamily,
     fontSize: 13,
+  },
+  filterCountBadge: {
+    position: "absolute",
+    top: -4,
+    [isRTL ? "left" : "right"]: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  filterCountText: {
+    color: colors.background,
+    fontSize: 10,
+    fontWeight: "800",
   },
   filterWrapper: {
     paddingBottom: theme.spacing.md,
@@ -197,6 +376,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   filterScroll: {
     paddingHorizontal: theme.spacing.lg,
     gap: theme.spacing.sm,
+    flexDirection: isRTL ? "row-reverse" : "row",
   },
   filterChip: {
     paddingHorizontal: 16,

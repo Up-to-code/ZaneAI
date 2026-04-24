@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     fontFamily: "Manrope:700Bold",
   },
   inlineBadge: {
-    color: "#EC2D35", // Accent color
+    color: "#DA3F45", // Accent color
     textDecorationLine: "underline",
     fontSize: 14,
     fontFamily: "Manrope_700Bold",

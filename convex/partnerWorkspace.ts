@@ -2,9 +2,9 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { ensureProfile } from "./auth/profile";
+import { getResolvedAuthUserProfile } from "./auth/profile";
 import {
   assertWorkspaceRole,
-  canManageOrganization,
   getDefaultMembership,
   getProfileByAuthUserId,
   normalizeEmail,
@@ -82,6 +82,7 @@ export const getWorkspaceState = query({
     } catch (error) {
       return null;
     }
+    const resolvedAuthUser = await getResolvedAuthUserProfile(ctx, authUser);
     const membership = await getDefaultMembership(ctx, profile._id);
     const organization = membership ? await ctx.db.get(membership.organizationId) : null;
     const projects = organization
@@ -112,9 +113,9 @@ export const getWorkspaceState = query({
     return {
       user: {
         id: authUser._id,
-        name: authUser.name ?? null,
+        name: resolvedAuthUser.name ?? null,
         email: authUser.email ?? null,
-        image: null,
+        image: resolvedAuthUser.image ?? null,
         username: null,
         organizationId: organization?._id ?? null,
         organizationSlug: organization?.slug ?? null,
@@ -364,9 +365,11 @@ export const createOrganizationInvite = mutation({
   },
   handler: async (ctx, args) => {
     const { profile, membership } = await requireWorkspace(ctx);
-    if (!canManageOrganization(membership.role)) {
-      throw new Error("Only organization owners and managers can invite new members.");
-    }
+    assertWorkspaceRole(
+      membership.role,
+      ["owner", "manager"],
+      "Only organization owners and managers can invite new members.",
+    );
     const normalizedEmail = normalizeEmail(args.email);
     const duplicate = await ctx.db
       .query("organizationInvites")

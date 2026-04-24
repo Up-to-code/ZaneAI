@@ -11,11 +11,13 @@ import { useAuthSession } from "@/auth/useAuthSession";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { AuthField } from "@/auth/components/AuthField";
 import { authClient } from "@/auth/authClient";
+import { useAppLocalization } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  
+  const { t, isRTL } = useAppLocalization();
   const { canUpgrade } = useAuthSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +36,7 @@ export default function RegisterScreen() {
       flexGrow: 1,
     },
     header: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       paddingTop: 60,
       paddingHorizontal: 24,
@@ -65,6 +67,7 @@ export default function RegisterScreen() {
     },
     intro: {
       gap: 12,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     display: {
       fontSize: 32,
@@ -74,6 +77,7 @@ export default function RegisterScreen() {
     subtitle: {
       fontSize: 16,
       color: colors.textSecondary,
+      textAlign: isRTL ? "right" : "left",
     },
     form: {
       gap: 20,
@@ -95,7 +99,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Missing details", "Name, email, and password are all required.");
+      Alert.alert(t.auth.missingDetailsTitle, t.auth.registerMissingDetailsBody);
       return;
     }
     setPending(true);
@@ -111,7 +115,7 @@ export default function RegisterScreen() {
       await authClient.getSession();
       router.replace("/(app)");
     } catch (error) {
-      Alert.alert("Registration failed", error instanceof Error ? error.message : "Unable to create account.");
+      Alert.alert(t.auth.registerFailedTitle, error instanceof Error ? error.message : "Unable to create account.");
     } finally {
       setPending(false);
     }
@@ -125,45 +129,43 @@ export default function RegisterScreen() {
       >
         <View style={styles.header}>
           <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
+            <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
-          <Text variant="title" style={styles.headerTitle}>Provisioning</Text>
+          <Text variant="title" style={styles.headerTitle}>{t.auth.registerHeader}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.content}>
             <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
-              <Text variant="display" style={styles.display}>Cloud Identity</Text>
+              <Text variant="display" style={styles.display}>{t.auth.registerTitle}</Text>
               <Text style={styles.subtitle}>
-                {canUpgrade
-                  ? "Create account. Anonymous chats and saved properties move with you."
-                  : "Create your ZaneAI account for seamless synchronization."}
+                {canUpgrade ? t.auth.registerBodyUpgrade : t.auth.registerBodyDefault}
               </Text>
             </Animated.View>
 
             <View style={styles.form}>
               <AuthField
-                label="Full name"
+                label={t.auth.fullName}
                 icon={User}
-                placeholder="Ahmed Mansour"
+                placeholder={t.auth.namePlaceholder}
                 value={name}
                 onChangeText={setName}
               />
               <AuthField
-                label="Email"
+                label={t.auth.email}
                 icon={Mail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="name@example.com"
+                placeholder={t.auth.emailPlaceholder}
                 value={email}
                 onChangeText={setEmail}
               />
               <AuthField
-                label="Password"
+                label={t.auth.password}
                 icon={Lock}
                 secureTextEntry
-                placeholder="At least 8 characters"
+                placeholder={t.auth.passwordMinPlaceholder}
                 value={password}
                 onChangeText={setPassword}
               />
@@ -171,7 +173,7 @@ export default function RegisterScreen() {
 
             <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.actions}>
               <Button
-                label={pending ? "Initializing..." : "Initialize Environment"}
+                label={pending ? t.auth.initializing : t.auth.initializeEnvironment}
                 variant="primary"
                 onPress={() => void handleRegister()}
                 style={styles.mainBtn}

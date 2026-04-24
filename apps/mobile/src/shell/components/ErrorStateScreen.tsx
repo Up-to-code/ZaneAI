@@ -92,7 +92,7 @@ export function ErrorStateScreen({
             <View style={styles.scanLine} />
           </View>
 
-          <Text variant="caption" tone="accent" style={styles.eyebrow}>
+          <Text variant="caption" tone="muted" style={styles.eyebrow}>
             {eyebrow}
           </Text>
           <Text style={styles.code}>{code}</Text>
@@ -125,25 +125,29 @@ export function ErrorStateScreen({
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(180).springify()} style={styles.actions}>
-          {resolvedActions.map((action) => (
-            <Pressable
-              key={action.label}
-              accessibilityRole="button"
-              onPress={action.onPress}
-              style={({ pressed }) => [
-                styles.actionButton,
-                action.kind === "secondary" ? styles.secondaryAction : styles.primaryAction,
-                pressed && styles.pressedAction,
-              ]}
-            >
-              {action.label.toLowerCase().includes("try") ? (
-                <RotateCcw size={16} color={colors.textPrimary} />
-              ) : null}
-              <Text variant="label" style={styles.actionLabel}>
-                {action.label}
-              </Text>
-            </Pressable>
-          ))}
+          {resolvedActions.map((action) => {
+            const isPrimary = action.kind !== "secondary";
+            const labelColor = isPrimary ? colors.background : colors.textPrimary;
+            return (
+              <Pressable
+                key={action.label}
+                accessibilityRole="button"
+                onPress={action.onPress}
+                style={({ pressed }) => [
+                  styles.actionButton,
+                  isPrimary ? styles.primaryAction : styles.secondaryAction,
+                  pressed && styles.pressedAction,
+                ]}
+              >
+                {action.label.toLowerCase().includes("try") ? (
+                  <RotateCcw size={16} color={labelColor} />
+                ) : null}
+                <Text variant="label" style={[styles.actionLabel, { color: labelColor }]}>
+                  {action.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </Animated.View>
       </ScrollView>
     </Screen>
@@ -173,13 +177,14 @@ const createStyles = (colors: any) =>
       borderRadius: 21,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.surfaceRaised,
-      borderWidth: StyleSheet.hairlineWidth,
+      backgroundColor: "transparent",
+      borderWidth: 1,
       borderColor: colors.divider,
     },
     topLabel: {
       letterSpacing: 2.4,
       textAlign: "center",
+      fontFamily: "Manrope_800ExtraBold",
     },
     content: {
       flexGrow: 1,
@@ -200,7 +205,7 @@ const createStyles = (colors: any) =>
       marginBottom: theme.spacing.sm,
       borderWidth: 1,
       borderColor: colors.divider,
-      backgroundColor: colors.surface,
+      backgroundColor: "transparent",
     },
     iconShell: {
       width: 86,
@@ -208,20 +213,22 @@ const createStyles = (colors: any) =>
       borderRadius: 43,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: `${colors.accent}14`,
+      backgroundColor: "transparent",
       borderWidth: 1,
-      borderColor: `${colors.accent}33`,
+      borderColor: colors.divider,
     },
     scanLine: {
       position: "absolute",
       left: 28,
       right: 28,
       height: 1,
-      backgroundColor: `${colors.accent}55`,
+      backgroundColor: colors.divider,
     },
     eyebrow: {
       letterSpacing: 2.8,
       textTransform: "uppercase",
+      fontFamily: "Manrope_800ExtraBold",
+      color: colors.textMuted,
     },
     code: {
       color: colors.textMuted,
@@ -234,7 +241,8 @@ const createStyles = (colors: any) =>
     title: {
       maxWidth: 320,
       textAlign: "center",
-      letterSpacing: 0,
+      letterSpacing: -0.3,
+      fontFamily: "Manrope_800ExtraBold",
     },
     body: {
       maxWidth: 316,
@@ -245,8 +253,8 @@ const createStyles = (colors: any) =>
       gap: theme.spacing.sm,
       padding: theme.spacing.lg,
       borderRadius: theme.radii.md,
-      backgroundColor: colors.surfaceRaised,
-      borderWidth: StyleSheet.hairlineWidth,
+      backgroundColor: "transparent",
+      borderWidth: 1,
       borderColor: colors.divider,
     },
     statusHeader: {
@@ -258,10 +266,11 @@ const createStyles = (colors: any) =>
       width: 8,
       height: 8,
       borderRadius: 4,
-      backgroundColor: colors.accent,
+      backgroundColor: colors.textPrimary,
     },
     statusTitle: {
       color: colors.textPrimary,
+      fontFamily: "Manrope_800ExtraBold",
     },
     statusCopy: {
       lineHeight: 22,
@@ -292,11 +301,11 @@ const createStyles = (colors: any) =>
       paddingHorizontal: theme.spacing.xl,
     },
     primaryAction: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.textPrimary,
     },
     secondaryAction: {
-      backgroundColor: colors.surfaceRaised,
-      borderWidth: StyleSheet.hairlineWidth,
+      backgroundColor: "transparent",
+      borderWidth: 1,
       borderColor: colors.divider,
     },
     pressedAction: {
@@ -304,5 +313,6 @@ const createStyles = (colors: any) =>
     },
     actionLabel: {
       color: colors.textPrimary,
+      fontFamily: "Manrope_800ExtraBold",
     },
   });

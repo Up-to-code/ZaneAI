@@ -16,11 +16,12 @@ export const getWorkspaceStats = query({
     const now = Date.now();
     const startTime = now - days * 24 * 60 * 60 * 1000;
 
-    let events = await ctx.db
+    const events = await ctx.db
       .query("analyticsEvents")
-      .withIndex("by_organizationId", (q) => q.eq("organizationId", args.organizationId))
-      .filter((q) => q.gt(q.field("createdAt"), startTime))
-      .collect();
+      .withIndex("by_organizationId_and_createdAt", (q) =>
+        q.eq("organizationId", args.organizationId).gt("createdAt", startTime),
+      )
+      .take(1000);
 
     // Grouping logic
     const dailyStats: Record<string, { date: string; views: number; clicks: number }> = {};
@@ -66,9 +67,9 @@ export const getWorkspaceStats = query({
         { label: "Other", count: ctaBreakdown.other, color: "#94a3b8" },
       ],
       totals: {
-        views: events.filter(e => e.eventName === "project_view").length,
-        clicks: events.filter(e => e.eventName === "project_click").length,
-      }
+        views: events.filter((event) => event.eventName === "project_view").length,
+        clicks: events.filter((event) => event.eventName === "project_click").length,
+      },
     };
   },
 });

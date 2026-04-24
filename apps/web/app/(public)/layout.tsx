@@ -1,21 +1,12 @@
-import { redirect } from "next/navigation";
 import PortalNavbar from "../../components/PortalNavbar";
 import PortalFooter from "../../components/PortalFooter";
-import { getAuthenticatedSession } from "@/lib/serverSession";
 
 /**
- * WHY:   The public zone is for marketing and onboarding. Authorized users should skip this.
- * WHAT:  Wraps public routes with branding and handles automatic redirect to /ws.
- * HOW:   Uses a server-side session check to ensure authenticated persistence skips landing pages.
+ * WHY:   Public routes must stay reachable even while browser auth is still hydrating.
+ * WHAT:  Wraps marketing and onboarding pages with the shared public chrome.
+ * HOW:   Leaves auth-aware redirects to client/session-aware surfaces instead of guessing from cookies.
  */
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const session = await getAuthenticatedSession();
-
-  // If the user is authenticated, skip the landing/public pages and go to workspace
-  if (session.token) {
-    redirect("/ws");
-  }
-
   return (
     <>
       <PortalNavbar />

@@ -1,16 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, expect, it, vi } from "vitest";
 
-const { redirect, getAuthenticatedSession, sanitizeInternalReturnTo } = vi.hoisted(() => ({
-  redirect: vi.fn((destination: string) => {
-    throw new Error(`NEXT_REDIRECT:${destination}`);
-  }),
+const { getAuthenticatedSession, sanitizeInternalReturnTo } = vi.hoisted(() => ({
   getAuthenticatedSession: vi.fn(),
   sanitizeInternalReturnTo: vi.fn((returnTo?: string | null, fallback = "/ws") => returnTo ?? fallback),
-}));
-
-vi.mock("next/navigation", () => ({
-  redirect,
 }));
 
 vi.mock("@/lib/serverSession", () => ({
@@ -18,50 +11,50 @@ vi.mock("@/lib/serverSession", () => ({
   sanitizeInternalReturnTo,
 }));
 
-vi.mock("./_components/GoogleSignInButton", () => ({
-  default: ({ redirectTo }: { redirectTo: string }) => <button type="button">Google:{redirectTo}</button>,
-}));
-
-vi.mock("@zaneai/ag-ui/react", () => ({
-  PageHero: ({
-    title,
-    description,
-    actions,
+vi.mock("./_components/SigninPageView", () => ({
+  default: ({
+    redirectTo,
+    initialMode,
+    inviteToken,
+    resetToken,
   }: {
-    title: string;
-    description?: React.ReactNode;
-    actions?: React.ReactNode;
+    redirectTo: string;
+    initialMode?: string;
+    inviteToken?: string | null;
+    resetToken?: string | null;
   }) => (
     <div>
-      <h1>{title}</h1>
-      <div>{description}</div>
-      <div>{actions}</div>
+      <div>SigninPageView</div>
+      <div>redirect:{redirectTo}</div>
+      <div>mode:{initialMode}</div>
+      <div>invite:{inviteToken ?? "none"}</div>
+      <div>reset:{resetToken ?? "none"}</div>
     </div>
   ),
-  Section: ({ children }: { children?: React.ReactNode }) => <section>{children}</section>,
 }));
 
 import SigninPage from "./page";
 
 beforeEach(() => {
-  redirect.mockClear();
   getAuthenticatedSession.mockReset();
   sanitizeInternalReturnTo.mockClear();
 });
 
-it("redirects authenticated users directly to the workspace target", async () => {
+it("renders the sign-in screen even when a cookie-backed session hint exists", async () => {
   getAuthenticatedSession.mockResolvedValue({
     token: "session-token",
     user: null,
     role: "broker",
   });
 
-  await expect(
-    SigninPage({
-      searchParams: Promise.resolve({ returnTo: "/ws/settings" }),
-    }),
-  ).rejects.toThrow("NEXT_REDIRECT:/ws/settings");
+  const element = await SigninPage({
+    searchParams: Promise.resolve({ returnTo: "/ws/settings" }),
+  });
+  const markup = renderToStaticMarkup(element);
 
+  expect(markup).toContain("SigninPageView");
+  expect(markup).toContain("redirect:/ws/settings");
+  expect(markup).toContain("mode:signin");
   expect(sanitizeInternalReturnTo).toHaveBeenCalledWith("/ws/settings", "/ws");
 });
 
@@ -77,8 +70,9 @@ it("renders the sign-in screen when no session exists", async () => {
   });
   const markup = renderToStaticMarkup(element);
 
-  expect(markup).toContain("دخول مساحة العمل");
-  expect(markup).toContain("Google:/ws");
+  expect(markup).toContain("SigninPageView");
+  expect(markup).toContain("redirect:/ws");
+  expect(markup).toContain("mode:signin");
 });
 
 it("renders the sign-in screen when session lookup fails with auth configuration mismatch", async () => {
@@ -93,6 +87,7 @@ it("renders the sign-in screen when session lookup fails with auth configuration
   });
   const markup = renderToStaticMarkup(element);
 
-  expect(markup).toContain("دخول مساحة العمل");
-  expect(markup).toContain("Google:/ws");
+  expect(markup).toContain("SigninPageView");
+  expect(markup).toContain("redirect:/ws");
+  expect(markup).toContain("mode:signin");
 });

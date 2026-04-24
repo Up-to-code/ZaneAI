@@ -1,3 +1,6 @@
+import InboxWorkspaceClient from "./pages/InboxPage/InboxWorkspaceClient";
+import { loadInboxWorkspaceClientProps } from "./pages/InboxPage/loaders";
+
 type InboxIndexPageProps = {
   searchParams: Promise<{
     conversationId?: string;
@@ -5,16 +8,13 @@ type InboxIndexPageProps = {
   }>;
 };
 
-import AgComingSoon from "../../_components/AgUi/AgComingSoon";
-import { Mail } from "lucide-react";
+export default async function InboxIndexPage({ searchParams }: InboxIndexPageProps) {
+  const { conversationId, startUserId } = await searchParams;
+  const props = await loadInboxWorkspaceClientProps({
+    conversationId,
+    routeHref: "/ws/inbox",
+    startUserId: startUserId ?? null,
+  });
 
-export default async function InboxIndexPage() {
-  return (
-    <AgComingSoon 
-      title="صندوق الوارد والتواصل" 
-      description="منطقة مركزية لإدارة جميع محادثاتك مع المطورين، العملاء، والوسطاء. سيتم إطلاق نظام المراسلة المتطور قريباً ليدعم التنسيق الفوري ومشاركة العروض."
-      eyebrow="الرسائل قيد التطوير"
-      icon={Mail}
-    />
-  );
+  return <InboxWorkspaceClient {...props} />;
 }

@@ -1,11 +1,14 @@
 import { query } from "../../_generated/server";
-import { requireProfile } from "../../core/lib";
+import { getProfileIfExists } from "../../core/lib";
 import { toPropertyCompat } from "../lib/catalog";
 
 export const listSavedProperties = query({
   args: {},
   handler: async (ctx) => {
-    const { profile } = await requireProfile(ctx);
+    const { profile } = await getProfileIfExists(ctx);
+    if (!profile) {
+      return [];
+    }
     const rows = await ctx.db
       .query("savedListings")
       .withIndex("by_profileId", (q) => q.eq("profileId", profile._id))

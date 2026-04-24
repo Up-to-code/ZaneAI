@@ -1,10 +1,12 @@
 import { v } from "convex/values";
+import type { PaginationResult } from "convex/server";
+import { paginationOptsValidator } from "convex/server";
 
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { requireProfile } from "./core/lib";
-import { getCatalogListingById, listCatalogListings, toPropertyCompat } from "./property/lib/catalog";
-import { listPropertiesByExternalIds, searchCatalogProperties } from "./property/lib/search";
+import { getProfileIfExists, requireProfile } from "./core/lib";
+import { getCatalogListingById, listCatalogListings, toPropertyCompat, toPropertyCompatWithAssets, type PropertyCompat } from "./property/lib/catalog";
+import { filterListings, listPropertiesByExternalIds, searchCatalogProperties } from "./property/lib/search";
 
 export const listCandidateListings = query({
   args: {},
@@ -33,10 +35,45 @@ export const searchListings = query({
   handler: async (ctx, args) => await searchCatalogProperties(ctx, args),
 });
 
+export const searchListingsPaginated = query({
+  args: {
+    query: v.optional(v.string()),
+    location: v.optional(v.string()),
+    maxPrice: v.optional(v.number()),
+    minPrice: v.optional(v.number()),
+    minBeds: v.optional(v.number()),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args): Promise<PaginationResult<PropertyCompat>> => {
+    const trimmedQuery = args.query?.trim();
+    const result = trimmedQuery
+      ? await ctx.db
+        .query("listings")
+        .withSearchIndex("search_listings", (q) => q.search("searchText", trimmedQuery).eq("status", "active"))
+        .paginate(args.paginationOpts)
+      : await ctx.db
+        .query("listings")
+        .withIndex("by_status", (q) => q.eq("status", "active"))
+        .paginate(args.paginationOpts);
+
+    const page = await Promise.all(
+      result.page.map((row) => toPropertyCompatWithAssets(ctx, row)),
+    );
+
+    return {
+      ...result,
+      page: filterListings(page, args),
+    };
+  },
+});
+
 export const listSavedListings = query({
   args: {},
   handler: async (ctx) => {
-    const { profile } = await requireProfile(ctx);
+    const { profile } = await getProfileIfExists(ctx);
+    if (!profile) {
+      return [];
+    }
     const rows = await ctx.db
       .query("savedListings")
       .withIndex("by_profileId", (q) => q.eq("profileId", profile._id))

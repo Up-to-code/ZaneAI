@@ -35,6 +35,35 @@ export type WebDictionary = {
     archSubtitle: string;
     archDescription: string;
   };
+  property: {
+    totalInvestment: string;
+    description: string;
+    amenities: string;
+    marketInsight: string;
+    locationMap: string;
+    openMapView: string;
+    mapScreenTitle: string;
+    mapScreenBody: string;
+    browseArea: string;
+    viewDetails: string;
+    certifiedAdvisor: string;
+    legalAgency: string;
+    recommendations: string;
+    byDeveloper: string;
+    inCompound: string;
+    reference: string;
+    viewAll: string;
+    readMore: string;
+    whatsapp: string;
+    call: string;
+    contactExpert: string;
+    close: string;
+    listingExpert: string;
+    instantEngagement: string;
+    technicalAdvice: string;
+    emailInquiry: string;
+    officialDocumentation: string;
+  };
   nav: {
     home: string;
     developer: string;
@@ -1199,6 +1228,35 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       title: "انتقل من اليدوي إلى التلقائي.",
       subtitle: "ابدأ في استخدام البنية التحتية خلف أقوى الشركات العقارية أداءً.",
     },
+    property: {
+      totalInvestment: "إجمالي الاستثمار",
+      description: "الوصف",
+      amenities: "المرافق والخدمات",
+      marketInsight: "رؤية زين إيه آي",
+      locationMap: "الموقع والخريطة",
+      openMapView: "افتح الخريطة",
+      mapScreenTitle: "موقع العقار",
+      mapScreenBody: "افتح الخريطة الكاملة لرؤية مكان هذا العقار داخل المنطقة المحيطة.",
+      browseArea: "تصفّح المنطقة",
+      viewDetails: "عرض التفاصيل",
+      certifiedAdvisor: "مستشار معتمد",
+      legalAgency: "الجهة القانونية",
+      recommendations: "مقترح لك",
+      byDeveloper: "بواسطة {developer}",
+      inCompound: "في {compound}",
+      reference: "مرجع العقار",
+      viewAll: "عرض الكل",
+      readMore: "اقرأ المزيد",
+      whatsapp: "واتساب",
+      call: "اتصال",
+      contactExpert: "تواصل مع الخبير",
+      close: "إغلاق",
+      listingExpert: "خبير القائمة والجهة",
+      instantEngagement: "تواصل فوري",
+      technicalAdvice: "استشارة فنية",
+      emailInquiry: "استفسار بريدي",
+      officialDocumentation: "مستندات رسمية",
+    },
   },
   en: {
     landing: {
@@ -1798,6 +1856,35 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
       title: "Shift from manual to automatic.",
       subtitle: "Start utilizing the infrastructure behind top performing institutional real estate deployments.",
     },
+    property: {
+      totalInvestment: "Total Investment",
+      description: "Description",
+      amenities: "Amenities & Services",
+      marketInsight: "Zane AI Insight",
+      locationMap: "Location & Map",
+      openMapView: "Open Map",
+      mapScreenTitle: "Property Location",
+      mapScreenBody: "Open the full map to see where this home sits in its surrounding area.",
+      browseArea: "Browse area",
+      viewDetails: "View details",
+      certifiedAdvisor: "Certified Advisor",
+      legalAgency: "Legal Agency",
+      recommendations: "Recommended For You",
+      byDeveloper: "By {developer}",
+      inCompound: "In {compound}",
+      reference: "Property Ref",
+      viewAll: "View All",
+      readMore: "Read More",
+      whatsapp: "WhatsApp",
+      call: "Call",
+      contactExpert: "Contact Expert",
+      close: "Close",
+      listingExpert: "Listing Expert & Agency",
+      instantEngagement: "Instant Engagement",
+      technicalAdvice: "Technical Advice",
+      emailInquiry: "Email Inquiry",
+      officialDocumentation: "Official Documentation",
+    },
   },
   fr: {
     landing: {
@@ -2396,6 +2483,35 @@ const dictionaries: Record<AppLocale, WebDictionary> = {
     cta: {
       title: "Passez de manuel à automatique.",
       subtitle: "Commencez à utiliser l'infrastructure derrière les déploiements de l'immobilier institutionnel les plus performants.",
+    },
+    property: {
+      totalInvestment: "Investissement Total",
+      description: "Description",
+      amenities: "Équipements et Services",
+      marketInsight: "Aperçu Zane AI",
+      locationMap: "Emplacement et carte",
+      openMapView: "Ouvrir la carte",
+      mapScreenTitle: "Emplacement du bien",
+      mapScreenBody: "Ouvrez la carte complète pour voir où ce bien se situe dans son environnement.",
+      browseArea: "Voir la zone",
+      viewDetails: "Voir les détails",
+      certifiedAdvisor: "Conseiller Certifié",
+      legalAgency: "Agence Légale",
+      recommendations: "Recommandé Pour Vous",
+      byDeveloper: "Par {developer}",
+      inCompound: "Dans {compound}",
+      reference: "Réf. Propriété",
+      viewAll: "Voir Tout",
+      readMore: "Lire Plus",
+      whatsapp: "WhatsApp",
+      call: "Appeler",
+      contactExpert: "Contacter l'Expert",
+      close: "Fermer",
+      listingExpert: "Expert de l'Annonce et Agence",
+      instantEngagement: "Engagement Instantané",
+      technicalAdvice: "Conseil Technique",
+      emailInquiry: "Demande par Email",
+      officialDocumentation: "Documentation Officielle",
     },
   },
 };

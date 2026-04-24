@@ -7,29 +7,30 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/foundation/primitives/Button";
 import { Screen } from "@/foundation/primitives/Screen";
 import { Text } from "@/foundation/primitives/Text";
-import { useAuthSession } from "@/auth/useAuthSession";
 import { useTheme } from "@/foundation/theme/ThemeProvider";
 import { theme } from "@/foundation/theme/tokens";
+import { useAppLocalization } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 export default function EmailOptionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { canUpgrade } = useAuthSession();
+  const { t, isRTL } = useAppLocalization();
 
   return (
     <Screen safe={false}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { top: insets.top + 10 }]}>
-          <Pressable 
-            accessibilityLabel="Back" 
+        <View style={[styles.header, { top: insets.top + 10, flexDirection: isRTL ? "row-reverse" : "row" }]}>
+          <Pressable
+            accessibilityLabel={t.common.back}
             onPress={() => router.back()}
             style={styles.backBtn}
           >
-            <ArrowLeft size={24} color={colors.textPrimary} />
+            <ArrowLeft size={24} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
           <Text variant="title" style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            Account Access
+            {t.auth.emailOptionsTitle}
           </Text>
         </View>
 
@@ -43,10 +44,10 @@ export default function EmailOptionsScreen() {
         >
           <Animated.View entering={FadeInUp.delay(120).springify()} style={styles.heroWrap}>
             <Text variant="display" style={[styles.display, { color: colors.textPrimary }]}>
-              Welcome Back
+              {t.auth.emailOptionsHeroTitle}
             </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Securely sign in to your ZaneAI account or create a new one to get started.
+              {t.auth.emailOptionsHeroBody}
             </Text>
           </Animated.View>
 
@@ -54,17 +55,17 @@ export default function EmailOptionsScreen() {
             <View style={styles.buttonStack}>
               <Button
                 testID="auth.login"
-                label="Log In"
+                label={t.auth.logIn}
                 leading={<LogIn size={20} color={colors.background} />}
                 variant="primary"
                 onPress={() => router.push("/(auth)/login")}
                 style={[styles.mainBtn, { backgroundColor: colors.textPrimary }]}
                 textStyle={{ color: colors.background }}
               />
-              
+
               <Button
                 testID="auth.signup"
-                label="Create an Account"
+                label={t.auth.createAccount}
                 leading={<User size={20} color={colors.textPrimary} />}
                 variant="secondary"
                 onPress={() => router.push("/(auth)/register")}
@@ -77,7 +78,6 @@ export default function EmailOptionsScreen() {
             </View>
           </Animated.View>
         </ScrollView>
-
       </View>
     </Screen>
   );
@@ -92,7 +92,6 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     zIndex: 100,
-    flexDirection: "row",
     alignItems: "center",
   },
   backBtn: {
@@ -104,7 +103,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.05)",
   },
   headerTitle: {
-    marginLeft: 16,
+    marginHorizontal: 16,
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: 2,
@@ -127,8 +126,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     lineHeight: 48,
   },
-
-
   subtitle: {
     fontSize: 16,
     lineHeight: 24,

@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "convex/react";
 
 import { assistantTurnSchema, extractTurnSources, type ThreadPresentation } from "@/conversation/assistantProtocol";
 import { useAuthSession } from "@/auth/useAuthSession";
 import { api } from "@/persistence/convex/api";
 import { deriveAgentRuntimeHealth } from "@/persistence/convex/runtimeHealth";
-import { getAuthUrl, getConvexUrl } from "@/runtime/expoRuntime";
 import { useAppStore } from "@/store";
 import type { AgentRuntimeHealth, ConversationMessage, ConversationRunStage, ConversationRunStatus } from "@/types/domain";
 
@@ -81,34 +80,12 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown runtime error.";
 }
 
-let runtimeSnapshotLogged = false;
-
-function logMobileRuntimeEvent(
-  event: string,
-  payload: Record<string, unknown>,
-  level: "info" | "warn" | "error" = "info",
-) {
-  const line = JSON.stringify({
-    at: new Date().toISOString(),
-    scope: "mobile_runtime",
-    event,
-    level,
-    ...payload,
-  });
-  if (level === "error") {
-    console.error(line);
-    return;
-  }
-  console.info(line);
-}
-
 export function useAgentRuntimeHealth() {
   const e2eQaMode = useAppStore((state) => state.e2eQaMode);
   const health = useQuery(
     api.agent.public.getRuntimeHealth.getRuntimeHealth,
     !e2eQaMode ? {} : "skip",
   );
-  const lastRuntimeSignatureRef = useRef<string | null>(null);
 
   const runtimeHealth = useMemo<AgentRuntimeHealth>(() => {
     if (e2eQaMode) {
@@ -148,37 +125,6 @@ export function useAgentRuntimeHealth() {
       };
     }
   }, [e2eQaMode, health]);
-
-  useEffect(() => {
-    if (runtimeHealth.status === "loading") {
-      return;
-    }
-
-    const payload = {
-      status: runtimeHealth.status,
-      featureVersion: runtimeHealth.featureVersion ?? null,
-      provider: runtimeHealth.llm?.provider ?? null,
-      llmConfigured: runtimeHealth.llm?.configured ?? null,
-      workerAvailable: runtimeHealth.worker?.available ?? null,
-      workerLastHeartbeatAt: runtimeHealth.worker?.lastHeartbeatAt ?? null,
-      webSearchConfigured: runtimeHealth.webSearch?.configured ?? null,
-      convexUrl: getConvexUrl() || null,
-      authUrl: getAuthUrl() || null,
-    };
-    const signature = JSON.stringify(payload);
-
-    if (!runtimeSnapshotLogged) {
-      runtimeSnapshotLogged = true;
-      logMobileRuntimeEvent("runtime_snapshot", payload);
-    }
-
-    if (lastRuntimeSignatureRef.current === signature) {
-      return;
-    }
-
-    lastRuntimeSignatureRef.current = signature;
-    logMobileRuntimeEvent("runtime_health_transition", payload, runtimeHealth.status === "unavailable" ? "warn" : "info");
-  }, [runtimeHealth]);
 
   return runtimeHealth;
 }

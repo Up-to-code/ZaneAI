@@ -134,6 +134,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     width: 4,
     minHeight: MIN_BAR_HEIGHT,
     borderRadius: 999,
-    backgroundColor: colors.textSecondary,
+    backgroundColor: colors.textPrimary,
   },
 });

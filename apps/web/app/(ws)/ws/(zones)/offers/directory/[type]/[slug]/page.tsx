@@ -19,7 +19,7 @@ export default async function OrganizationProfilePageRoute({
       <div className="rounded-[32px] border border-border/60 bg-card p-8 text-center shadow-sm space-y-3">
         <div className="text-2xl font-black text-foreground capitalize">{type} Profile</div>
         <p className="text-sm text-muted-foreground">
-          Organization profile data will load from the backend. No mock data is being displayed.
+          Organization profile is not available in this route yet. No synthetic data is being shown.
         </p>
         <p className="text-xs text-muted-foreground/50 font-mono">{slug}</p>
       </div>

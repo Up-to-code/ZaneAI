@@ -13,11 +13,13 @@ import { useAuthSession } from "@/auth/useAuthSession";
 import { E2E_QA_PASSWORD, E2E_QA_USER } from "@/e2e/fixtures";
 import { loginE2EQaUser } from "@/e2e/store";
 import { authClient } from "@/auth/authClient";
+import { useAppLocalization } from "@/foundation/localization";
+import { mirrorIcon } from "@/foundation/utils/layoutDirection";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  
+  const { t, isRTL } = useAppLocalization();
   const { canUpgrade } = useAuthSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,7 +37,7 @@ export default function LoginScreen() {
       flexGrow: 1,
     },
     header: {
-      flexDirection: "row",
+      flexDirection: isRTL ? "row-reverse" : "row",
       alignItems: "center",
       paddingTop: 60,
       paddingHorizontal: 24,
@@ -66,6 +68,7 @@ export default function LoginScreen() {
     },
     intro: {
       gap: 12,
+      alignItems: isRTL ? "flex-end" : "flex-start",
     },
     display: {
       fontSize: 32,
@@ -75,6 +78,7 @@ export default function LoginScreen() {
     subtitle: {
       fontSize: 16,
       color: colors.textSecondary,
+      textAlign: isRTL ? "right" : "left",
     },
     form: {
       gap: 20,
@@ -103,7 +107,7 @@ export default function LoginScreen() {
 
   const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Missing details", "Enter your email and password to continue.");
+      Alert.alert(t.auth.missingDetailsTitle, t.auth.loginMissingDetailsBody);
       return;
     }
     setPending(true);
@@ -128,11 +132,11 @@ export default function LoginScreen() {
       router.replace("/(app)");
     } catch (error) {
       Alert.alert(
-        "Sign in failed",
+        t.auth.signInFailedTitle,
         error instanceof Error ? error.message : "Unable to sign in.",
         [
-          { text: "Try again", style: "cancel" },
-          { text: "Create account", onPress: () => router.push("/(auth)/register") },
+          { text: t.auth.tryAgain, style: "cancel" },
+          { text: t.auth.createAccount, onPress: () => router.push("/(auth)/register") },
         ],
       );
     } finally {
@@ -148,40 +152,38 @@ export default function LoginScreen() {
       >
         <View style={styles.header}>
           <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color={colors.textPrimary} />
+            <ArrowLeft size={20} color={colors.textPrimary} style={mirrorIcon(isRTL)} />
           </Pressable>
-          <Text variant="title" style={styles.headerTitle}>Security Core</Text>
+          <Text variant="title" style={styles.headerTitle}>{t.auth.loginHeader}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.content}>
             <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.intro}>
-              <Text variant="display" style={styles.display}>Secure identity</Text>
+              <Text variant="display" style={styles.display}>{t.auth.loginTitle}</Text>
               <Text style={styles.subtitle}>
-                {canUpgrade
-                  ? "Sign in to keep your anonymous research and sync it into your account."
-                  : "Sign in with your email and password."}
+                {canUpgrade ? t.auth.loginBodyUpgrade : t.auth.loginBodyDefault}
               </Text>
             </Animated.View>
 
             <View style={styles.form}>
               <AuthField
                 testID="auth.email"
-                label="Email"
+                label={t.auth.email}
                 icon={Mail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="name@example.com"
+                placeholder={t.auth.emailPlaceholder}
                 value={email}
                 onChangeText={setEmail}
               />
               <AuthField
                 testID="auth.password"
-                label="Password"
+                label={t.auth.password}
                 icon={Lock}
                 secureTextEntry
-                placeholder="Your password"
+                placeholder={t.auth.passwordPlaceholder}
                 value={password}
                 onChangeText={setPassword}
               />
@@ -190,7 +192,7 @@ export default function LoginScreen() {
             <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.actions}>
               <Button
                 testID="auth.sign_in"
-                label={pending ? "Signing in..." : "Establish Security"}
+                label={pending ? t.auth.signingIn : t.auth.establishSecurity}
                 variant="primary"
                 onPress={() => void handleSignIn()}
                 style={styles.mainBtn}
@@ -198,7 +200,7 @@ export default function LoginScreen() {
                 disabled={pending}
               />
               <Pressable onPress={() => router.push("/(auth)/forgot-password")}>
-                <Text style={styles.forgotText}>Forgot password?</Text>
+                <Text style={styles.forgotText}>{t.auth.forgotPassword}</Text>
               </Pressable>
             </Animated.View>
 

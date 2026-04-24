@@ -15,13 +15,11 @@ type ThemeContextValue = {
   setAppearanceMode: (value: AppearanceMode) => void;
 };
 
-const defaultColorScheme = "dark";
-
 const ThemeContext = createContext<ThemeContextValue>({
   theme,
   colors: theme.colors,
   appearanceMode: "system",
-  resolvedColorScheme: defaultColorScheme,
+  resolvedColorScheme: "dark",
   setAppearanceMode: () => undefined,
 });
 
@@ -32,16 +30,8 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   const resolvedColorScheme = resolveAppearanceMode(appearanceMode, systemColorScheme);
   const isDark = resolvedColorScheme === "dark";
 
-  const dynamicTheme = useMemo<AppTheme>(() => {
-    return {
-      ...theme,
-      colors: isDark ? darkColors : lightColors,
-    };
-  }, [isDark]);
-
-  useEffect(() => {
-    void SystemUI.setBackgroundColorAsync(dynamicTheme.colors.background);
-  }, [dynamicTheme.colors.background]);
+  const dynamicTheme = useMemo<AppTheme>(() => ({ ...theme, colors: isDark ? darkColors : lightColors }), [isDark]);
+  useEffect(() => { void SystemUI.setBackgroundColorAsync(dynamicTheme.colors.background); }, [dynamicTheme.colors.background]);
 
   const contextValue = useMemo<ThemeContextValue>(
     () => ({

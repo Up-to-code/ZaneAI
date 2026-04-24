@@ -44,7 +44,19 @@ test("store migration clears persisted thread selection from version 2", () => {
 test("store migration leaves current persisted state unchanged", () => {
   const state = {
     onboardingComplete: true,
+    localePreference: "system",
   };
 
   assert.equal(migratePersistedAppStore(state, MOBILE_STORE_VERSION), state);
+});
+
+test("store migration backfills locale preference for older state", () => {
+  const migrated = migratePersistedAppStore(
+    {
+      onboardingComplete: true,
+    },
+    3,
+  ) as Record<string, unknown>;
+
+  assert.equal(migrated.localePreference, "system");
 });

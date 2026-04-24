@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { canManageInventory, requireWorkspace } from "./core/lib";
+import { assertWorkspaceCapability, requireWorkspace, requireWorkspaceCapability } from "./core/lib";
 import { buildSearchText, parseOptionalNumber } from "./partnerWorkspace/lib";
 
 const unitTypeValidator = v.union(
@@ -250,10 +250,11 @@ export const createUnit = mutation({
     pricePerMeter: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const { profile, membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to create unit drafts.");
-    }
+    const { profile, membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to create unit drafts.",
+    );
     const project = await ctx.db.get(args.projectId);
     if (!project || project.organizationId !== membership.organizationId) {
       throw new Error("Project not found.");
@@ -331,10 +332,11 @@ export const updateUnit = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to update units.");
-    }
+    const { membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to update units.",
+    );
     const unit = await ctx.db.get(args.unitId);
     if (!unit || unit.organizationId !== membership.organizationId) {
       throw new Error("Unit not found.");
@@ -376,10 +378,11 @@ export const updateUnit = mutation({
 export const deleteUnit = mutation({
   args: { unitId: v.id("units") },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to delete units.");
-    }
+    const { membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to delete units.",
+    );
     const unit = await ctx.db.get(args.unitId);
     if (!unit || unit.organizationId !== membership.organizationId) {
       throw new Error("Unit not found.");
@@ -405,10 +408,11 @@ export const upsertListingCompliance = mutation({
     privateNotes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { membership } = await requireWorkspace(ctx);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to update listing compliance.");
-    }
+    const { membership } = await requireWorkspaceCapability(
+      ctx,
+      "manageInventory",
+      "You do not have permission to update listing compliance.",
+    );
     if (!args.projectId && !args.unitId) {
       throw new Error("Select a project or unit for compliance.");
     }
@@ -472,9 +476,7 @@ export const publishUnit = mutation({
   args: { unitId: v.id("units") },
   handler: async (ctx, args) => {
     const { membership, unit } = await getUnitForWorkspace(ctx, args.unitId);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to publish units.");
-    }
+    assertWorkspaceCapability(membership.role, "manageInventory", "You do not have permission to publish units.");
     if (unit.availability !== "available") {
       throw new Error("Only available units can be published.");
     }
@@ -516,9 +518,7 @@ export const unpublishUnit = mutation({
   args: { unitId: v.id("units") },
   handler: async (ctx, args) => {
     const { membership, unit } = await getUnitForWorkspace(ctx, args.unitId);
-    if (!canManageInventory(membership.role)) {
-      throw new Error("You do not have permission to unpublish units.");
-    }
+    assertWorkspaceCapability(membership.role, "manageInventory", "You do not have permission to unpublish units.");
     const now = Date.now();
     if (unit.publishedListingId) {
       await ctx.db.patch(unit.publishedListingId, {

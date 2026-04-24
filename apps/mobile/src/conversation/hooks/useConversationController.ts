@@ -28,31 +28,11 @@ import {
   useThreadMessages,
   useThreadsState,
 } from "@/persistence/convex/useConversationData";
-import { getConvexUrl } from "@/runtime/expoRuntime";
 import { useAppStore } from "@/store";
 import type { ConversationMessage } from "@/types/domain";
 
 function isThreadNotFoundError(error: unknown) {
   return error instanceof Error && /Thread not found/i.test(error.message);
-}
-
-function logMobileControllerEvent(
-  event: string,
-  payload: Record<string, unknown>,
-  level: "info" | "warn" | "error" = "info",
-) {
-  const line = JSON.stringify({
-    at: new Date().toISOString(),
-    scope: "mobile_controller",
-    event,
-    level,
-    ...payload,
-  });
-  if (level === "error") {
-    console.error(line);
-    return;
-  }
-  console.info(line);
 }
 
 function isLiveRunStatus(status: string | null | undefined) {
@@ -147,7 +127,6 @@ export function useConversationController() {
   const lastStageAt = useMemo(() => (
     runStageFeed.length > 0 ? runStageFeed[runStageFeed.length - 1]?.timestamp ?? null : null
   ), [runStageFeed]);
-  const lastStageSeq = runStageFeed.length > 0 ? runStageFeed[runStageFeed.length - 1]?.seq ?? null : null;
   const pendingTimeout = useMemo(() => getPendingRunTimeoutSnapshot({
     pendingStartedAt,
     runStatusUpdatedAt: runStatus?.updatedAt,
@@ -182,13 +161,6 @@ export function useConversationController() {
       return;
     }
 
-    logMobileControllerEvent("assistant_message_arrived", {
-      threadId: activeThreadId ?? null,
-      runId: activeRunId ?? null,
-      pendingPrompt: Boolean(pendingPrompt),
-      hadFailureBanner: Boolean(runFailureMessage),
-      lastAssistantMessageAt,
-    });
     if (pendingPrompt) {
       track("ai_response_stream_end", {
         sessionId,
@@ -201,7 +173,7 @@ export function useConversationController() {
       setActiveRunId(null);
     }
     setRunFailureMessage(null);
-  }, [activeRunId, activeThreadId, currentRoute, hasCompletedAssistant, lastAssistantMessageAt, pendingPrompt, runFailureMessage, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
+  }, [activeThreadId, currentRoute, hasCompletedAssistant, pendingPrompt, runFailureMessage, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
 
   useEffect(() => {
     if (!pendingPrompt || !runStatus) {
@@ -209,14 +181,6 @@ export function useConversationController() {
     }
 
     if (runStatus.status === "failed" || runStatus.status === "cancelled") {
-      logMobileControllerEvent("run_status_terminal", {
-        threadId: activeThreadId ?? null,
-        runId: activeRunId ?? null,
-        workflowId: runStatus.workflowId ?? null,
-        status: runStatus.status,
-        reasonCode: runStatus.status === "cancelled" ? "workflow_cancelled" : "workflow_failed",
-        diagnostics: runStatus.diagnostics,
-      }, runStatus.status === "failed" ? "error" : "warn");
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -234,12 +198,6 @@ export function useConversationController() {
     }
 
     if (shouldResolveCompletedRunWithoutAssistant(pendingPrompt, hasCompletedAssistant, runStatus.status)) {
-      logMobileControllerEvent("run_completed_without_assistant", {
-        threadId: activeThreadId ?? null,
-        runId: activeRunId ?? null,
-        workflowId: runStatus.workflowId ?? null,
-        status: runStatus.status,
-      }, "warn");
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -256,7 +214,7 @@ export function useConversationController() {
     if (runStatus.status === "completed" && hasCompletedAssistant) {
       setRunFailureMessage(null);
     }
-  }, [activeRunId, activeThreadId, currentRoute, messages, pendingPrompt, pendingStartedAt, runStatus, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage]);
+  }, [activeThreadId, currentRoute, hasCompletedAssistant, pendingPrompt, runStatus, sessionId, setActiveRunId, setPendingPrompt, setRunFailureMessage, surfaceCopy]);
 
   useEffect(() => {
     if (!pendingPrompt || !pendingStartedAt) {
@@ -283,23 +241,6 @@ export function useConversationController() {
       const timeoutMessage = runtimeHealth.worker?.available === false
         ? getLocalizedRuntimeMessage(runtimeHealth, surfaceCopy)
         : surfaceCopy.runtimeAssistantTimeout;
-      logMobileControllerEvent("run_timeout_decision", {
-        threadId: activeThreadId ?? null,
-        runId: activeRunId ?? null,
-        workflowId: runStatus?.workflowId ?? null,
-        reasonCode: runtimeHealth.worker?.available === false ? "worker_offline" : "timeout",
-        runtimeStatus: runtimeHealth.status,
-        lastRunStatusUpdatedAt: runStatus?.updatedAt ?? null,
-        lastStageAt,
-        lastStageSeq,
-        lastAssistantMessageAt,
-        lastProgressAt: timeoutState.lastProgressAt,
-        timeoutAt: timeoutState.timeoutAt,
-        timeoutKind: timeoutState.timedOutBy,
-        convexUrl: getConvexUrl() || null,
-        featureVersion: runtimeHealth.featureVersion ?? null,
-        workerAvailable: runtimeHealth.worker?.available ?? null,
-      }, "warn");
       track("ai_response_stream_end", {
         sessionId,
         threadId: activeThreadId ?? undefined,
@@ -327,13 +268,11 @@ export function useConversationController() {
       clearTimeout(timer);
     };
   }, [
-    activeRunId,
     activeThreadId,
     currentRoute,
     hasCompletedAssistant,
     lastAssistantMessageAt,
     lastStageAt,
-    lastStageSeq,
     pendingPrompt,
     pendingStartedAt,
     pendingTimeout.hasTimedOut,
@@ -382,21 +321,8 @@ export function useConversationController() {
     if (!prompt) {
       return;
     }
-    logMobileControllerEvent("send_start", {
-      threadId: activeThreadId ?? null,
-      runId: activeRunId ?? null,
-      runtimeStatus: runtimeHealth.status,
-      workerAvailable: runtimeHealth.worker?.available ?? null,
-      featureVersion: runtimeHealth.featureVersion ?? null,
-      webSearchConfigured: runtimeHealth.webSearch?.configured ?? null,
-      promptLength: prompt.length,
-    });
 
     if (!isAuthenticated) {
-      logMobileControllerEvent("send_blocked", {
-        reasonCode: "auth_required",
-        isGuest,
-      }, "warn");
       setRunFailureMessage(
         isGuest
           ? surfaceCopy.runtimeRestoringGuest
@@ -406,11 +332,6 @@ export function useConversationController() {
     }
 
     if (runtimeHealth.status !== "ready") {
-      logMobileControllerEvent("send_blocked", {
-        reasonCode: runtimeHealth.worker?.available === false ? "worker_offline" : "runtime_unavailable",
-        runtimeStatus: runtimeHealth.status,
-        featureVersion: runtimeHealth.featureVersion ?? null,
-      }, "warn");
       setRunFailureMessage(getLocalizedRuntimeMessage(runtimeHealth, surfaceCopy) ?? surfaceCopy.runtimeChecking);
       return;
     }
@@ -418,9 +339,6 @@ export function useConversationController() {
     const isEditing = Boolean(editingMessage);
     const threadId = isEditing ? editingMessage?.threadId ?? null : await ensureActiveThread();
     if (!threadId) {
-      logMobileControllerEvent("send_blocked", {
-        reasonCode: "thread_unavailable",
-      }, "warn");
       setRunFailureMessage(surfaceCopy.runtimeThreadSync);
       return;
     }
@@ -459,12 +377,6 @@ export function useConversationController() {
           prompt,
         })
         : await sendUserMessageMutation({ threadId, prompt });
-      logMobileControllerEvent("send_mutation_success", {
-        threadId,
-        runId: String(result.runId),
-        serverThreadId: result.threadId,
-        threadReconciled: Boolean(result.threadId && result.threadId !== threadId),
-      });
       if (result.threadId && result.threadId !== threadId) {
         setActiveThreadId(result.threadId);
       }
@@ -474,20 +386,9 @@ export function useConversationController() {
         beginEditingMessage(editingMessage);
         setDraftText(prompt);
       }
-      logMobileControllerEvent("send_mutation_failed", {
-        threadId,
-        runId: activeRunId ?? null,
-        reasonCode: isThreadNotFoundError(error) ? "thread_not_found" : "send_failed",
-        error: error instanceof Error ? error.message : String(error),
-      }, "error");
       if (!isEditing && isThreadNotFoundError(error)) {
         try {
           const replacementThreadId = await startThreadMutation({});
-          logMobileControllerEvent("thread_recovered", {
-            reasonCode: "thread_recovered",
-            oldThreadId: threadId,
-            replacementThreadId,
-          }, "warn");
           setActiveThreadId(replacementThreadId);
           track("ai_prompt_sent", {
             sessionId,
@@ -503,23 +404,12 @@ export function useConversationController() {
             source: "assistant",
           });
           const retry = await sendUserMessageMutation({ threadId: replacementThreadId, prompt });
-          logMobileControllerEvent("send_retry_success", {
-            threadId: replacementThreadId,
-            runId: String(retry.runId),
-            serverThreadId: retry.threadId,
-            threadReconciled: Boolean(retry.threadId && retry.threadId !== replacementThreadId),
-          });
           if (retry.threadId && retry.threadId !== replacementThreadId) {
             setActiveThreadId(retry.threadId);
           }
           setActiveRunId(String(retry.runId));
           return;
         } catch (retryError) {
-          logMobileControllerEvent("send_retry_failed", {
-            threadId,
-            reasonCode: "thread_not_found",
-            error: retryError instanceof Error ? retryError.message : String(retryError),
-          }, "error");
           setPendingPrompt(null);
           setRunFailureMessage(retryError instanceof Error ? retryError.message : surfaceCopy.runFailedTitle);
           return;
@@ -693,10 +583,14 @@ export function useConversationController() {
         action.payload.maxPrice ? `max ${action.payload.maxPrice}` : null,
         action.payload.minBeds ? `${action.payload.minBeds}+ beds` : null,
       ].filter(Boolean).join(" ");
-      if (searchPrompt) {
-        setDraftText(searchPrompt);
-      }
+      
       track("ai_suggestion_clicked", basePayload);
+      
+      if (searchPrompt) {
+        router.push(`/(app)/listing?filter=${encodeURIComponent(searchPrompt)}`);
+      } else {
+        router.push(`/(app)/listing`);
+      }
       return;
     }
 

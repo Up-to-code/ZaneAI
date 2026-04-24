@@ -79,9 +79,8 @@ function buildFallbackState(metadata: OfferEventMetadata): OfferLiveState {
 }
 
 /**
- * WHY:   Inbox offer cards should still render when the live offer query is loading or the case is no longer directly accessible.
- * WHAT:  Shows the conversation-embedded offer snapshot as a stable demo card.
- * HOW:   Uses the message metadata as the single source of truth in static mode.
+ * Renders the offer snapshot embedded in the conversation message when the live offer
+ * record is not available from the current route context.
  */
 export default function InboxOfferEventCard({
   body,

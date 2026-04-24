@@ -3,17 +3,22 @@
 import { useState } from "react";
 
 async function postInboxIntent<TResult>(body: Record<string, unknown>) {
-  const conversationId =
-    typeof body.conversationId === "string"
-      ? body.conversationId
-      : typeof body.offerId === "string"
-        ? `demo-offer-${body.offerId}`
-        : "demo-conversation";
+  const response = await fetch("/api/ws/inbox/intent", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
 
-  return {
-    ok: true,
-    conversationId,
-  } as TResult;
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(
+      typeof payload?.message === "string" ? payload.message : "تعذر تنفيذ هذا الإجراء الآن.",
+    );
+  }
+
+  return payload as TResult;
 }
 
 export function useInboxBusinessActions() {

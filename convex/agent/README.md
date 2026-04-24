@@ -25,3 +25,30 @@ Persistence rules:
 - Agent tables own run/event/assistant-turn state.
 - Structured operational memory is limited to tool calls and property search sessions/results.
 - Do not add a second generic conversation-memory store.
+
+## Public Functions
+
+See `FUNCTION_REGISTER.md`.
+
+## Internal Functions
+
+See `FUNCTION_REGISTER.md`.
+
+## Shared Helpers
+
+- Thread ownership lives in `lib/threadAccess.ts`.
+- Worker health and runtime health view models live in `lib/workerHealth.ts` and `lib/runtimeHealth.ts`.
+- Presentation, memory planning, persona, model policy, and registry helpers live under `orchestrator/`.
+
+## Known Blockers/Risks
+
+- `orchestrator/worker.ts` and `orchestrator/runtime.ts` are intentionally listed in `../CONVEX_AUDIT.md` as oversized split targets.
+- Public agent functions must verify auth and thread ownership before reading or mutating user-visible state.
+- Worker-facing runtime functions are public Convex functions because the external worker calls them; treat them as privileged protocol endpoints.
+
+## Where To Add Code
+
+- Add client-facing thread APIs under `public/`.
+- Add private persistence helpers under `internal/`.
+- Add worker protocol endpoints under `orchestrator/runtime.ts` or its split successor modules.
+- Add pure helper logic under `lib/` or focused `orchestrator/` helper files.

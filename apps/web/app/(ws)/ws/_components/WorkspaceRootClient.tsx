@@ -6,6 +6,7 @@ import { api } from "@/lib/convexApi";
 import { getWorkspaceOrganizationDisplay } from "../_lib/organizationDisplay";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useSession } from "@/lib/auth/webAuthClient";
 import type { WorkspaceZoneKey } from "@/server/contracts/workspace";
 
 type WorkspaceRootClientProps = {
@@ -18,15 +19,24 @@ type WorkspaceRootClientProps = {
  */
 export default function WorkspaceRootClient({ children }: WorkspaceRootClientProps) {
   const workspaceState = useQuery(api.partnerWorkspace.getWorkspaceState);
+  const session = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (workspaceState === null) {
-      router.push("/sign-in");
+    if (!session.isPending && !session.data?.session && workspaceState === null) {
+      router.push("/signin");
     }
-  }, [workspaceState, router]);
+  }, [workspaceState, session.isPending, session.data?.session, router]);
 
-  if (workspaceState === undefined || workspaceState === null) {
+  if (session.isPending || workspaceState === undefined) {
+    return (
+      <div className="flex h-dvh w-full items-center justify-center bg-background">
+        <div className="text-sm font-medium text-muted-foreground animate-pulse">Loading workspace…</div>
+      </div>
+    );
+  }
+
+  if (workspaceState === null) {
     return (
       <div className="flex h-dvh w-full items-center justify-center bg-background">
         <div className="text-sm font-medium text-muted-foreground animate-pulse">Loading workspace…</div>
